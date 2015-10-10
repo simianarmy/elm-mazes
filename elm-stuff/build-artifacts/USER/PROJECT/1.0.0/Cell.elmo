@@ -93,6 +93,14 @@ Elm.Cell.make = function (_elm) {
       ":",
       $Basics.toString(b)));
    });
+   var createCell = F2(function (row,
+   col) {
+      return {_: {}
+             ,col: col
+             ,id: A2(createCellID,row,col)
+             ,links: $Set.empty
+             ,row: row};
+   });
    var Cell = F4(function (a,
    b,
    c,
@@ -105,6 +113,7 @@ Elm.Cell.make = function (_elm) {
    });
    _elm.Cell.values = {_op: _op
                       ,Cell: Cell
+                      ,createCell: createCell
                       ,createCellID: createCellID
                       ,linkCell: linkCell
                       ,unlinkCell: unlinkCell

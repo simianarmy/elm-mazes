@@ -12,6 +12,16 @@ type alias Cell = {
     links: Set CellID
 }
 
+-- create cell at row col
+createCell : Int -> Int -> Cell
+createCell row col =
+    {
+        id = createCellID row col,
+        row = row,
+        col = col,
+        links = Set.empty
+    }
+
 -- generate a unique id string
 createCellID : Int -> Int -> CellID
 createCellID a b =

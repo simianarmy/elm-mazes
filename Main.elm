@@ -1,3 +1,5 @@
+import String
+import List
 import Html exposing (..)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
@@ -12,12 +14,14 @@ type alias Model = Grid
 
 
 main =
-    let grid = createGrid 5 5
-        cell = getCell grid 1 3
+    let grid = Grid.createGrid 3 3 
+        cell = Cell.createCell 2 2
+        neighs = Grid.neighbors grid cell
     in
-        text ((gridToText grid) ++
-            " cell at 1, 3 is " ++
-            (cell |> Maybe.map (Cell.cellToString) |> Maybe.withDefault ""))
+       text ((gridToString grid) ++
+           " neighbors of at 2,2 are " ++
+           String.concat (List.map Cell.cellToString neighs))
+       --(cell |> Maybe.map (Cell.cellToString) |> Maybe.withDefault ""))
     -- text cellToString getCell grid
   -- start
   --   { model = 0

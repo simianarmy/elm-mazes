@@ -1,0 +1,7 @@
+*~
+elm-stuff
+dist/
+hello.js
+*.elmi
+*.elmo
+node_modules/

@@ -8,20 +8,12 @@ type alias Grid = {rows: Int, cols: Int, cells: List Cell}
 
 createGrid : Int -> Int -> Grid
 createGrid rows cols =
-    let makeCell : Int -> Int -> Cell
-        makeCell row col =
-            {
-                id = createCellID row col,
-                row = row,
-                col = col,
-                links = Set.empty
-            }
-
+    let 
         makeRow : Int -> Int -> List Cell
         makeRow cols row =
             List.map
-                (makeCell row)
-                [0..cols-1]
+                (Cell.createCell row)
+                [1..cols]
 
     in
        -- loop rows times
@@ -29,12 +21,15 @@ createGrid rows cols =
            rows = rows,
            cols = cols,
            cells = List.concatMap
-               (makeRow cols) [0..rows-1]
+               (makeRow cols) [1..rows]
        }
 
 getCell : Grid -> Int -> Int -> Maybe Cell
 getCell grid row col =
-    List.head (List.take (grid.cols * row + col) grid.cells)
+    if (row > grid.rows || col > grid.cols || row <= 0 || col <= 0)
+       then Nothing
+   else
+        List.head (List.reverse (List.take ((grid.cols * (row - 1)) + col) grid.cells))
 
 north : Grid -> Cell -> Maybe Cell
 north grid cell =
@@ -52,9 +47,24 @@ east : Grid -> Cell -> Maybe Cell
 east grid cell =
     getCell grid cell.row (cell.col + 1)
 
+neighbors : Grid -> Cell -> List Cell
+neighbors grid cell =
+    let n = north grid cell
+        s = south grid cell
+        w = west grid cell
+        e = east grid cell
+    in 
+       List.concat [(cellToList n), (cellToList s), (cellToList w), (cellToList e)]
 
-gridToText : Grid -> String
-gridToText grid =
+-- Helper to make a maybe cell a list (empty if maybe)
+cellToList : Maybe Cell -> List Cell
+cellToList cell =
+    case cell of
+        Just cell -> [cell]
+        Nothing -> []
+
+gridToString : Grid -> String
+gridToString grid =
     String.concat
         (List.map cellToString grid.cells)
 
