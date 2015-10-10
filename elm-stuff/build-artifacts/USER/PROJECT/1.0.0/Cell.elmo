@@ -1,0 +1,115 @@
+Elm.Cell = Elm.Cell || {};
+Elm.Cell.make = function (_elm) {
+   "use strict";
+   _elm.Cell = _elm.Cell || {};
+   if (_elm.Cell.values)
+   return _elm.Cell.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Cell",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Set = Elm.Set.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var cellToString = function (cell) {
+      return A2($Basics._op["++"],
+      "(",
+      A2($Basics._op["++"],
+      $Basics.toString(cell.row),
+      A2($Basics._op["++"],
+      ", ",
+      A2($Basics._op["++"],
+      $Basics.toString(cell.col),
+      ")"))));
+   };
+   var isLinked = F2(function (cell1,
+   cell2) {
+      return A2($Set.member,
+      cell2.id,
+      cell1.links);
+   });
+   var linked = function (cell) {
+      return cell.links;
+   };
+   var unlinkCell = F3(function (cell,
+   cellToUnlink,
+   bidi) {
+      return function () {
+         var updatedCell = F2(function (cell1,
+         cell2) {
+            return _U.replace([["links"
+                               ,A2($Set.remove,
+                               cell2.id,
+                               cell1.links)]],
+            cell1);
+         });
+         return bidi ? {ctor: "_Tuple2"
+                       ,_0: A2(updatedCell,
+                       cell,
+                       cellToUnlink)
+                       ,_1: A2(updatedCell,
+                       cellToUnlink,
+                       cell)} : {ctor: "_Tuple2"
+                                ,_0: A2(updatedCell,
+                                cell,
+                                cellToUnlink)
+                                ,_1: cellToUnlink};
+      }();
+   });
+   var linkCell = F3(function (cell,
+   cellToLink,
+   bidi) {
+      return function () {
+         var updatedCell = F2(function (cell1,
+         cell2) {
+            return _U.replace([["links"
+                               ,A2($Set.insert,
+                               cell2.id,
+                               cell1.links)]],
+            cell1);
+         });
+         return bidi ? {ctor: "_Tuple2"
+                       ,_0: A2(updatedCell,
+                       cell,
+                       cellToLink)
+                       ,_1: A2(updatedCell,
+                       cellToLink,
+                       cell)} : {ctor: "_Tuple2"
+                                ,_0: A2(updatedCell,
+                                cell,
+                                cellToLink)
+                                ,_1: cellToLink};
+      }();
+   });
+   var createCellID = F2(function (a,
+   b) {
+      return A2($Basics._op["++"],
+      $Basics.toString(a),
+      A2($Basics._op["++"],
+      ":",
+      $Basics.toString(b)));
+   });
+   var Cell = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,col: c
+             ,id: a
+             ,links: d
+             ,row: b};
+   });
+   _elm.Cell.values = {_op: _op
+                      ,Cell: Cell
+                      ,createCellID: createCellID
+                      ,linkCell: linkCell
+                      ,unlinkCell: unlinkCell
+                      ,linked: linked
+                      ,isLinked: isLinked
+                      ,cellToString: cellToString};
+   return _elm.Cell.values;
+};

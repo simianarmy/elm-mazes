@@ -1,0 +1,103 @@
+Elm.Grid = Elm.Grid || {};
+Elm.Grid.make = function (_elm) {
+   "use strict";
+   _elm.Grid = _elm.Grid || {};
+   if (_elm.Grid.values)
+   return _elm.Grid.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Grid",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Set = Elm.Set.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var gridToText = function (grid) {
+      return $String.concat(A2($List.map,
+      $Cell.cellToString,
+      grid.cells));
+   };
+   var getCell = F3(function (grid,
+   row,
+   col) {
+      return $List.head(A2($List.take,
+      grid.cols * row + col,
+      grid.cells));
+   });
+   var north = F2(function (grid,
+   cell) {
+      return A3(getCell,
+      grid,
+      cell.row - 1,
+      cell.col);
+   });
+   var south = F2(function (grid,
+   cell) {
+      return A3(getCell,
+      grid,
+      cell.row + 1,
+      cell.col);
+   });
+   var west = F2(function (grid,
+   cell) {
+      return A3(getCell,
+      grid,
+      cell.row,
+      cell.col - 1);
+   });
+   var east = F2(function (grid,
+   cell) {
+      return A3(getCell,
+      grid,
+      cell.row,
+      cell.col + 1);
+   });
+   var createGrid = F2(function (rows,
+   cols) {
+      return function () {
+         var makeCell = F2(function (row,
+         col) {
+            return {_: {}
+                   ,col: col
+                   ,id: A2($Cell.createCellID,
+                   row,
+                   col)
+                   ,links: $Set.empty
+                   ,row: row};
+         });
+         var makeRow = F2(function (cols,
+         row) {
+            return A2($List.map,
+            makeCell(row),
+            _L.range(0,cols - 1));
+         });
+         return {_: {}
+                ,cells: A2($List.concatMap,
+                makeRow(cols),
+                _L.range(0,rows - 1))
+                ,cols: cols
+                ,rows: rows};
+      }();
+   });
+   var Grid = F3(function (a,b,c) {
+      return {_: {}
+             ,cells: c
+             ,cols: b
+             ,rows: a};
+   });
+   _elm.Grid.values = {_op: _op
+                      ,Grid: Grid
+                      ,createGrid: createGrid
+                      ,getCell: getCell
+                      ,north: north
+                      ,south: south
+                      ,west: west
+                      ,east: east
+                      ,gridToText: gridToText};
+   return _elm.Grid.values;
+};
