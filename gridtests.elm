@@ -7,6 +7,7 @@ import ElmTest.Test exposing (test, Test, suite)
 import ElmTest.Assertion exposing (assert, assertEqual)
 import ElmTest.Runner.Element exposing (runDisplay)
 import Html exposing (..)
+import Random exposing (..)
 
 -- helps with getCell
 unmaybeCell cell =
@@ -42,6 +43,7 @@ gridTests = suite "Grid test suite"
             let grid = createGrid 1 1
             in
                 assertEqual (List.length (neighbors grid (createCell 1 1))) 0)
+        , test "Grid size" (assertEqual (Grid.size (createGrid 3 5)) 15)
         ]
 
 main = runDisplay gridTests

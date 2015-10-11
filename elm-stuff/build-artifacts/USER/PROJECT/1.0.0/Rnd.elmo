@@ -1,0 +1,63 @@
+Elm.Rnd = Elm.Rnd || {};
+Elm.Rnd.make = function (_elm) {
+   "use strict";
+   _elm.Rnd = _elm.Rnd || {};
+   if (_elm.Rnd.values)
+   return _elm.Rnd.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Rnd",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var refresh = function (rnd) {
+      return function () {
+         var $ = rnd.rowRnd(rnd.seed),
+         nextRow = $._0,
+         seed2 = $._1;
+         var $ = rnd.colRnd(seed2),
+         nextCol = $._0,
+         seed3 = $._1;
+         return _U.replace([["seed"
+                            ,seed3]
+                           ,["row",nextRow]
+                           ,["col",nextCol]],
+         rnd);
+      }();
+   };
+   var createGridRnd = F2(function (rows,
+   cols) {
+      return {_: {}
+             ,col: 0
+             ,colRnd: $Random.generate(A2($Random.$int,
+             1,
+             cols))
+             ,row: 0
+             ,rowRnd: $Random.generate(A2($Random.$int,
+             1,
+             rows))
+             ,seed: $Random.initialSeed(31415)};
+   });
+   var GridRnd = F5(function (a,
+   b,
+   c,
+   d,
+   e) {
+      return {_: {}
+             ,col: c
+             ,colRnd: e
+             ,row: b
+             ,rowRnd: d
+             ,seed: a};
+   });
+   _elm.Rnd.values = {_op: _op
+                     ,GridRnd: GridRnd
+                     ,createGridRnd: createGridRnd
+                     ,refresh: refresh};
+   return _elm.Rnd.values;
+};

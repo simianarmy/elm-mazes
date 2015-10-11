@@ -13,6 +13,7 @@ Elm.Grid.make = function (_elm) {
    $Cell = Elm.Cell.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
@@ -29,8 +30,11 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 62 and 64");
+         "between lines 67 and 69");
       }();
+   };
+   var size = function (grid) {
+      return grid.rows * grid.cols;
    };
    var getCell = F3(function (grid,
    row,
@@ -98,14 +102,19 @@ Elm.Grid.make = function (_elm) {
                 makeRow(cols),
                 _L.range(1,rows))
                 ,cols: cols
-                ,rows: rows};
+                ,rows: rows
+                ,seed: $Random.initialSeed(31415)};
       }();
    });
-   var Grid = F3(function (a,b,c) {
+   var Grid = F4(function (a,
+   b,
+   c,
+   d) {
       return {_: {}
              ,cells: c
              ,cols: b
-             ,rows: a};
+             ,rows: a
+             ,seed: d};
    });
    _elm.Grid.values = {_op: _op
                       ,Grid: Grid
@@ -116,6 +125,7 @@ Elm.Grid.make = function (_elm) {
                       ,west: west
                       ,east: east
                       ,neighbors: neighbors
+                      ,size: size
                       ,cellToList: cellToList
                       ,gridToString: gridToString};
    return _elm.Grid.values;

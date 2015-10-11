@@ -130,7 +130,14 @@ Elm.Main.make = function (_elm) {
                    grid,
                    A2($Cell.createCell,1,1))),
                    0);
-                }())]));
+                }())
+                ,A2($ElmTest$Test.test,
+                "Grid size",
+                A2($ElmTest$Assertion.assertEqual,
+                $Grid.size(A2($Grid.createGrid,
+                3,
+                5)),
+                15))]));
    var main = $ElmTest$Runner$Element.runDisplay(gridTests);
    _elm.Main.values = {_op: _op
                       ,unmaybeCell: unmaybeCell

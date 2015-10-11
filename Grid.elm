@@ -3,8 +3,9 @@ module Grid where
 import Cell exposing (..)
 import Set
 import String
+import Random exposing (..)
 
-type alias Grid = {rows: Int, cols: Int, cells: List Cell}
+type alias Grid = {rows: Int, cols: Int, cells: List Cell, seed : Seed}
 
 createGrid : Int -> Int -> Grid
 createGrid rows cols =
@@ -20,8 +21,8 @@ createGrid rows cols =
        {
            rows = rows,
            cols = cols,
-           cells = List.concatMap
-               (makeRow cols) [1..rows]
+           cells = List.concatMap (makeRow cols) [1..rows],
+           seed = initialSeed 31415
        }
 
 getCell : Grid -> Int -> Int -> Maybe Cell
@@ -55,6 +56,10 @@ neighbors grid cell =
         e = east grid cell
     in 
        List.concat [(cellToList n), (cellToList s), (cellToList w), (cellToList e)]
+
+size : Grid -> Int
+size grid =
+    grid.rows * grid.cols
 
 -- Helper to make a maybe cell a list (empty if maybe)
 cellToList : Maybe Cell -> List Cell
