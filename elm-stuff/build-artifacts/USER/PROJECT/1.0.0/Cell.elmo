@@ -28,9 +28,16 @@ Elm.Cell.make = function (_elm) {
    };
    var isLinked = F2(function (cell1,
    cell2) {
-      return A2($Set.member,
-      cell2.id,
-      cell1.links);
+      return function () {
+         switch (cell2.ctor)
+         {case "Just":
+            return A2($Set.member,
+              cell2._0.id,
+              cell1.links);
+            case "Nothing": return false;}
+         _U.badCase($moduleName,
+         "between lines 63 and 65");
+      }();
    });
    var linked = function (cell) {
       return cell.links;

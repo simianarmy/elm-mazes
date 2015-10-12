@@ -57,10 +57,12 @@ linked cell =
     cell.links
 
 -- returns if cells are linked
-isLinked : Cell -> Cell -> Bool
+isLinked : Cell -> Maybe Cell -> Bool
 isLinked cell1 cell2 =
     -- if cell2's id is in cell1' set
-    Set.member cell2.id cell1.links
+    case cell2 of
+        Nothing -> False
+        Just cell2 -> Set.member cell2.id cell1.links
 
 -- returns all cell neighbors
 --neighbors : Cell -> List

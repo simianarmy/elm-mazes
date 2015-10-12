@@ -1,6 +1,7 @@
 {
     "evancz/elm-effects": "2.0.0",
     "maxsnew/IO": "1.0.1",
+    "Apanatshka/elm-signal-extra": "5.6.0",
     "evancz/virtual-dom": "2.0.0",
     "deadfoxygrandpa/Elm-Test": "1.0.4",
     "evancz/start-app": "2.0.1",

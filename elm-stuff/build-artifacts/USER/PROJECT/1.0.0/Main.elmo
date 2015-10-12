@@ -10,138 +10,63 @@ Elm.Main.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Main",
    $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $ElmTest$Assertion = Elm.ElmTest.Assertion.make(_elm),
-   $ElmTest$Runner$Element = Elm.ElmTest.Runner.Element.make(_elm),
-   $ElmTest$Test = Elm.ElmTest.Test.make(_elm),
+   $BinaryTree = Elm.BinaryTree.make(_elm),
    $Grid = Elm.Grid.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var unmaybeCell = function (cell) {
-      return $Maybe.withDefault("")($Maybe.map($Cell.cellToString)(cell));
+   $Signal = Elm.Signal.make(_elm),
+   $StartApp$Simple = Elm.StartApp.Simple.make(_elm);
+   var startTime = Elm.Native.Port.make(_elm).inbound("startTime",
+   "Float",
+   function (v) {
+      return typeof v === "number" ? v : _U.badPort("a number",
+      v);
+   });
+   var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
+   var init = function (seed) {
+      return A2($BinaryTree.on,
+      A2($Grid.createGrid,3,3),
+      seed);
    };
-   var gridTests = A2($ElmTest$Test.suite,
-   "Grid test suite",
-   _L.fromArray([A2($ElmTest$Test.test,
-                "Grid creator",
-                A2($ElmTest$Assertion.assertEqual,
-                $List.length(A2($Grid.createGrid,
-                2,
-                2).cells),
-                4))
-                ,A2($ElmTest$Test.test,
-                "Cell accessor",
-                A2($ElmTest$Assertion.assertEqual,
-                unmaybeCell(A3($Grid.getCell,
-                A2($Grid.createGrid,2,2),
-                1,
-                2)),
-                "(1, 2)"))
-                ,A2($ElmTest$Test.test,
-                "Cell accessor2",
-                A2($ElmTest$Assertion.assertEqual,
-                unmaybeCell(A3($Grid.getCell,
-                A2($Grid.createGrid,2,3),
-                1,
-                2)),
-                "(1, 2)"))
-                ,A2($ElmTest$Test.test,
-                "Cell accessor3",
-                A2($ElmTest$Assertion.assertEqual,
-                unmaybeCell(A3($Grid.getCell,
-                A2($Grid.createGrid,2,3),
-                2,
-                1)),
-                "(2, 1)"))
-                ,A2($ElmTest$Test.test,
-                "Cell accessor out of bounds",
-                A2($ElmTest$Assertion.assertEqual,
-                unmaybeCell(A3($Grid.getCell,
-                A2($Grid.createGrid,2,3),
-                3,
-                4)),
-                ""))
-                ,A2($ElmTest$Test.test,
-                "Cell accessor out of bounds2",
-                A2($ElmTest$Assertion.assertEqual,
-                unmaybeCell(A3($Grid.getCell,
-                A2($Grid.createGrid,2,3),
-                0,
-                4)),
-                ""))
-                ,A2($ElmTest$Test.test,
-                "Neighbors returns list of neighboring cells (middle of 3x3 grid)",
-                function () {
-                   var grid = A2($Grid.createGrid,
-                   3,
-                   3);
-                   return A2($ElmTest$Assertion.assertEqual,
-                   $List.length(A2($Grid.neighbors,
-                   grid,
-                   A2($Cell.createCell,2,2))),
-                   4);
-                }())
-                ,A2($ElmTest$Test.test,
-                "Neighbors returns list of neighboring cells (corner of 3x3 grid)",
-                function () {
-                   var grid = A2($Grid.createGrid,
-                   3,
-                   3);
-                   return A2($ElmTest$Assertion.assertEqual,
-                   $List.length(A2($Grid.neighbors,
-                   grid,
-                   A2($Cell.createCell,1,1))),
-                   2);
-                }())
-                ,A2($ElmTest$Test.test,
-                "Neighbors returns list of neighboring cells (corner 2x2 grid)",
-                function () {
-                   var grid = A2($Grid.createGrid,
-                   2,
-                   2);
-                   return A2($ElmTest$Assertion.assertEqual,
-                   $List.length(A2($Grid.neighbors,
-                   grid,
-                   A2($Cell.createCell,1,1))),
-                   2);
-                }())
-                ,A2($ElmTest$Test.test,
-                "Neighbors returns list of neighboring cells (corner 1x2 grid)",
-                function () {
-                   var grid = A2($Grid.createGrid,
-                   1,
-                   2);
-                   return A2($ElmTest$Assertion.assertEqual,
-                   $List.length(A2($Grid.neighbors,
-                   grid,
-                   A2($Cell.createCell,1,1))),
-                   1);
-                }())
-                ,A2($ElmTest$Test.test,
-                "Neighbors returns list of neighboring cells (corner 1x1 grid)",
-                function () {
-                   var grid = A2($Grid.createGrid,
-                   1,
-                   1);
-                   return A2($ElmTest$Assertion.assertEqual,
-                   $List.length(A2($Grid.neighbors,
-                   grid,
-                   A2($Cell.createCell,1,1))),
-                   0);
-                }())
-                ,A2($ElmTest$Test.test,
-                "Grid size",
-                A2($ElmTest$Assertion.assertEqual,
-                $Grid.size(A2($Grid.createGrid,
-                3,
-                5)),
-                15))]));
-   var main = $ElmTest$Runner$Element.runDisplay(gridTests);
+   var update = F2(function (action,
+   model) {
+      return function () {
+         switch (action.ctor)
+         {case "Refresh":
+            return init(startTimeSeed);}
+         _U.badCase($moduleName,
+         "between lines 30 and 31");
+      }();
+   });
+   var Refresh = {ctor: "Refresh"};
+   var view = F2(function (address,
+   model) {
+      return A2($Html.div,
+      _L.fromArray([]),
+      _L.fromArray([$Html.text($Grid.toTitle(model))
+                   ,A2($Html.pre,
+                   _L.fromArray([]),
+                   _L.fromArray([$Html.text($Grid.gridToString(model))]))
+                   ,A2($Html.button,
+                   _L.fromArray([A2($Html$Events.onClick,
+                   address,
+                   Refresh)]),
+                   _L.fromArray([$Html.text("REFRESH")]))]));
+   });
+   var main = $StartApp$Simple.start({_: {}
+                                     ,model: init(startTimeSeed)
+                                     ,update: update
+                                     ,view: view});
    _elm.Main.values = {_op: _op
-                      ,unmaybeCell: unmaybeCell
-                      ,gridTests: gridTests
+                      ,Refresh: Refresh
+                      ,init: init
+                      ,update: update
+                      ,view: view
+                      ,startTimeSeed: startTimeSeed
                       ,main: main};
    return _elm.Main.values;
 };

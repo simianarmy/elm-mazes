@@ -1,0 +1,89 @@
+Elm.BinaryTree = Elm.BinaryTree || {};
+Elm.BinaryTree.make = function (_elm) {
+   "use strict";
+   _elm.BinaryTree = _elm.BinaryTree || {};
+   if (_elm.BinaryTree.values)
+   return _elm.BinaryTree.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "BinaryTree",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var generateLinks = F2(function (grid,
+   seed) {
+      return function () {
+         var randomInts = $Basics.fst(A2($Random.generate,
+         A2($Random.list,
+         $List.length(grid.cells),
+         A2($Random.$int,1,2)),
+         seed));
+         var getRandomNeighbor = function (cell) {
+            return function () {
+               var northandeast = $List.concat(_L.fromArray([$Grid.cellToList(A2($Grid.north,
+                                                            grid,
+                                                            cell))
+                                                            ,$Grid.cellToList(A2($Grid.east,
+                                                            grid,
+                                                            cell))]));
+               return $List.isEmpty(northandeast) ? $Maybe.Nothing : _U.eq($List.length(northandeast),
+               1) ? $List.head(northandeast) : function () {
+                  var cellIdx = A2($Grid.cellIndex,
+                  grid,
+                  cell);
+                  var idx = $List.head($List.reverse(A2($List.take,
+                  cellIdx,
+                  randomInts)));
+                  return function () {
+                     switch (idx.ctor)
+                     {case "Just":
+                        return $List.head($List.reverse(A2($List.take,
+                          idx._0,
+                          northandeast)));
+                        case "Nothing":
+                        return $List.head(northandeast);}
+                     _U.badCase($moduleName,
+                     "between lines 40 and 43");
+                  }();
+               }();
+            }();
+         };
+         var processCell = function (cell) {
+            return function () {
+               var neighbor = getRandomNeighbor(cell);
+               return function () {
+                  switch (neighbor.ctor)
+                  {case "Just":
+                     return $Basics.fst(A3($Cell.linkCell,
+                       cell,
+                       neighbor._0,
+                       true));
+                     case "Nothing": return cell;}
+                  _U.badCase($moduleName,
+                  "between lines 47 and 50");
+               }();
+            }();
+         };
+         return A2($List.map,
+         processCell,
+         grid.cells);
+      }();
+   });
+   var on = F2(function (grid,
+   seed) {
+      return _U.replace([["cells"
+                         ,A2(generateLinks,grid,seed)]],
+      grid);
+   });
+   _elm.BinaryTree.values = {_op: _op
+                            ,on: on
+                            ,generateLinks: generateLinks};
+   return _elm.BinaryTree.values;
+};

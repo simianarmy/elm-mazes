@@ -57,9 +57,18 @@ neighbors grid cell =
     in 
        List.concat [(cellToList n), (cellToList s), (cellToList w), (cellToList e)]
 
+rowCells : Grid -> Int -> List Cell
+rowCells grid row =
+    List.filter (\c -> c.row == row) grid.cells
+
 size : Grid -> Int
 size grid =
     grid.rows * grid.cols
+
+-- cardinal index of a cell in a grid (1,1) = 1, etc
+cellIndex : Grid -> Cell -> Int
+cellIndex grid cell =
+    (grid.cols * (cell.row - 1)) + cell.col
 
 -- Helper to make a maybe cell a list (empty if maybe)
 cellToList : Maybe Cell -> List Cell
@@ -68,8 +77,42 @@ cellToList cell =
         Just cell -> [cell]
         Nothing -> []
 
+toTitle : Grid -> String
+toTitle grid =
+    toString grid.rows ++ " X " ++ toString grid.cols ++ " Grid"
+
+-- Returns ASCII representation of a grid
+type alias RowAscii = {
+    top : String, 
+    bottom : String
+}
+
 gridToString : Grid -> String
 gridToString grid =
-    String.concat
-        (List.map cellToString grid.cells)
+    let cellToString : Cell -> RowAscii -> RowAscii
+        cellToString cell ascii =
+            let east_boundary = (if isLinked cell (east grid cell) then "E" else "|")
+                south_boundary = (if isLinked cell (south grid cell) then " S " else "---")
+                curtop = ascii.top
+                curbottom = ascii.bottom
+            in
+               {
+                   ascii |
+                   top <- curtop ++ (String.repeat 3 " ") ++ east_boundary,
+                   bottom <- curbottom ++ south_boundary ++ "+"
+               }
+
+        rowToStrings : Int -> String
+        rowToStrings row =
+            let rowascii = {
+                top = "|",
+                bottom = "+"
+            }
+                finalascii = List.foldl cellToString rowascii (rowCells grid row)
+            in
+               finalascii.top ++ "\n" ++ finalascii.bottom ++ "\n"
+    in
+       "+" ++ (String.repeat grid.cols "---+") ++ "\n" ++
+       String.concat (List.map rowToStrings [1..grid.rows])
+
 

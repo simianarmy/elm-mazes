@@ -17,10 +17,20 @@ Elm.Grid.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
-   var gridToString = function (grid) {
-      return $String.concat(A2($List.map,
-      $Cell.cellToString,
-      grid.cells));
+   var RowAscii = F2(function (a,
+   b) {
+      return {_: {}
+             ,bottom: b
+             ,top: a};
+   });
+   var toTitle = function (grid) {
+      return A2($Basics._op["++"],
+      $Basics.toString(grid.rows),
+      A2($Basics._op["++"],
+      " X ",
+      A2($Basics._op["++"],
+      $Basics.toString(grid.cols),
+      " Grid")));
    };
    var cellToList = function (cell) {
       return function () {
@@ -30,12 +40,24 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 67 and 69");
+         "between lines 76 and 78");
       }();
    };
+   var cellIndex = F2(function (grid,
+   cell) {
+      return grid.cols * (cell.row - 1) + cell.col;
+   });
    var size = function (grid) {
       return grid.rows * grid.cols;
    };
+   var rowCells = F2(function (grid,
+   row) {
+      return A2($List.filter,
+      function (c) {
+         return _U.eq(c.row,row);
+      },
+      grid.cells);
+   });
    var getCell = F3(function (grid,
    row,
    col) {
@@ -88,6 +110,67 @@ Elm.Grid.make = function (_elm) {
                                           ,cellToList(e)]));
       }();
    });
+   var gridToString = function (grid) {
+      return function () {
+         var cellToString = F2(function (cell,
+         ascii) {
+            return function () {
+               var curbottom = ascii.bottom;
+               var curtop = ascii.top;
+               var south_boundary = A2($Cell.isLinked,
+               cell,
+               A2(south,
+               grid,
+               cell)) ? " S " : "---";
+               var east_boundary = A2($Cell.isLinked,
+               cell,
+               A2(east,grid,cell)) ? "E" : "|";
+               return _U.replace([["top"
+                                  ,A2($Basics._op["++"],
+                                  curtop,
+                                  A2($Basics._op["++"],
+                                  A2($String.repeat,3," "),
+                                  east_boundary))]
+                                 ,["bottom"
+                                  ,A2($Basics._op["++"],
+                                  curbottom,
+                                  A2($Basics._op["++"],
+                                  south_boundary,
+                                  "+"))]],
+               ascii);
+            }();
+         });
+         var rowToStrings = function (row) {
+            return function () {
+               var rowascii = {_: {}
+                              ,bottom: "+"
+                              ,top: "|"};
+               var finalascii = A3($List.foldl,
+               cellToString,
+               rowascii,
+               A2(rowCells,grid,row));
+               return A2($Basics._op["++"],
+               finalascii.top,
+               A2($Basics._op["++"],
+               "\n",
+               A2($Basics._op["++"],
+               finalascii.bottom,
+               "\n")));
+            }();
+         };
+         return A2($Basics._op["++"],
+         "+",
+         A2($Basics._op["++"],
+         A2($String.repeat,
+         grid.cols,
+         "---+"),
+         A2($Basics._op["++"],
+         "\n",
+         $String.concat(A2($List.map,
+         rowToStrings,
+         _L.range(1,grid.rows))))));
+      }();
+   };
    var createGrid = F2(function (rows,
    cols) {
       return function () {
@@ -125,8 +208,12 @@ Elm.Grid.make = function (_elm) {
                       ,west: west
                       ,east: east
                       ,neighbors: neighbors
+                      ,rowCells: rowCells
                       ,size: size
+                      ,cellIndex: cellIndex
                       ,cellToList: cellToList
+                      ,toTitle: toTitle
+                      ,RowAscii: RowAscii
                       ,gridToString: gridToString};
    return _elm.Grid.values;
 };
