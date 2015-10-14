@@ -21,9 +21,11 @@ type alias Model = Grid
 
 type Action = Refresh
 
-init : Seed -> Grid
-init seed =
-    BinaryTree.on (Grid.createGrid 3 3) seed
+type alias MazeAlgorith = Seed -> Grid
+
+init : MazeAlgorithm -> Seed -> Grid
+init alg seed =
+    alg (Grid.createGrid 3 3) seed
 
 update : Action -> Model -> Model
 update action model =
@@ -45,7 +47,7 @@ startTimeSeed = Random.initialSeed <| round startTime
 
 main =
     start { 
-        model = init startTimeSeed
+        model = init (BinaryTree on) startTimeSeed
           , update = update
           , view =view
       }
