@@ -2,6 +2,7 @@ module Grid where
 
 import Cell exposing (..)
 import Set
+import List
 import String
 import Random exposing (..)
 
@@ -32,6 +33,12 @@ getCell grid row col =
    else
         List.head (List.reverse (List.take ((grid.cols * (row - 1)) + col) grid.cells))
 
+toValidCell : Maybe Cell -> Cell
+toValidCell cell =
+    case cell of
+        Nothing -> createCell -1 -1
+        Just cell -> cell
+
 north : Grid -> Cell -> Maybe Cell
 north grid cell =
     getCell grid (cell.row - 1) cell.col
@@ -56,6 +63,40 @@ neighbors grid cell =
         e = east grid cell
     in 
        List.concat [(cellToList n), (cellToList s), (cellToList w), (cellToList e)]
+
+-- link 2 cells
+linkCells : Grid -> Cell -> Cell -> Bool -> Grid
+linkCells grid cell cellToLink bidi =
+    let linkCell : Cell -> Cell -> Cell
+        linkCell cell1 cell2 = {
+            cell1 | links <- Set.insert cell2.id cell1.links
+        }
+        linkMatched : Cell -> Cell
+        linkMatched c =
+            if c.id == cell.id
+               then linkCell c cellToLink
+               else if bidi && (c.id == cellToLink.id)
+                       then linkCell cellToLink cell
+                       else c
+    in
+        {grid | cells <- List.map linkMatched grid.cells}
+
+-- unlink 2 cells w/ optional bidirectional flag
+unlinkCells : Grid -> Cell -> Cell -> Bool -> Grid
+unlinkCells grid cell cellToUnlink bidi =
+    let unlinkCell : Cell -> Cell -> Cell
+        unlinkCell cell1 cell2 = {
+            cell1 | links <- Set.remove cell2.id cell1.links
+        }
+        unlinkMatched : Cell -> Cell
+        unlinkMatched c =
+            if c.id == cell.id
+               then unlinkCell c cellToUnlink
+               else if bidi
+                       then unlinkCell cellToUnlink cell
+                       else c
+    in
+       {grid | cells <- List.map unlinkMatched grid.cells}
 
 rowCells : Grid -> Int -> List Cell
 rowCells grid row =
@@ -91,8 +132,8 @@ gridToString : Grid -> String
 gridToString grid =
     let cellToString : Cell -> RowAscii -> RowAscii
         cellToString cell ascii =
-            let east_boundary = (if isLinked cell (east grid cell) then "E" else "|")
-                south_boundary = (if isLinked cell (south grid cell) then " S " else "---")
+            let east_boundary = (if isLinked cell (toValidCell (east grid cell)) then "E" else "|")
+                south_boundary = (if isLinked cell (toValidCell (south grid cell)) then "   " else "---")
                 curtop = ascii.top
                 curbottom = ascii.bottom
             in

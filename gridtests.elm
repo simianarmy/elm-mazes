@@ -3,6 +3,7 @@ import Grid exposing (..)
 import Cell exposing (..)
 import Set
 import String
+import List exposing (head)
 
 import ElmTest.Test exposing (test, Test, suite)
 import ElmTest.Assertion exposing (assert, assertEqual)
@@ -40,6 +41,20 @@ gridTests = suite "Grid test suite"
             let grid = createGrid 3 3
             in
                 assertEqual (unmaybeCell (east grid (createCell 1 2))) "(1, 3)")
+        , test "South function returns Nothing for all southernnmost cells" (
+            let grid = createGrid 3 3
+            in
+                assertEqual (unmaybeCell (south grid (createCell 3 1))) "")
+        , test "South function returns cell for all non-southernnmost cells" (
+            let grid = createGrid 3 3
+            in
+                assertEqual (unmaybeCell (south grid (createCell 1 1))) "(2, 1)")
+        , test "Linking cells bidirectionally retains linking state in cells" (
+            let grid = createGrid 2 2
+                grid' = linkCells grid (createCell 1 1) (createCell 2 1) True
+                oneone = toValidCell (getCell grid' 1 1)
+            in
+               assert (isLinked oneone (toValidCell (south grid' oneone))))
         , test "Neighbors returns list of neighboring cells (middle of 3x3 grid)" (
             let grid = createGrid 3 3
             in

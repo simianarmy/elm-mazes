@@ -17,15 +17,11 @@ Elm.BinaryTree.make = function (_elm) {
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var generateLinks = F2(function (grid,
+   var on = F2(function (grid,
    seed) {
       return function () {
-         var randomInts = $Basics.fst(A2($Random.generate,
-         A2($Random.list,
-         $List.length(grid.cells),
-         A2($Random.$int,1,2)),
-         seed));
-         var getRandomNeighbor = function (cell) {
+         var getRandomNeighbor = F2(function (cell,
+         randInt) {
             return function () {
                var northandeast = $List.concat(_L.fromArray([$Grid.cellToList(A2($Grid.north,
                                                             grid,
@@ -34,56 +30,56 @@ Elm.BinaryTree.make = function (_elm) {
                                                             grid,
                                                             cell))]));
                return $List.isEmpty(northandeast) ? $Maybe.Nothing : _U.eq($List.length(northandeast),
-               1) ? $List.head(northandeast) : function () {
-                  var cellIdx = A2($Grid.cellIndex,
-                  grid,
-                  cell);
-                  var idx = $List.head($List.reverse(A2($List.take,
-                  cellIdx,
-                  randomInts)));
-                  return function () {
-                     switch (idx.ctor)
-                     {case "Just":
-                        return $List.head($List.reverse(A2($List.take,
-                          idx._0,
-                          northandeast)));
-                        case "Nothing":
-                        return $List.head(northandeast);}
-                     _U.badCase($moduleName,
-                     "between lines 40 and 43");
-                  }();
-               }();
+               1) ? $List.head(northandeast) : $List.head($List.reverse(A2($List.take,
+               randInt,
+               northandeast)));
             }();
-         };
-         var processCell = function (cell) {
+         });
+         var processCell = F2(function (_v0,
+         grid) {
             return function () {
-               var neighbor = getRandomNeighbor(cell);
-               return function () {
-                  switch (neighbor.ctor)
-                  {case "Just":
-                     return $Basics.fst(A3($Cell.linkCell,
-                       cell,
-                       neighbor._0,
-                       true));
-                     case "Nothing": return cell;}
-                  _U.badCase($moduleName,
-                  "between lines 47 and 50");
-               }();
+               switch (_v0.ctor)
+               {case "_Tuple2":
+                  return function () {
+                       var neighbor = A2(getRandomNeighbor,
+                       _v0._0,
+                       _v0._1);
+                       return function () {
+                          switch (neighbor.ctor)
+                          {case "Just":
+                             return A4($Grid.linkCells,
+                               grid,
+                               _v0._0,
+                               neighbor._0,
+                               true);
+                             case "Nothing": return grid;}
+                          _U.badCase($moduleName,
+                          "between lines 35 and 38");
+                       }();
+                    }();}
+               _U.badCase($moduleName,
+               "between lines 33 and 38");
             }();
-         };
-         return A2($List.map,
+         });
+         var randomInts = $Basics.fst(A2($Random.generate,
+         A2($Random.list,
+         $List.length(grid.cells),
+         A2($Random.$int,1,2)),
+         seed));
+         return A3($List.foldl,
          processCell,
-         grid.cells);
+         grid,
+         A3($List.map2,
+         F2(function (v0,v1) {
+            return {ctor: "_Tuple2"
+                   ,_0: v0
+                   ,_1: v1};
+         }),
+         grid.cells,
+         randomInts));
       }();
    });
-   var on = F2(function (grid,
-   seed) {
-      return _U.replace([["cells"
-                         ,A2(generateLinks,grid,seed)]],
-      grid);
-   });
    _elm.BinaryTree.values = {_op: _op
-                            ,on: on
-                            ,generateLinks: generateLinks};
+                            ,on: on};
    return _elm.BinaryTree.values;
 };

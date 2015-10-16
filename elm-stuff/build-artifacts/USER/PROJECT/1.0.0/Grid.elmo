@@ -15,6 +15,7 @@ Elm.Grid.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Set = Elm.Set.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
    var RowAscii = F2(function (a,
@@ -40,7 +41,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 76 and 78");
+         "between lines 117 and 119");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -58,6 +59,75 @@ Elm.Grid.make = function (_elm) {
       },
       grid.cells);
    });
+   var unlinkCells = F4(function (grid,
+   cell,
+   cellToUnlink,
+   bidi) {
+      return function () {
+         var unlinkCell = F2(function (cell1,
+         cell2) {
+            return _U.replace([["links"
+                               ,A2($Set.remove,
+                               cell2.id,
+                               cell1.links)]],
+            cell1);
+         });
+         var unlinkMatched = function (c) {
+            return _U.eq(c.id,
+            cell.id) ? A2(unlinkCell,
+            c,
+            cellToUnlink) : bidi ? A2(unlinkCell,
+            cellToUnlink,
+            cell) : c;
+         };
+         return _U.replace([["cells"
+                            ,A2($List.map,
+                            unlinkMatched,
+                            grid.cells)]],
+         grid);
+      }();
+   });
+   var linkCells = F4(function (grid,
+   cell,
+   cellToLink,
+   bidi) {
+      return function () {
+         var linkCell = F2(function (cell1,
+         cell2) {
+            return _U.replace([["links"
+                               ,A2($Set.insert,
+                               cell2.id,
+                               cell1.links)]],
+            cell1);
+         });
+         var linkMatched = function (c) {
+            return _U.eq(c.id,
+            cell.id) ? A2(linkCell,
+            c,
+            cellToLink) : bidi && _U.eq(c.id,
+            cellToLink.id) ? A2(linkCell,
+            cellToLink,
+            cell) : c;
+         };
+         return _U.replace([["cells"
+                            ,A2($List.map,
+                            linkMatched,
+                            grid.cells)]],
+         grid);
+      }();
+   });
+   var toValidCell = function (cell) {
+      return function () {
+         switch (cell.ctor)
+         {case "Just": return cell._0;
+            case "Nothing":
+            return A2($Cell.createCell,
+              -1,
+              -1);}
+         _U.badCase($moduleName,
+         "between lines 38 and 40");
+      }();
+   };
    var getCell = F3(function (grid,
    row,
    col) {
@@ -119,12 +189,14 @@ Elm.Grid.make = function (_elm) {
                var curtop = ascii.top;
                var south_boundary = A2($Cell.isLinked,
                cell,
-               A2(south,
+               toValidCell(A2(south,
                grid,
-               cell)) ? " S " : "---";
+               cell))) ? "   " : "---";
                var east_boundary = A2($Cell.isLinked,
                cell,
-               A2(east,grid,cell)) ? "E" : "|";
+               toValidCell(A2(east,
+               grid,
+               cell))) ? "E" : "|";
                return _U.replace([["top"
                                   ,A2($Basics._op["++"],
                                   curtop,
@@ -203,11 +275,14 @@ Elm.Grid.make = function (_elm) {
                       ,Grid: Grid
                       ,createGrid: createGrid
                       ,getCell: getCell
+                      ,toValidCell: toValidCell
                       ,north: north
                       ,south: south
                       ,west: west
                       ,east: east
                       ,neighbors: neighbors
+                      ,linkCells: linkCells
+                      ,unlinkCells: unlinkCells
                       ,rowCells: rowCells
                       ,size: size
                       ,cellIndex: cellIndex

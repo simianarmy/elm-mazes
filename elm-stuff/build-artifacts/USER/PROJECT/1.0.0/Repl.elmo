@@ -10,14 +10,20 @@ Elm.Repl.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Repl",
    $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var tsol = {ctor: "_Tuple0"};
-   var deltron3030 = $List.head($List.reverse(A2($List.take,
-   2,
-   _L.fromArray([1,2,2,1]))));
+   var deltron3030 = $Grid.toValidCell(A2($Grid.south,
+   A4($Grid.linkCells,
+   A2($Grid.createGrid,2,2),
+   A2($Cell.createCell,1,1),
+   A2($Cell.createCell,2,1),
+   true),
+   A2($Cell.createCell,1,1)));
    _elm.Repl.values = {_op: _op
                       ,deltron3030: deltron3030
                       ,tsol: tsol};

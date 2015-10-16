@@ -4592,11 +4592,13 @@ Elm.Main.make = function (_elm) {
    $BinaryTree = Elm.BinaryTree.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $Html = Elm.Html.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $StartApp$Simple = Elm.StartApp.Simple.make(_elm);
    var startTime = Elm.Native.Port.make(_elm).inbound("startTime",
    "Float",
    function (v) {
@@ -4604,18 +4606,45 @@ Elm.Main.make = function (_elm) {
       v);
    });
    var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
-   var main = function () {
-      var grid = A2($BinaryTree.on,
+   var init = function (alg) {
+      return A2(alg,
       A2($Grid.createGrid,3,3),
       startTimeSeed);
+   };
+   var update = F2(function (action,
+   model) {
+      return function () {
+         switch (action.ctor)
+         {case "Refresh":
+            return init($BinaryTree.on);}
+         _U.badCase($moduleName,
+         "between lines 32 and 33");
+      }();
+   });
+   var Refresh = {ctor: "Refresh"};
+   var view = F2(function (address,
+   model) {
       return A2($Html.div,
       _L.fromArray([]),
-      _L.fromArray([$Html.text($Grid.toTitle(grid))
+      _L.fromArray([$Html.text($Grid.toTitle(model))
                    ,A2($Html.pre,
                    _L.fromArray([]),
-                   _L.fromArray([$Html.text($Grid.gridToString(grid))]))]));
-   }();
+                   _L.fromArray([$Html.text($Grid.gridToString(model))]))
+                   ,A2($Html.button,
+                   _L.fromArray([A2($Html$Events.onClick,
+                   address,
+                   Refresh)]),
+                   _L.fromArray([$Html.text("REFRESH")]))]));
+   });
+   var main = $StartApp$Simple.start({_: {}
+                                     ,model: init($BinaryTree.on)
+                                     ,update: update
+                                     ,view: view});
    _elm.Main.values = {_op: _op
+                      ,Refresh: Refresh
+                      ,init: init
+                      ,update: update
+                      ,view: view
                       ,startTimeSeed: startTimeSeed
                       ,main: main};
    return _elm.Main.values;
@@ -13928,4 +13957,4 @@ Elm.VirtualDom.make = function (_elm) {
                             ,lazy3: lazy3
                             ,Options: Options};
    return _elm.VirtualDom.values;
-};</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main, {startTime: Date.now()})</script></body></html>
+};</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script></body></html>

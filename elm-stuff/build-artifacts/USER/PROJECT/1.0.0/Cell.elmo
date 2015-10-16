@@ -28,70 +28,13 @@ Elm.Cell.make = function (_elm) {
    };
    var isLinked = F2(function (cell1,
    cell2) {
-      return function () {
-         switch (cell2.ctor)
-         {case "Just":
-            return A2($Set.member,
-              cell2._0.id,
-              cell1.links);
-            case "Nothing": return false;}
-         _U.badCase($moduleName,
-         "between lines 63 and 65");
-      }();
+      return A2($Set.member,
+      cell2.id,
+      cell1.links);
    });
    var linked = function (cell) {
       return cell.links;
    };
-   var unlinkCell = F3(function (cell,
-   cellToUnlink,
-   bidi) {
-      return function () {
-         var updatedCell = F2(function (cell1,
-         cell2) {
-            return _U.replace([["links"
-                               ,A2($Set.remove,
-                               cell2.id,
-                               cell1.links)]],
-            cell1);
-         });
-         return bidi ? {ctor: "_Tuple2"
-                       ,_0: A2(updatedCell,
-                       cell,
-                       cellToUnlink)
-                       ,_1: A2(updatedCell,
-                       cellToUnlink,
-                       cell)} : {ctor: "_Tuple2"
-                                ,_0: A2(updatedCell,
-                                cell,
-                                cellToUnlink)
-                                ,_1: cellToUnlink};
-      }();
-   });
-   var linkCell = F3(function (cell,
-   cellToLink,
-   bidi) {
-      return function () {
-         var updatedCell = F2(function (cell1,
-         cell2) {
-            return _U.replace([["links"
-                               ,A2($Set.insert,
-                               cell2.id,
-                               cell1.links)]],
-            cell1);
-         });
-         return bidi ? {ctor: "_Tuple2"
-                       ,_0: A2(updatedCell,
-                       cell,
-                       cellToLink)
-                       ,_1: A2(updatedCell,
-                       cellToLink,
-                       cell)} : {ctor: "_Tuple2"
-                                ,_0: A2(updatedCell,
-                                cell,
-                                cellToLink)
-                                ,_1: cellToLink};
-      }();
-   });
    var createCellID = F2(function (a,
    b) {
       return A2($Basics._op["++"],
@@ -122,8 +65,6 @@ Elm.Cell.make = function (_elm) {
                       ,Cell: Cell
                       ,createCell: createCell
                       ,createCellID: createCellID
-                      ,linkCell: linkCell
-                      ,unlinkCell: unlinkCell
                       ,linked: linked
                       ,isLinked: isLinked
                       ,cellToString: cellToString};

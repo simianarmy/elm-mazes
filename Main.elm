@@ -1,16 +1,12 @@
 module Main where
 
-import String
-import List
 import Random exposing (Seed)
-import Time exposing (Time, second)
 import Html exposing (..)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import StartApp.Simple exposing (start)
 
-import Grid exposing (..)
-import Cell
+import Grid exposing (Grid, createGrid, gridToString, toTitle)
 import BinaryTree
 
 -- MODEL
@@ -21,16 +17,16 @@ type alias Model = Grid
 
 type Action = Refresh
 
-type alias MazeAlgorith = Seed -> Grid
+type alias MazeAlgorithm = Grid -> Seed -> Grid
 
-init : MazeAlgorithm -> Seed -> Grid
-init alg seed =
-    alg (Grid.createGrid 3 3) seed
+init : MazeAlgorithm -> Grid
+init alg =
+    alg (createGrid 3 3) startTimeSeed
 
 update : Action -> Model -> Model
 update action model =
     case action of
-        Refresh -> init startTimeSeed
+        Refresh -> init BinaryTree.on
 
 -- VIEW
 view : Signal.Address Action -> Model -> Html
@@ -46,8 +42,8 @@ startTimeSeed : Seed
 startTimeSeed = Random.initialSeed <| round startTime
 
 main =
-    start { 
-        model = init (BinaryTree on) startTimeSeed
+    start {
+        model = init BinaryTree.on
           , update = update
           , view =view
       }

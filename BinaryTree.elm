@@ -4,9 +4,6 @@
 module BinaryTree where
 
 import List exposing (..)
-import Mouse
-import Signal
-import Signal exposing (Signal, (<~), (~))
 import Random exposing (..)
 
 import Grid exposing (..)
@@ -14,14 +11,10 @@ import Cell exposing (..)
 
 on : Grid -> Seed -> Grid
 on grid seed =
-    {grid | cells <- generateLinks grid seed}
-
-generateLinks : Grid -> Seed -> List Cell
-generateLinks grid seed =
     -- just fuckin generate all the rands at once - keeping the seed updated is impossible
-    let randomInts = fst (generate (list (List.length grid.cells) (int 1 2)) (seed))
-        getRandomNeighbor : Cell -> Maybe Cell
-        getRandomNeighbor cell =
+    let randomInts = fst <| generate (list (length grid.cells) (int 1 2)) (seed)
+        getRandomNeighbor : Cell -> Int -> Maybe Cell
+        getRandomNeighbor cell randInt =
             let northandeast = List.concat [
                 cellToList (north grid cell),
                 cellToList (east grid cell)]
@@ -33,19 +26,15 @@ generateLinks grid seed =
                        then head northandeast
                        else
                        -- pick one of two
-                        let cellIdx = cellIndex grid cell
-                            -- my silly way to index the list of random ints
-                            idx = head (reverse (take cellIdx randomInts))
-                        in
-                           case idx of
-                               Nothing -> head northandeast
-                               Just idx -> head (reverse (take idx northandeast))
-        processCell : Cell -> Cell
-        processCell cell =
-            let neighbor = getRandomNeighbor cell
+                       head (reverse (take randInt northandeast))
+
+        processCell : (Cell, Int) -> Grid -> Grid
+        processCell (cell, randInt) grid =
+            let neighbor = getRandomNeighbor cell randInt
             in
                case neighbor of
-                   Nothing -> cell
-                   Just neighbor -> fst (linkCell cell neighbor True)
+                   Nothing -> grid
+                   Just neighbor -> linkCells grid cell neighbor True
     in
-        List.map processCell grid.cells
+       -- We want to somehow map over each cell while keeping the linking states
+        List.foldl processCell grid (map2 (,) grid.cells randomInts)

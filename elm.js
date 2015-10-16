@@ -289,15 +289,11 @@ Elm.BinaryTree.make = function (_elm) {
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var generateLinks = F2(function (grid,
+   var on = F2(function (grid,
    seed) {
       return function () {
-         var randomInts = $Basics.fst(A2($Random.generate,
-         A2($Random.list,
-         $List.length(grid.cells),
-         A2($Random.$int,1,2)),
-         seed));
-         var getRandomNeighbor = function (cell) {
+         var getRandomNeighbor = F2(function (cell,
+         randInt) {
             return function () {
                var northandeast = $List.concat(_L.fromArray([$Grid.cellToList(A2($Grid.north,
                                                             grid,
@@ -306,57 +302,57 @@ Elm.BinaryTree.make = function (_elm) {
                                                             grid,
                                                             cell))]));
                return $List.isEmpty(northandeast) ? $Maybe.Nothing : _U.eq($List.length(northandeast),
-               1) ? $List.head(northandeast) : function () {
-                  var cellIdx = A2($Grid.cellIndex,
-                  grid,
-                  cell);
-                  var idx = $List.head($List.reverse(A2($List.take,
-                  cellIdx,
-                  randomInts)));
-                  return function () {
-                     switch (idx.ctor)
-                     {case "Just":
-                        return $List.head($List.reverse(A2($List.take,
-                          idx._0,
-                          northandeast)));
-                        case "Nothing":
-                        return $List.head(northandeast);}
-                     _U.badCase($moduleName,
-                     "between lines 40 and 43");
-                  }();
-               }();
+               1) ? $List.head(northandeast) : $List.head($List.reverse(A2($List.take,
+               randInt,
+               northandeast)));
             }();
-         };
-         var processCell = function (cell) {
+         });
+         var processCell = F2(function (_v0,
+         grid) {
             return function () {
-               var neighbor = getRandomNeighbor(cell);
-               return function () {
-                  switch (neighbor.ctor)
-                  {case "Just":
-                     return $Basics.fst(A3($Cell.linkCell,
-                       cell,
-                       neighbor._0,
-                       true));
-                     case "Nothing": return cell;}
-                  _U.badCase($moduleName,
-                  "between lines 47 and 50");
-               }();
+               switch (_v0.ctor)
+               {case "_Tuple2":
+                  return function () {
+                       var neighbor = A2(getRandomNeighbor,
+                       _v0._0,
+                       _v0._1);
+                       return function () {
+                          switch (neighbor.ctor)
+                          {case "Just":
+                             return A4($Grid.linkCells,
+                               grid,
+                               _v0._0,
+                               neighbor._0,
+                               true);
+                             case "Nothing": return grid;}
+                          _U.badCase($moduleName,
+                          "between lines 35 and 38");
+                       }();
+                    }();}
+               _U.badCase($moduleName,
+               "between lines 33 and 38");
             }();
-         };
-         return A2($List.map,
+         });
+         var randomInts = $Basics.fst(A2($Random.generate,
+         A2($Random.list,
+         $List.length(grid.cells),
+         A2($Random.$int,1,2)),
+         seed));
+         return A3($List.foldl,
          processCell,
-         grid.cells);
+         grid,
+         A3($List.map2,
+         F2(function (v0,v1) {
+            return {ctor: "_Tuple2"
+                   ,_0: v0
+                   ,_1: v1};
+         }),
+         grid.cells,
+         randomInts));
       }();
    });
-   var on = F2(function (grid,
-   seed) {
-      return _U.replace([["cells"
-                         ,A2(generateLinks,grid,seed)]],
-      grid);
-   });
    _elm.BinaryTree.values = {_op: _op
-                            ,on: on
-                            ,generateLinks: generateLinks};
+                            ,on: on};
    return _elm.BinaryTree.values;
 };
 Elm.Cell = Elm.Cell || {};
@@ -389,70 +385,13 @@ Elm.Cell.make = function (_elm) {
    };
    var isLinked = F2(function (cell1,
    cell2) {
-      return function () {
-         switch (cell2.ctor)
-         {case "Just":
-            return A2($Set.member,
-              cell2._0.id,
-              cell1.links);
-            case "Nothing": return false;}
-         _U.badCase($moduleName,
-         "between lines 63 and 65");
-      }();
+      return A2($Set.member,
+      cell2.id,
+      cell1.links);
    });
    var linked = function (cell) {
       return cell.links;
    };
-   var unlinkCell = F3(function (cell,
-   cellToUnlink,
-   bidi) {
-      return function () {
-         var updatedCell = F2(function (cell1,
-         cell2) {
-            return _U.replace([["links"
-                               ,A2($Set.remove,
-                               cell2.id,
-                               cell1.links)]],
-            cell1);
-         });
-         return bidi ? {ctor: "_Tuple2"
-                       ,_0: A2(updatedCell,
-                       cell,
-                       cellToUnlink)
-                       ,_1: A2(updatedCell,
-                       cellToUnlink,
-                       cell)} : {ctor: "_Tuple2"
-                                ,_0: A2(updatedCell,
-                                cell,
-                                cellToUnlink)
-                                ,_1: cellToUnlink};
-      }();
-   });
-   var linkCell = F3(function (cell,
-   cellToLink,
-   bidi) {
-      return function () {
-         var updatedCell = F2(function (cell1,
-         cell2) {
-            return _U.replace([["links"
-                               ,A2($Set.insert,
-                               cell2.id,
-                               cell1.links)]],
-            cell1);
-         });
-         return bidi ? {ctor: "_Tuple2"
-                       ,_0: A2(updatedCell,
-                       cell,
-                       cellToLink)
-                       ,_1: A2(updatedCell,
-                       cellToLink,
-                       cell)} : {ctor: "_Tuple2"
-                                ,_0: A2(updatedCell,
-                                cell,
-                                cellToLink)
-                                ,_1: cellToLink};
-      }();
-   });
    var createCellID = F2(function (a,
    b) {
       return A2($Basics._op["++"],
@@ -483,8 +422,6 @@ Elm.Cell.make = function (_elm) {
                       ,Cell: Cell
                       ,createCell: createCell
                       ,createCellID: createCellID
-                      ,linkCell: linkCell
-                      ,unlinkCell: unlinkCell
                       ,linked: linked
                       ,isLinked: isLinked
                       ,cellToString: cellToString};
@@ -2925,6 +2862,7 @@ Elm.Grid.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Set = Elm.Set.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
    var RowAscii = F2(function (a,
@@ -2950,7 +2888,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 76 and 78");
+         "between lines 117 and 119");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -2968,6 +2906,75 @@ Elm.Grid.make = function (_elm) {
       },
       grid.cells);
    });
+   var unlinkCells = F4(function (grid,
+   cell,
+   cellToUnlink,
+   bidi) {
+      return function () {
+         var unlinkCell = F2(function (cell1,
+         cell2) {
+            return _U.replace([["links"
+                               ,A2($Set.remove,
+                               cell2.id,
+                               cell1.links)]],
+            cell1);
+         });
+         var unlinkMatched = function (c) {
+            return _U.eq(c.id,
+            cell.id) ? A2(unlinkCell,
+            c,
+            cellToUnlink) : bidi ? A2(unlinkCell,
+            cellToUnlink,
+            cell) : c;
+         };
+         return _U.replace([["cells"
+                            ,A2($List.map,
+                            unlinkMatched,
+                            grid.cells)]],
+         grid);
+      }();
+   });
+   var linkCells = F4(function (grid,
+   cell,
+   cellToLink,
+   bidi) {
+      return function () {
+         var linkCell = F2(function (cell1,
+         cell2) {
+            return _U.replace([["links"
+                               ,A2($Set.insert,
+                               cell2.id,
+                               cell1.links)]],
+            cell1);
+         });
+         var linkMatched = function (c) {
+            return _U.eq(c.id,
+            cell.id) ? A2(linkCell,
+            c,
+            cellToLink) : bidi && _U.eq(c.id,
+            cellToLink.id) ? A2(linkCell,
+            cellToLink,
+            cell) : c;
+         };
+         return _U.replace([["cells"
+                            ,A2($List.map,
+                            linkMatched,
+                            grid.cells)]],
+         grid);
+      }();
+   });
+   var toValidCell = function (cell) {
+      return function () {
+         switch (cell.ctor)
+         {case "Just": return cell._0;
+            case "Nothing":
+            return A2($Cell.createCell,
+              -1,
+              -1);}
+         _U.badCase($moduleName,
+         "between lines 38 and 40");
+      }();
+   };
    var getCell = F3(function (grid,
    row,
    col) {
@@ -3029,12 +3036,14 @@ Elm.Grid.make = function (_elm) {
                var curtop = ascii.top;
                var south_boundary = A2($Cell.isLinked,
                cell,
-               A2(south,
+               toValidCell(A2(south,
                grid,
-               cell)) ? " S " : "---";
+               cell))) ? "   " : "---";
                var east_boundary = A2($Cell.isLinked,
                cell,
-               A2(east,grid,cell)) ? "E" : "|";
+               toValidCell(A2(east,
+               grid,
+               cell))) ? "E" : "|";
                return _U.replace([["top"
                                   ,A2($Basics._op["++"],
                                   curtop,
@@ -3113,11 +3122,14 @@ Elm.Grid.make = function (_elm) {
                       ,Grid: Grid
                       ,createGrid: createGrid
                       ,getCell: getCell
+                      ,toValidCell: toValidCell
                       ,north: north
                       ,south: south
                       ,west: west
                       ,east: east
                       ,neighbors: neighbors
+                      ,linkCells: linkCells
+                      ,unlinkCells: unlinkCells
                       ,rowCells: rowCells
                       ,size: size
                       ,cellIndex: cellIndex
@@ -4622,19 +4634,19 @@ Elm.Main.make = function (_elm) {
       v);
    });
    var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
-   var init = function (seed) {
-      return A2($BinaryTree.on,
+   var init = function (alg) {
+      return A2(alg,
       A2($Grid.createGrid,3,3),
-      seed);
+      startTimeSeed);
    };
    var update = F2(function (action,
    model) {
       return function () {
          switch (action.ctor)
          {case "Refresh":
-            return init(startTimeSeed);}
+            return init($BinaryTree.on);}
          _U.badCase($moduleName,
-         "between lines 30 and 31");
+         "between lines 28 and 29");
       }();
    });
    var Refresh = {ctor: "Refresh"};
@@ -4653,7 +4665,7 @@ Elm.Main.make = function (_elm) {
                    _L.fromArray([$Html.text("REFRESH")]))]));
    });
    var main = $StartApp$Simple.start({_: {}
-                                     ,model: init(startTimeSeed)
+                                     ,model: init($BinaryTree.on)
                                      ,update: update
                                      ,view: view});
    _elm.Main.values = {_op: _op
@@ -4737,37 +4749,6 @@ Elm.Maybe.make = function (_elm) {
                        ,Just: Just
                        ,Nothing: Nothing};
    return _elm.Maybe.values;
-};
-Elm.Mouse = Elm.Mouse || {};
-Elm.Mouse.make = function (_elm) {
-   "use strict";
-   _elm.Mouse = _elm.Mouse || {};
-   if (_elm.Mouse.values)
-   return _elm.Mouse.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "Mouse",
-   $Basics = Elm.Basics.make(_elm),
-   $Native$Mouse = Elm.Native.Mouse.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var clicks = $Native$Mouse.clicks;
-   var isDown = $Native$Mouse.isDown;
-   var position = $Native$Mouse.position;
-   var x = A2($Signal.map,
-   $Basics.fst,
-   position);
-   var y = A2($Signal.map,
-   $Basics.snd,
-   position);
-   _elm.Mouse.values = {_op: _op
-                       ,position: position
-                       ,x: x
-                       ,y: y
-                       ,isDown: isDown
-                       ,clicks: clicks};
-   return _elm.Mouse.values;
 };
 Elm.Native.Array = {};
 Elm.Native.Array.make = function(localRuntime) {
@@ -8108,50 +8089,6 @@ Elm.Native.List.make = function(localRuntime) {
 
 };
 
-Elm.Native = Elm.Native || {};
-Elm.Native.Mouse = {};
-Elm.Native.Mouse.make = function(localRuntime) {
-
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Mouse = localRuntime.Native.Mouse || {};
-	if (localRuntime.Native.Mouse.values)
-	{
-		return localRuntime.Native.Mouse.values;
-	}
-
-	var NS = Elm.Native.Signal.make(localRuntime);
-	var Utils = Elm.Native.Utils.make(localRuntime);
-
-	var position = NS.input('Mouse.position', Utils.Tuple2(0,0));
-
-	var isDown = NS.input('Mouse.isDown', false);
-
-	var clicks = NS.input('Mouse.clicks', Utils.Tuple0);
-
-	var node = localRuntime.isFullscreen()
-		? document
-		: localRuntime.node;
-
-	localRuntime.addListener([clicks.id], node, 'click', function click() {
-		localRuntime.notify(clicks.id, Utils.Tuple0);
-	});
-	localRuntime.addListener([isDown.id], node, 'mousedown', function down() {
-		localRuntime.notify(isDown.id, true);
-	});
-	localRuntime.addListener([isDown.id], node, 'mouseup', function up() {
-		localRuntime.notify(isDown.id, false);
-	});
-	localRuntime.addListener([position.id], node, 'mousemove', function move(e) {
-		localRuntime.notify(position.id, Utils.getXY(e));
-	});
-
-	return localRuntime.Native.Mouse.values = {
-		position: position,
-		isDown: isDown,
-		clicks: clicks
-	};
-};
-
 Elm.Native.Port = {};
 Elm.Native.Port.make = function(localRuntime) {
 
@@ -10443,117 +10380,6 @@ Elm.Native.Text.make = function(localRuntime) {
 		toLine: toLine,
 		renderHtml: renderHtml
 	};
-};
-
-Elm.Native.Time = {};
-Elm.Native.Time.make = function(localRuntime)
-{
-
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Time = localRuntime.Native.Time || {};
-	if (localRuntime.Native.Time.values)
-	{
-		return localRuntime.Native.Time.values;
-	}
-
-	var NS = Elm.Native.Signal.make(localRuntime);
-	var Maybe = Elm.Maybe.make(localRuntime);
-
-
-	// FRAMES PER SECOND
-
-	function fpsWhen(desiredFPS, isOn)
-	{
-		var msPerFrame = 1000 / desiredFPS;
-		var ticker = NS.input('fps-' + desiredFPS, null);
-
-		function notifyTicker()
-		{
-			localRuntime.notify(ticker.id, null);
-		}
-
-		function firstArg(x, y)
-		{
-			return x;
-		}
-
-		// input fires either when isOn changes, or when ticker fires.
-		// Its value is a tuple with the current timestamp, and the state of isOn
-		var input = NS.timestamp(A3(NS.map2, F2(firstArg), NS.dropRepeats(isOn), ticker));
-
-		var initialState = {
-			isOn: false,
-			time: localRuntime.timer.programStart,
-			delta: 0
-		};
-
-		var timeoutId;
-
-		function update(input,state)
-		{
-			var currentTime = input._0;
-			var isOn = input._1;
-			var wasOn = state.isOn;
-			var previousTime = state.time;
-
-			if (isOn)
-			{
-				timeoutId = localRuntime.setTimeout(notifyTicker, msPerFrame);
-			}
-			else if (wasOn)
-			{
-				clearTimeout(timeoutId);
-			}
-
-			return {
-				isOn: isOn,
-				time: currentTime,
-				delta: (isOn && !wasOn) ? 0 : currentTime - previousTime
-			};
-		}
-
-		return A2(
-			NS.map,
-			function(state) { return state.delta; },
-			A3(NS.foldp, F2(update), update(input.value,initialState), input)
-		);
-	}
-
-
-	// EVERY
-
-	function every(t)
-	{
-		var ticker = NS.input('every-' + t, null);
-		function tellTime()
-		{
-			localRuntime.notify(ticker.id, null);
-		}
-		var clock = A2( NS.map, fst, NS.timestamp(ticker) );
-		setInterval(tellTime, t);
-		return clock;
-	}
-
-
-	function fst(pair)
-	{
-		return pair._0;
-	}
-
-
-	function read(s)
-	{
-		var t = Date.parse(s);
-		return isNaN(t) ? Maybe.Nothing : Maybe.Just(t);
-	}
-
-	return localRuntime.Native.Time.values = {
-		fpsWhen: F2(fpsWhen),
-		every: every,
-		toDate: function(t) { return new window.Date(t); },
-		read: read
-	};
-
 };
 
 Elm.Native.Transform2D = {};
@@ -13798,85 +13624,6 @@ Elm.Text.make = function (_elm) {
                       ,Over: Over
                       ,Through: Through};
    return _elm.Text.values;
-};
-Elm.Time = Elm.Time || {};
-Elm.Time.make = function (_elm) {
-   "use strict";
-   _elm.Time = _elm.Time || {};
-   if (_elm.Time.values)
-   return _elm.Time.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "Time",
-   $Basics = Elm.Basics.make(_elm),
-   $Native$Signal = Elm.Native.Signal.make(_elm),
-   $Native$Time = Elm.Native.Time.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var delay = $Native$Signal.delay;
-   var since = F2(function (time,
-   signal) {
-      return function () {
-         var stop = A2($Signal.map,
-         $Basics.always(-1),
-         A2(delay,time,signal));
-         var start = A2($Signal.map,
-         $Basics.always(1),
-         signal);
-         var delaydiff = A3($Signal.foldp,
-         F2(function (x,y) {
-            return x + y;
-         }),
-         0,
-         A2($Signal.merge,start,stop));
-         return A2($Signal.map,
-         F2(function (x,y) {
-            return !_U.eq(x,y);
-         })(0),
-         delaydiff);
-      }();
-   });
-   var timestamp = $Native$Signal.timestamp;
-   var every = $Native$Time.every;
-   var fpsWhen = $Native$Time.fpsWhen;
-   var fps = function (targetFrames) {
-      return A2(fpsWhen,
-      targetFrames,
-      $Signal.constant(true));
-   };
-   var inMilliseconds = function (t) {
-      return t;
-   };
-   var millisecond = 1;
-   var second = 1000 * millisecond;
-   var minute = 60 * second;
-   var hour = 60 * minute;
-   var inHours = function (t) {
-      return t / hour;
-   };
-   var inMinutes = function (t) {
-      return t / minute;
-   };
-   var inSeconds = function (t) {
-      return t / second;
-   };
-   _elm.Time.values = {_op: _op
-                      ,millisecond: millisecond
-                      ,second: second
-                      ,minute: minute
-                      ,hour: hour
-                      ,inMilliseconds: inMilliseconds
-                      ,inSeconds: inSeconds
-                      ,inMinutes: inMinutes
-                      ,inHours: inHours
-                      ,fps: fps
-                      ,fpsWhen: fpsWhen
-                      ,every: every
-                      ,timestamp: timestamp
-                      ,delay: delay
-                      ,since: since};
-   return _elm.Time.values;
 };
 Elm.Transform2D = Elm.Transform2D || {};
 Elm.Transform2D.make = function (_elm) {

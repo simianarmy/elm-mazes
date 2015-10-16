@@ -27,19 +27,19 @@ Elm.Main.make = function (_elm) {
       v);
    });
    var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
-   var init = function (seed) {
-      return A2($BinaryTree.on,
+   var init = function (alg) {
+      return A2(alg,
       A2($Grid.createGrid,3,3),
-      seed);
+      startTimeSeed);
    };
    var update = F2(function (action,
    model) {
       return function () {
          switch (action.ctor)
          {case "Refresh":
-            return init(startTimeSeed);}
+            return init($BinaryTree.on);}
          _U.badCase($moduleName,
-         "between lines 30 and 31");
+         "between lines 28 and 29");
       }();
    });
    var Refresh = {ctor: "Refresh"};
@@ -58,7 +58,7 @@ Elm.Main.make = function (_elm) {
                    _L.fromArray([$Html.text("REFRESH")]))]));
    });
    var main = $StartApp$Simple.start({_: {}
-                                     ,model: init(startTimeSeed)
+                                     ,model: init($BinaryTree.on)
                                      ,update: update
                                      ,view: view});
    _elm.Main.values = {_op: _op
