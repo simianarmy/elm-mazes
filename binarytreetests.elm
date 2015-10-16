@@ -22,6 +22,18 @@ binarytreeTests = suite "Binary Tree Algorithm test suite"
         let grid = on (createGrid 3 3) (Random.initialSeed 123123)
         in
             assertEqual (List.isEmpty (List.filter (\a -> not (Set.isEmpty (linked a))) grid.cells)) False)
+    , test "Cell top row eastern links exist" (
+        let grid = on (createGrid 3 3) (Random.initialSeed 123)
+        in
+           -- top row cells should all have an eastern link
+           assert ((Set.member "1:2" (toValidCell (getCell grid 1 1)).links) &&
+            (Set.member "1:3" (toValidCell (getCell grid 1 2)).links)))
+    , test "Cell east row north/south links exist" (
+        let grid = on (createGrid 3 3) (Random.initialSeed 123)
+        in
+           -- east row cells should all have an southern link
+           assert ((Set.member "1:3" (toValidCell (getCell grid 2 3)).links) &&
+            (Set.member "2:3" (toValidCell (getCell grid 3 3)).links)))
             ]
 
 main = runDisplay binarytreeTests

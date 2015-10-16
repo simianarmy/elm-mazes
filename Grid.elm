@@ -76,7 +76,7 @@ linkCells grid cell cellToLink bidi =
             if c.id == cell.id
                then linkCell c cellToLink
                else if bidi && (c.id == cellToLink.id)
-                       then linkCell cellToLink cell
+                       then linkCell c cell
                        else c
     in
         {grid | cells <- List.map linkMatched grid.cells}
@@ -132,7 +132,7 @@ gridToString : Grid -> String
 gridToString grid =
     let cellToString : Cell -> RowAscii -> RowAscii
         cellToString cell ascii =
-            let east_boundary = (if isLinked cell (toValidCell (east grid cell)) then "E" else "|")
+            let east_boundary = (if isLinked cell (toValidCell (east grid cell)) then " " else "|")
                 south_boundary = (if isLinked cell (toValidCell (south grid cell)) then "   " else "---")
                 curtop = ascii.top
                 curbottom = ascii.bottom

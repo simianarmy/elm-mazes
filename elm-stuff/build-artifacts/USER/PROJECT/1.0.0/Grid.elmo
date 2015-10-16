@@ -106,7 +106,7 @@ Elm.Grid.make = function (_elm) {
             c,
             cellToLink) : bidi && _U.eq(c.id,
             cellToLink.id) ? A2(linkCell,
-            cellToLink,
+            c,
             cell) : c;
          };
          return _U.replace([["cells"
@@ -196,7 +196,7 @@ Elm.Grid.make = function (_elm) {
                cell,
                toValidCell(A2(east,
                grid,
-               cell))) ? "E" : "|";
+               cell))) ? " " : "|";
                return _U.replace([["top"
                                   ,A2($Basics._op["++"],
                                   curtop,

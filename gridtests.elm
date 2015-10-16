@@ -55,6 +55,13 @@ gridTests = suite "Grid test suite"
                 oneone = toValidCell (getCell grid' 1 1)
             in
                assert (isLinked oneone (toValidCell (south grid' oneone))))
+        , test "Linking the same cell repeatedly maintains original links" (
+            let grid = createGrid 3 3
+                grid' = linkCells grid (createCell 1 1) (createCell 2 1) True
+                grid'' = linkCells grid' (createCell 1 2) (createCell 1 1) True
+                oneone = toValidCell (getCell grid'' 1 1)
+            in
+               assert ((Set.member "2:1" oneone.links) && (Set.member "1:2" oneone.links)))
         , test "Neighbors returns list of neighboring cells (middle of 3x3 grid)" (
             let grid = createGrid 3 3
             in

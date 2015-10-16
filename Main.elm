@@ -40,6 +40,8 @@ view address model =
 port startTime : Float
 startTimeSeed : Seed
 startTimeSeed = Random.initialSeed <| round startTime
+-- uncomment to debug with consistent seed
+--startTimeSeed = Random.initialSeed 123
 
 main =
     start {
