@@ -17,8 +17,7 @@ Elm.BinaryTree.make = function (_elm) {
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var on = F2(function (grid,
-   seed) {
+   var on = function (grid) {
       return function () {
          var getRandomNeighbor = F2(function (cell,
          randInt) {
@@ -65,7 +64,7 @@ Elm.BinaryTree.make = function (_elm) {
          A2($Random.list,
          $List.length(grid.cells),
          A2($Random.$int,1,2)),
-         seed));
+         grid.rnd.seed));
          return A3($List.foldl,
          processCell,
          grid,
@@ -78,7 +77,7 @@ Elm.BinaryTree.make = function (_elm) {
          grid.cells,
          randomInts));
       }();
-   });
+   };
    _elm.BinaryTree.values = {_op: _op
                             ,on: on};
    return _elm.BinaryTree.values;

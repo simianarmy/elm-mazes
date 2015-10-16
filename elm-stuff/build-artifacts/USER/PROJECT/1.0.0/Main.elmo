@@ -27,21 +27,6 @@ Elm.Main.make = function (_elm) {
       v);
    });
    var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
-   var init = function (alg) {
-      return A2(alg,
-      A2($Grid.createGrid,3,3),
-      startTimeSeed);
-   };
-   var update = F2(function (action,
-   model) {
-      return function () {
-         switch (action.ctor)
-         {case "Refresh":
-            return init($BinaryTree.on);}
-         _U.badCase($moduleName,
-         "between lines 28 and 29");
-      }();
-   });
    var Refresh = {ctor: "Refresh"};
    var view = F2(function (address,
    model) {
@@ -57,13 +42,33 @@ Elm.Main.make = function (_elm) {
                    Refresh)]),
                    _L.fromArray([$Html.text("REFRESH")]))]));
    });
+   var init = F2(function (alg,
+   seed) {
+      return alg(A3($Grid.createGrid,
+      20,
+      20,
+      seed));
+   });
+   var update = F2(function (action,
+   model) {
+      return function () {
+         switch (action.ctor)
+         {case "Refresh": return A2(init,
+              $BinaryTree.on,
+              $Grid.nextSeed(model));}
+         _U.badCase($moduleName,
+         "between lines 27 and 28");
+      }();
+   });
    var main = $StartApp$Simple.start({_: {}
-                                     ,model: init($BinaryTree.on)
+                                     ,model: A2(init,
+                                     $BinaryTree.on,
+                                     startTimeSeed)
                                      ,update: update
                                      ,view: view});
    _elm.Main.values = {_op: _op
-                      ,Refresh: Refresh
                       ,init: init
+                      ,Refresh: Refresh
                       ,update: update
                       ,view: view
                       ,startTimeSeed: startTimeSeed

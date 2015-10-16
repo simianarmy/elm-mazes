@@ -4,12 +4,13 @@ import Cell exposing (..)
 import Set
 import List
 import String
+import Rnd exposing (..)
 import Random exposing (..)
 
-type alias Grid = {rows: Int, cols: Int, cells: List Cell, seed : Seed}
+type alias Grid = {rows: Int, cols: Int, cells: List Cell, rnd: GridRnd}
 
-createGrid : Int -> Int -> Grid
-createGrid rows cols =
+createGrid : Int -> Int -> Seed -> Grid
+createGrid rows cols initSeed =
     let 
         makeRow : Int -> Int -> List Cell
         makeRow cols row =
@@ -23,8 +24,12 @@ createGrid rows cols =
            rows = rows,
            cols = cols,
            cells = List.concatMap (makeRow cols) [1..rows],
-           seed = initialSeed 31415
+           rnd = createGridRnd rows cols initSeed
        }
+
+nextSeed : Grid -> Seed
+nextSeed grid =
+    (refresh grid.rnd).seed
 
 getCell : Grid -> Int -> Int -> Maybe Cell
 getCell grid row col =

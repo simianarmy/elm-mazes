@@ -11,6 +11,9 @@ import ElmTest.Runner.Element exposing (runDisplay)
 import Html exposing (..)
 import Random exposing (..)
 
+createGrid row col =
+    Grid.createGrid row col (Random.initialSeed 123)
+
 -- helps with getCell
 unmaybeCell cell =
     (cell |> Maybe.map (Cell.cellToString) |> Maybe.withDefault "")

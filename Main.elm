@@ -6,27 +6,26 @@ import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import StartApp.Simple exposing (start)
 
-import Grid exposing (Grid, createGrid, gridToString, toTitle)
+import Grid exposing (Grid, createGrid, gridToString, toTitle, nextSeed)
 import BinaryTree
 
 -- MODEL
 
 type alias Model = Grid
+type alias MazeAlgorithm = Grid -> Grid
+
+init : MazeAlgorithm -> Seed -> Grid
+init alg seed =
+    alg (createGrid 20 20 seed)
 
 -- UPDATE
 
 type Action = Refresh
 
-type alias MazeAlgorithm = Grid -> Seed -> Grid
-
-init : MazeAlgorithm -> Grid
-init alg =
-    alg (createGrid 3 3) startTimeSeed
-
 update : Action -> Model -> Model
 update action model =
     case action of
-        Refresh -> init BinaryTree.on
+        Refresh -> init BinaryTree.on (nextSeed model)
 
 -- VIEW
 view : Signal.Address Action -> Model -> Html
@@ -45,7 +44,7 @@ startTimeSeed = Random.initialSeed <| round startTime
 
 main =
     start {
-        model = init BinaryTree.on
+        model = init BinaryTree.on startTimeSeed
           , update = update
           , view =view
       }

@@ -30,8 +30,9 @@ Elm.Rnd.make = function (_elm) {
          rnd);
       }();
    };
-   var createGridRnd = F2(function (rows,
-   cols) {
+   var createGridRnd = F3(function (rows,
+   cols,
+   initSeed) {
       return {_: {}
              ,col: 0
              ,colRnd: $Random.generate(A2($Random.$int,
@@ -41,7 +42,7 @@ Elm.Rnd.make = function (_elm) {
              ,rowRnd: $Random.generate(A2($Random.$int,
              1,
              rows))
-             ,seed: $Random.initialSeed(31415)};
+             ,seed: initSeed};
    });
    var GridRnd = F5(function (a,
    b,

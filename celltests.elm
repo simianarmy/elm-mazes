@@ -3,6 +3,7 @@ import Cell exposing (..)
 import Set exposing (..)
 import Grid exposing (..)
 
+import Random
 import ElmTest.Test exposing (test, Test, suite)
 import ElmTest.Assertion exposing (assert, assertEqual)
 import ElmTest.Runner.Element exposing (runDisplay)
@@ -15,14 +16,16 @@ testLinkCells : Bool -> (Cell, Cell)
 testLinkCells bidi =
     let cell1 = createCell 1 1
         cell2 = createCell 2 2
-        grid = linkCells (createGrid 2 2) cell1 cell2 bidi
+        seed = Random.initialSeed 123
+        grid = linkCells (createGrid 2 2 seed) cell1 cell2 bidi
     in
        (toValidCell (getCell grid 1 1), toValidCell (getCell grid 2 2))
 
 testUnlinkCells : Bool -> (Cell, Cell)
 testUnlinkCells bidi =
     let linked = testLinkCells bidi
-        grid = unlinkCells (createGrid 2 2) (fst linked) (snd linked) bidi
+        seed = Random.initialSeed 123
+        grid = unlinkCells (createGrid 2 2 seed) (fst linked) (snd linked) bidi
     in
        (toValidCell (getCell grid 1 1), toValidCell (getCell grid 2 2))
 

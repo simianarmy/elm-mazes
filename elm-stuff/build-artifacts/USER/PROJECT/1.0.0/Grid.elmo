@@ -15,6 +15,7 @@ Elm.Grid.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Rnd = Elm.Rnd.make(_elm),
    $Set = Elm.Set.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
@@ -41,7 +42,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 117 and 119");
+         "between lines 122 and 124");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -125,7 +126,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 38 and 40");
+         "between lines 43 and 45");
       }();
    };
    var getCell = F3(function (grid,
@@ -243,8 +244,12 @@ Elm.Grid.make = function (_elm) {
          _L.range(1,grid.rows))))));
       }();
    };
-   var createGrid = F2(function (rows,
-   cols) {
+   var nextSeed = function (grid) {
+      return $Rnd.refresh(grid.rnd).seed;
+   };
+   var createGrid = F3(function (rows,
+   cols,
+   initSeed) {
       return function () {
          var makeRow = F2(function (cols,
          row) {
@@ -257,8 +262,11 @@ Elm.Grid.make = function (_elm) {
                 makeRow(cols),
                 _L.range(1,rows))
                 ,cols: cols
-                ,rows: rows
-                ,seed: $Random.initialSeed(31415)};
+                ,rnd: A3($Rnd.createGridRnd,
+                rows,
+                cols,
+                initSeed)
+                ,rows: rows};
       }();
    });
    var Grid = F4(function (a,
@@ -268,12 +276,13 @@ Elm.Grid.make = function (_elm) {
       return {_: {}
              ,cells: c
              ,cols: b
-             ,rows: a
-             ,seed: d};
+             ,rnd: d
+             ,rows: a};
    });
    _elm.Grid.values = {_op: _op
                       ,Grid: Grid
                       ,createGrid: createGrid
+                      ,nextSeed: nextSeed
                       ,getCell: getCell
                       ,toValidCell: toValidCell
                       ,north: north

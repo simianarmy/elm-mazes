@@ -289,8 +289,7 @@ Elm.BinaryTree.make = function (_elm) {
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var on = F2(function (grid,
-   seed) {
+   var on = function (grid) {
       return function () {
          var getRandomNeighbor = F2(function (cell,
          randInt) {
@@ -337,7 +336,7 @@ Elm.BinaryTree.make = function (_elm) {
          A2($Random.list,
          $List.length(grid.cells),
          A2($Random.$int,1,2)),
-         seed));
+         grid.rnd.seed));
          return A3($List.foldl,
          processCell,
          grid,
@@ -350,7 +349,7 @@ Elm.BinaryTree.make = function (_elm) {
          grid.cells,
          randomInts));
       }();
-   });
+   };
    _elm.BinaryTree.values = {_op: _op
                             ,on: on};
    return _elm.BinaryTree.values;
@@ -2862,6 +2861,7 @@ Elm.Grid.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Rnd = Elm.Rnd.make(_elm),
    $Set = Elm.Set.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
@@ -2888,7 +2888,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 117 and 119");
+         "between lines 122 and 124");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -2972,7 +2972,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 38 and 40");
+         "between lines 43 and 45");
       }();
    };
    var getCell = F3(function (grid,
@@ -3090,8 +3090,12 @@ Elm.Grid.make = function (_elm) {
          _L.range(1,grid.rows))))));
       }();
    };
-   var createGrid = F2(function (rows,
-   cols) {
+   var nextSeed = function (grid) {
+      return $Rnd.refresh(grid.rnd).seed;
+   };
+   var createGrid = F3(function (rows,
+   cols,
+   initSeed) {
       return function () {
          var makeRow = F2(function (cols,
          row) {
@@ -3104,8 +3108,11 @@ Elm.Grid.make = function (_elm) {
                 makeRow(cols),
                 _L.range(1,rows))
                 ,cols: cols
-                ,rows: rows
-                ,seed: $Random.initialSeed(31415)};
+                ,rnd: A3($Rnd.createGridRnd,
+                rows,
+                cols,
+                initSeed)
+                ,rows: rows};
       }();
    });
    var Grid = F4(function (a,
@@ -3115,12 +3122,13 @@ Elm.Grid.make = function (_elm) {
       return {_: {}
              ,cells: c
              ,cols: b
-             ,rows: a
-             ,seed: d};
+             ,rnd: d
+             ,rows: a};
    });
    _elm.Grid.values = {_op: _op
                       ,Grid: Grid
                       ,createGrid: createGrid
+                      ,nextSeed: nextSeed
                       ,getCell: getCell
                       ,toValidCell: toValidCell
                       ,north: north
@@ -4634,21 +4642,6 @@ Elm.Main.make = function (_elm) {
       v);
    });
    var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
-   var init = function (alg) {
-      return A2(alg,
-      A2($Grid.createGrid,3,3),
-      startTimeSeed);
-   };
-   var update = F2(function (action,
-   model) {
-      return function () {
-         switch (action.ctor)
-         {case "Refresh":
-            return init($BinaryTree.on);}
-         _U.badCase($moduleName,
-         "between lines 28 and 29");
-      }();
-   });
    var Refresh = {ctor: "Refresh"};
    var view = F2(function (address,
    model) {
@@ -4664,13 +4657,33 @@ Elm.Main.make = function (_elm) {
                    Refresh)]),
                    _L.fromArray([$Html.text("REFRESH")]))]));
    });
+   var init = F2(function (alg,
+   seed) {
+      return alg(A3($Grid.createGrid,
+      20,
+      20,
+      seed));
+   });
+   var update = F2(function (action,
+   model) {
+      return function () {
+         switch (action.ctor)
+         {case "Refresh": return A2(init,
+              $BinaryTree.on,
+              $Grid.nextSeed(model));}
+         _U.badCase($moduleName,
+         "between lines 27 and 28");
+      }();
+   });
    var main = $StartApp$Simple.start({_: {}
-                                     ,model: init($BinaryTree.on)
+                                     ,model: A2(init,
+                                     $BinaryTree.on,
+                                     startTimeSeed)
                                      ,update: update
                                      ,view: view});
    _elm.Main.values = {_op: _op
-                      ,Refresh: Refresh
                       ,init: init
+                      ,Refresh: Refresh
                       ,update: update
                       ,view: view
                       ,startTimeSeed: startTimeSeed
@@ -12906,6 +12919,70 @@ Elm.Result.make = function (_elm) {
                         ,Ok: Ok
                         ,Err: Err};
    return _elm.Result.values;
+};
+Elm.Rnd = Elm.Rnd || {};
+Elm.Rnd.make = function (_elm) {
+   "use strict";
+   _elm.Rnd = _elm.Rnd || {};
+   if (_elm.Rnd.values)
+   return _elm.Rnd.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Rnd",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var refresh = function (rnd) {
+      return function () {
+         var $ = rnd.rowRnd(rnd.seed),
+         nextRow = $._0,
+         seed2 = $._1;
+         var $ = rnd.colRnd(seed2),
+         nextCol = $._0,
+         seed3 = $._1;
+         return _U.replace([["seed"
+                            ,seed3]
+                           ,["row",nextRow]
+                           ,["col",nextCol]],
+         rnd);
+      }();
+   };
+   var createGridRnd = F3(function (rows,
+   cols,
+   initSeed) {
+      return {_: {}
+             ,col: 0
+             ,colRnd: $Random.generate(A2($Random.$int,
+             1,
+             cols))
+             ,row: 0
+             ,rowRnd: $Random.generate(A2($Random.$int,
+             1,
+             rows))
+             ,seed: initSeed};
+   });
+   var GridRnd = F5(function (a,
+   b,
+   c,
+   d,
+   e) {
+      return {_: {}
+             ,col: c
+             ,colRnd: e
+             ,row: b
+             ,rowRnd: d
+             ,seed: a};
+   });
+   _elm.Rnd.values = {_op: _op
+                     ,GridRnd: GridRnd
+                     ,createGridRnd: createGridRnd
+                     ,refresh: refresh};
+   return _elm.Rnd.values;
 };
 Elm.Set = Elm.Set || {};
 Elm.Set.make = function (_elm) {

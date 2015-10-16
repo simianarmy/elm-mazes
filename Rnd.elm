@@ -10,10 +10,10 @@ type alias GridRnd = {
     colRnd : Seed -> (Int, Seed)
 }
 
-createGridRnd : Int -> Int -> GridRnd
-createGridRnd rows cols =
+createGridRnd : Int -> Int -> Seed -> GridRnd
+createGridRnd rows cols initSeed =
     {
-        seed = initialSeed 31415,
+        seed = initSeed,
         row = 0,
         col = 0,
         rowRnd = generate (int 1 rows),

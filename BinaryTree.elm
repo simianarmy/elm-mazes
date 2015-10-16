@@ -9,10 +9,10 @@ import Random exposing (..)
 import Grid exposing (..)
 import Cell exposing (..)
 
-on : Grid -> Seed -> Grid
-on grid seed =
+on : Grid -> Grid
+on grid =
     -- just fuckin generate all the rands at once - keeping the seed updated is impossible
-    let randomInts = fst <| generate (list (length grid.cells) (int 1 2)) (seed)
+    let randomInts = fst <| generate (list (length grid.cells) (int 1 2)) grid.rnd.seed
         getRandomNeighbor : Cell -> Int -> Maybe Cell
         getRandomNeighbor cell randInt =
             let northandeast = List.concat [
