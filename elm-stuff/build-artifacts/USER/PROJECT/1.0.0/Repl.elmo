@@ -10,26 +10,12 @@ Elm.Repl.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Repl",
    $Basics = Elm.Basics.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var tsol = {ctor: "_Tuple0"};
-   var grid = A3($Grid.createGrid,
-   3,
-   3,
-   $Random.initialSeed(123));
-   var foo = $Grid.rowCells(grid);
-   var deltron3030 = A2($List.concatMap,
-   $Grid.rowCells(grid),
-   $List.reverse(_L.range(1,
-   grid.rows)));
    _elm.Repl.values = {_op: _op
-                      ,deltron3030: deltron3030
-                      ,foo: foo
-                      ,grid: grid
                       ,tsol: tsol};
    return _elm.Repl.values;
 };

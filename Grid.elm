@@ -27,9 +27,17 @@ createGrid rows cols initSeed =
            rnd = createGridRnd rows cols initSeed
        }
 
+-- random number helpers
 nextSeed : Grid -> Seed
 nextSeed grid =
     (refresh grid.rnd).seed
+
+updateRnd : Grid -> Grid
+updateRnd grid =
+    {
+        grid |
+        rnd <- refresh grid.rnd
+    }
 
 getCell : Grid -> Int -> Int -> Maybe Cell
 getCell grid row col =
@@ -43,6 +51,12 @@ toValidCell cell =
     case cell of
         Nothing -> createCell -1 -1
         Just cell -> cell
+
+isValidCell : Maybe Cell -> Bool
+isValidCell cell =
+    case cell of
+        Nothing -> False
+        Just cell -> True
 
 north : Grid -> Cell -> Maybe Cell
 north grid cell =

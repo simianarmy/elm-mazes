@@ -15,6 +15,41 @@ Elm.Rnd.make = function (_elm) {
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
+   var refreshCol = function (rnd) {
+      return function () {
+         var $ = rnd.colRnd(rnd.seed),
+         nextCol = $._0,
+         seed$ = $._1;
+         return _U.replace([["seed"
+                            ,seed$]
+                           ,["col",nextCol]],
+         rnd);
+      }();
+   };
+   var refreshRow = function (rnd) {
+      return function () {
+         var $ = rnd.rowRnd(rnd.seed),
+         nextRow = $._0,
+         seed$ = $._1;
+         return _U.replace([["seed"
+                            ,seed$]
+                           ,["row",nextRow]],
+         rnd);
+      }();
+   };
+   var refreshCoinFlip = function (rnd) {
+      return function () {
+         var $ = A2($Random.generate,
+         A2($Random.$int,1,2),
+         rnd.seed),
+         headOrTail = $._0,
+         seed$ = $._1;
+         return _U.replace([["seed"
+                            ,seed$]
+                           ,["heads",_U.eq(headOrTail,1)]],
+         rnd);
+      }();
+   };
    var refresh = function (rnd) {
       return function () {
          var $ = rnd.rowRnd(rnd.seed),
@@ -23,10 +58,16 @@ Elm.Rnd.make = function (_elm) {
          var $ = rnd.colRnd(seed2),
          nextCol = $._0,
          seed3 = $._1;
+         var $ = A2($Random.generate,
+         A2($Random.$int,1,2),
+         seed3),
+         headOrTail = $._0,
+         seed4 = $._1;
          return _U.replace([["seed"
-                            ,seed3]
+                            ,seed4]
                            ,["row",nextRow]
-                           ,["col",nextCol]],
+                           ,["col",nextCol]
+                           ,["heads",_U.eq(headOrTail,1)]],
          rnd);
       }();
    };
@@ -38,27 +79,33 @@ Elm.Rnd.make = function (_elm) {
              ,colRnd: $Random.generate(A2($Random.$int,
              1,
              cols))
+             ,heads: false
              ,row: 0
              ,rowRnd: $Random.generate(A2($Random.$int,
              1,
              rows))
              ,seed: initSeed};
    });
-   var GridRnd = F5(function (a,
+   var GridRnd = F6(function (a,
    b,
    c,
    d,
-   e) {
+   e,
+   f) {
       return {_: {}
              ,col: c
-             ,colRnd: e
+             ,colRnd: f
+             ,heads: d
              ,row: b
-             ,rowRnd: d
+             ,rowRnd: e
              ,seed: a};
    });
    _elm.Rnd.values = {_op: _op
                      ,GridRnd: GridRnd
                      ,createGridRnd: createGridRnd
-                     ,refresh: refresh};
+                     ,refresh: refresh
+                     ,refreshCoinFlip: refreshCoinFlip
+                     ,refreshRow: refreshRow
+                     ,refreshCol: refreshCol};
    return _elm.Rnd.values;
 };

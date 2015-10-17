@@ -8,6 +8,7 @@ import StartApp.Simple exposing (start)
 
 import Grid exposing (Grid, createGrid, gridToString, toTitle, nextSeed)
 import BinaryTree
+import Sidewinder
 
 -- MODEL
 
@@ -44,7 +45,7 @@ startTimeSeed = Random.initialSeed <| round startTime
 
 main =
     start {
-        model = init BinaryTree.on startTimeSeed
+        model = init Sidewinder.on startTimeSeed
           , update = update
           , view =view
       }

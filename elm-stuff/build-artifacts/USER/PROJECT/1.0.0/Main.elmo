@@ -18,6 +18,7 @@ Elm.Main.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp$Simple = Elm.StartApp.Simple.make(_elm);
    var startTime = Elm.Native.Port.make(_elm).inbound("startTime",
@@ -57,12 +58,12 @@ Elm.Main.make = function (_elm) {
               $BinaryTree.on,
               $Grid.nextSeed(model));}
          _U.badCase($moduleName,
-         "between lines 27 and 28");
+         "between lines 28 and 29");
       }();
    });
    var main = $StartApp$Simple.start({_: {}
                                      ,model: A2(init,
-                                     $BinaryTree.on,
+                                     $Sidewinder.on,
                                      startTimeSeed)
                                      ,update: update
                                      ,view: view});

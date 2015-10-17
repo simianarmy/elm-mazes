@@ -325,11 +325,11 @@ Elm.BinaryTree.make = function (_elm) {
                                true);
                              case "Nothing": return grid;}
                           _U.badCase($moduleName,
-                          "between lines 35 and 38");
+                          "between lines 39 and 42");
                        }();
                     }();}
                _U.badCase($moduleName,
-               "between lines 33 and 38");
+               "between lines 37 and 42");
             }();
          });
          var randomInts = $Basics.fst(A2($Random.generate,
@@ -350,7 +350,9 @@ Elm.BinaryTree.make = function (_elm) {
          randomInts));
       }();
    };
+   var name = "Binary Tree";
    _elm.BinaryTree.values = {_op: _op
+                            ,name: name
                             ,on: on};
    return _elm.BinaryTree.values;
 };
@@ -2888,7 +2890,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 122 and 124");
+         "between lines 136 and 138");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -2963,6 +2965,15 @@ Elm.Grid.make = function (_elm) {
          grid);
       }();
    });
+   var isValidCell = function (cell) {
+      return function () {
+         switch (cell.ctor)
+         {case "Just": return true;
+            case "Nothing": return false;}
+         _U.badCase($moduleName,
+         "between lines 57 and 59");
+      }();
+   };
    var toValidCell = function (cell) {
       return function () {
          switch (cell.ctor)
@@ -2972,7 +2983,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 43 and 45");
+         "between lines 51 and 53");
       }();
    };
    var getCell = F3(function (grid,
@@ -3090,6 +3101,11 @@ Elm.Grid.make = function (_elm) {
          _L.range(1,grid.rows))))));
       }();
    };
+   var updateRnd = function (grid) {
+      return _U.replace([["rnd"
+                         ,$Rnd.refresh(grid.rnd)]],
+      grid);
+   };
    var nextSeed = function (grid) {
       return $Rnd.refresh(grid.rnd).seed;
    };
@@ -3129,8 +3145,10 @@ Elm.Grid.make = function (_elm) {
                       ,Grid: Grid
                       ,createGrid: createGrid
                       ,nextSeed: nextSeed
+                      ,updateRnd: updateRnd
                       ,getCell: getCell
                       ,toValidCell: toValidCell
+                      ,isValidCell: isValidCell
                       ,north: north
                       ,south: south
                       ,west: west
@@ -4633,6 +4651,7 @@ Elm.Main.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp$Simple = Elm.StartApp.Simple.make(_elm);
    var startTime = Elm.Native.Port.make(_elm).inbound("startTime",
@@ -4672,12 +4691,12 @@ Elm.Main.make = function (_elm) {
               $BinaryTree.on,
               $Grid.nextSeed(model));}
          _U.badCase($moduleName,
-         "between lines 27 and 28");
+         "between lines 28 and 29");
       }();
    });
    var main = $StartApp$Simple.start({_: {}
                                      ,model: A2(init,
-                                     $BinaryTree.on,
+                                     $Sidewinder.on,
                                      startTimeSeed)
                                      ,update: update
                                      ,view: view});
@@ -12937,6 +12956,41 @@ Elm.Rnd.make = function (_elm) {
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
+   var refreshCol = function (rnd) {
+      return function () {
+         var $ = rnd.colRnd(rnd.seed),
+         nextCol = $._0,
+         seed$ = $._1;
+         return _U.replace([["seed"
+                            ,seed$]
+                           ,["col",nextCol]],
+         rnd);
+      }();
+   };
+   var refreshRow = function (rnd) {
+      return function () {
+         var $ = rnd.rowRnd(rnd.seed),
+         nextRow = $._0,
+         seed$ = $._1;
+         return _U.replace([["seed"
+                            ,seed$]
+                           ,["row",nextRow]],
+         rnd);
+      }();
+   };
+   var refreshCoinFlip = function (rnd) {
+      return function () {
+         var $ = A2($Random.generate,
+         A2($Random.$int,1,2),
+         rnd.seed),
+         headOrTail = $._0,
+         seed$ = $._1;
+         return _U.replace([["seed"
+                            ,seed$]
+                           ,["heads",_U.eq(headOrTail,1)]],
+         rnd);
+      }();
+   };
    var refresh = function (rnd) {
       return function () {
          var $ = rnd.rowRnd(rnd.seed),
@@ -12945,10 +12999,16 @@ Elm.Rnd.make = function (_elm) {
          var $ = rnd.colRnd(seed2),
          nextCol = $._0,
          seed3 = $._1;
+         var $ = A2($Random.generate,
+         A2($Random.$int,1,2),
+         seed3),
+         headOrTail = $._0,
+         seed4 = $._1;
          return _U.replace([["seed"
-                            ,seed3]
+                            ,seed4]
                            ,["row",nextRow]
-                           ,["col",nextCol]],
+                           ,["col",nextCol]
+                           ,["heads",_U.eq(headOrTail,1)]],
          rnd);
       }();
    };
@@ -12960,28 +13020,34 @@ Elm.Rnd.make = function (_elm) {
              ,colRnd: $Random.generate(A2($Random.$int,
              1,
              cols))
+             ,heads: false
              ,row: 0
              ,rowRnd: $Random.generate(A2($Random.$int,
              1,
              rows))
              ,seed: initSeed};
    });
-   var GridRnd = F5(function (a,
+   var GridRnd = F6(function (a,
    b,
    c,
    d,
-   e) {
+   e,
+   f) {
       return {_: {}
              ,col: c
-             ,colRnd: e
+             ,colRnd: f
+             ,heads: d
              ,row: b
-             ,rowRnd: d
+             ,rowRnd: e
              ,seed: a};
    });
    _elm.Rnd.values = {_op: _op
                      ,GridRnd: GridRnd
                      ,createGridRnd: createGridRnd
-                     ,refresh: refresh};
+                     ,refresh: refresh
+                     ,refreshCoinFlip: refreshCoinFlip
+                     ,refreshRow: refreshRow
+                     ,refreshCol: refreshCol};
    return _elm.Rnd.values;
 };
 Elm.Set = Elm.Set || {};
@@ -13088,6 +13154,109 @@ Elm.Set.make = function (_elm) {
                      ,toList: toList
                      ,fromList: fromList};
    return _elm.Set.values;
+};
+Elm.Sidewinder = Elm.Sidewinder || {};
+Elm.Sidewinder.make = function (_elm) {
+   "use strict";
+   _elm.Sidewinder = _elm.Sidewinder || {};
+   if (_elm.Sidewinder.values)
+   return _elm.Sidewinder.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Sidewinder",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var on = function (grid) {
+      return function () {
+         var processCell = F2(function (cell,
+         rowState) {
+            return function () {
+               var grid$ = $Grid.updateRnd(rowState.grid);
+               var atNorthernBoundary = $Basics.not($Grid.isValidCell(A2($Grid.north,
+               rowState.grid,
+               cell)));
+               var atEasternBoundary = $Basics.not($Grid.isValidCell(A2($Grid.east,
+               rowState.grid,
+               cell)));
+               var shouldCloseOut = atEasternBoundary || $Basics.not(atNorthernBoundary) && grid$.rnd.heads;
+               return shouldCloseOut ? function () {
+                  var grid$$ = $Grid.updateRnd(grid$);
+                  var rand = $Basics.fst(A2($Random.generate,
+                  A2($Random.$int,
+                  1,
+                  $List.length(rowState.run)),
+                  grid$.rnd.seed));
+                  var member = $Grid.toValidCell($List.head($List.reverse(A2($List.take,
+                  rand,
+                  rowState.run))));
+                  var northern = A2($Grid.north,
+                  grid$,
+                  member);
+                  return $Grid.isValidCell(northern) ? {_: {}
+                                                       ,grid: A4($Grid.linkCells,
+                                                       grid$$,
+                                                       member,
+                                                       $Grid.toValidCell(northern),
+                                                       true)
+                                                       ,run: _L.fromArray([])} : {_: {}
+                                                                                 ,grid: grid$$
+                                                                                 ,run: _L.fromArray([])};
+               }() : _U.replace([["grid"
+                                 ,A4($Grid.linkCells,
+                                 grid$,
+                                 cell,
+                                 $Grid.toValidCell(A2($Grid.east,
+                                 grid$,
+                                 cell)),
+                                 true)]],
+               rowState);
+            }();
+         });
+         var processRow = F2(function (row,
+         curGrid) {
+            return function () {
+               var state = {_: {}
+                           ,grid: curGrid
+                           ,run: _L.fromArray([])};
+               var result = A3($List.foldl,
+               processCell,
+               state,
+               A2($Grid.rowCells,grid,row));
+               return result.grid;
+            }();
+         });
+         var bottomLeftToTopRightCells = A2($List.concatMap,
+         $Grid.rowCells(grid),
+         $List.reverse(_L.range(1,
+         grid.rows)));
+         var headsOrTails = $Random.generate(A2($Random.$int,
+         1,
+         2));
+         return A3($List.foldl,
+         processRow,
+         grid,
+         $List.reverse(_L.range(1,
+         grid.rows)));
+      }();
+   };
+   var RowState = F2(function (a,
+   b) {
+      return {_: {}
+             ,grid: b
+             ,run: a};
+   });
+   _elm.Sidewinder.values = {_op: _op
+                            ,RowState: RowState
+                            ,on: on};
+   return _elm.Sidewinder.values;
 };
 Elm.Signal = Elm.Signal || {};
 Elm.Signal.make = function (_elm) {
