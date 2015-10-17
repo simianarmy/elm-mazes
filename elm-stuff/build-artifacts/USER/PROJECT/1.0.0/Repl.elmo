@@ -10,7 +10,6 @@ Elm.Repl.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Repl",
    $Basics = Elm.Basics.make(_elm),
-   $BinaryTree = Elm.BinaryTree.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
@@ -18,22 +17,18 @@ Elm.Repl.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var tsol = {ctor: "_Tuple0"};
-   var grid = A2($BinaryTree.on,
-   A2($Grid.createGrid,3,3),
+   var grid = A3($Grid.createGrid,
+   3,
+   3,
    $Random.initialSeed(123));
-   var deltron3030 = grid;
-   var cell = $Grid.toValidCell(A3($Grid.getCell,
-   grid,
-   1,
-   2));
-   var found = $List.concat(_L.fromArray([_L.fromArray([])
-                                         ,$Grid.cellToList(A2($Grid.east,
-                                         grid,
-                                         cell))]));
+   var foo = $Grid.rowCells(grid);
+   var deltron3030 = A2($List.concatMap,
+   $Grid.rowCells(grid),
+   $List.reverse(_L.range(1,
+   grid.rows)));
    _elm.Repl.values = {_op: _op
-                      ,cell: cell
                       ,deltron3030: deltron3030
-                      ,found: found
+                      ,foo: foo
                       ,grid: grid
                       ,tsol: tsol};
    return _elm.Repl.values;
