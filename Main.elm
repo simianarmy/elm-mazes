@@ -7,27 +7,15 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import StartApp.Simple as StartApp
 
-import Grid exposing (Grid, createGrid, toTitle, nextSeed)
-import BinaryTree
-import Sidewinder
+import Maze exposing (..)
 
 -- MODEL
 
-type alias Model = Grid
-type alias MazeAlgorithm = Grid -> Grid
-type alias MazeAttributes = {
-    alg : MazeAlgorithm,
-    width : Int,
-    height : Int
-}
+type alias Model = Maze
 
-initWidth = 20 
-initHeight = 20 
-initAlg = Sidewinder.on
-
-init : MazeAttributes -> Seed -> Grid
-init attr seed =
-    attr.alg (createGrid attr.width attr.height seed)
+initWidth = 10
+initHeight = 10
+initAlg = Maze.sidewinder
 
 -- UPDATE
 
@@ -35,32 +23,30 @@ type Action = Refresh |
     UpdateWidth String |
     UpdateHeight String
 
-update : MazeAttributes -> Action -> Model -> Model
-update context action model =
+update : Action -> Model -> Model
+update action model =
     case action of
-        -- TODO: Implement Grid.update, get dimensions from inputs
-        Refresh -> 
-            context.alg (Grid.update model)
-        
-        UpdateWidth str -> {
-            model | rows <- String.toInt str |> Result.toMaybe |> Maybe.withDefault model.rows
-        }
+        Refresh ->
+            Maze.update model
 
-        UpdateHeight str -> {
-            model | cols <- String.toInt str |> Result.toMaybe |> Maybe.withDefault model.cols
-        }
+        UpdateWidth str ->
+            Maze.updateSize model
+            (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.grid.rows)
+            model.grid.cols
+
+        UpdateHeight str ->
+            Maze.updateSize model model.grid.rows
+            (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.grid.cols)
 
 -- VIEW
-view : MazeAttributes -> Signal.Address Action -> Model -> Html
-view context address model =
+view : Signal.Address Action -> Model -> Html
+view address model =
     div [] [
-        text (toTitle model),
-        Grid.view model,
-        --pre [] [text (Grid.toAscii model)],
-        input [ value (toString model.rows)
+        Maze.view model,
+        input [ value (toString model.grid.rows)
               , on "input" targetValue (Signal.message address << UpdateWidth) ] [],
         text " X ",
-        input [ value (toString model.cols)
+        input [ value (toString model.grid.cols)
               , on "input" targetValue (Signal.message address << UpdateHeight)] [],
         button [ onClick address Refresh ] [ text "REFRESH" ]
         ]
@@ -72,16 +58,10 @@ startTimeSeed = Random.initialSeed <| round startTime
 --startTimeSeed = Random.initialSeed 123
 
 main =
-    let context = {
-        alg = initAlg,
-        width = initWidth,
-        height = initHeight
-    } 
-    in
-       StartApp.start {
-           model = init context startTimeSeed
-                      , update = update context
-                      , view = view context
-                  }
+    StartApp.start {
+        model = Maze.init initAlg initWidth initHeight startTimeSeed
+                   , update = update
+                   , view = view
+               }
 
 --};</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main, {startTime: Date.now()})</script></body></html>

@@ -4649,15 +4649,14 @@ Elm.Main.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Main",
    $Basics = Elm.Basics.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Maze = Elm.Maze.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp$Simple = Elm.StartApp.Simple.make(_elm),
    $String = Elm.String.make(_elm);
@@ -4668,23 +4667,24 @@ Elm.Main.make = function (_elm) {
       v);
    });
    var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
-   var update = F3(function (context,
-   action,
+   var update = F2(function (action,
    model) {
       return function () {
          switch (action.ctor)
          {case "Refresh":
-            return context.alg($Grid.update(model));
+            return $Maze.update(model);
             case "UpdateHeight":
-            return _U.replace([["cols"
-                               ,$Maybe.withDefault(model.cols)($Result.toMaybe($String.toInt(action._0)))]],
-              model);
+            return A3($Maze.updateSize,
+              model,
+              model.grid.rows,
+              $Maybe.withDefault(model.grid.cols)($Result.toMaybe($String.toInt(action._0))));
             case "UpdateWidth":
-            return _U.replace([["rows"
-                               ,$Maybe.withDefault(model.rows)($Result.toMaybe($String.toInt(action._0)))]],
-              model);}
+            return A3($Maze.updateSize,
+              model,
+              $Maybe.withDefault(model.grid.rows)($Result.toMaybe($String.toInt(action._0))),
+              model.grid.cols);}
          _U.badCase($moduleName,
-         "between lines 40 and 51");
+         "between lines 28 and 39");
       }();
    });
    var UpdateHeight = function (a) {
@@ -4696,17 +4696,13 @@ Elm.Main.make = function (_elm) {
              ,_0: a};
    };
    var Refresh = {ctor: "Refresh"};
-   var view = F3(function (context,
-   address,
+   var view = F2(function (address,
    model) {
       return A2($Html.div,
       _L.fromArray([]),
-      _L.fromArray([$Html.text($Grid.toTitle(model))
-                   ,A2($Html.pre,
-                   _L.fromArray([]),
-                   _L.fromArray([$Html.text($Grid.toAscii(model))]))
+      _L.fromArray([$Maze.view(model)
                    ,A2($Html.input,
-                   _L.fromArray([$Html$Attributes.value($Basics.toString(model.rows))
+                   _L.fromArray([$Html$Attributes.value($Basics.toString(model.grid.rows))
                                 ,A3($Html$Events.on,
                                 "input",
                                 $Html$Events.targetValue,
@@ -4716,7 +4712,7 @@ Elm.Main.make = function (_elm) {
                    _L.fromArray([]))
                    ,$Html.text(" X ")
                    ,A2($Html.input,
-                   _L.fromArray([$Html$Attributes.value($Basics.toString(model.cols))
+                   _L.fromArray([$Html$Attributes.value($Basics.toString(model.grid.cols))
                                 ,A3($Html$Events.on,
                                 "input",
                                 $Html$Events.targetValue,
@@ -4730,42 +4726,21 @@ Elm.Main.make = function (_elm) {
                    Refresh)]),
                    _L.fromArray([$Html.text("REFRESH")]))]));
    });
-   var init = F2(function (attr,
-   seed) {
-      return attr.alg(A3($Grid.createGrid,
-      attr.width,
-      attr.height,
-      seed));
-   });
-   var initAlg = $Sidewinder.on;
-   var initHeight = 20;
-   var initWidth = 20;
-   var main = function () {
-      var context = {_: {}
-                    ,alg: initAlg
-                    ,height: initHeight
-                    ,width: initWidth};
-      return $StartApp$Simple.start({_: {}
-                                    ,model: A2(init,
-                                    context,
-                                    startTimeSeed)
-                                    ,update: update(context)
-                                    ,view: view(context)});
-   }();
-   var MazeAttributes = F3(function (a,
-   b,
-   c) {
-      return {_: {}
-             ,alg: a
-             ,height: c
-             ,width: b};
-   });
+   var initAlg = $Maze.sidewinder;
+   var initHeight = 10;
+   var initWidth = 10;
+   var main = $StartApp$Simple.start({_: {}
+                                     ,model: A4($Maze.init,
+                                     initAlg,
+                                     initWidth,
+                                     initHeight,
+                                     startTimeSeed)
+                                     ,update: update
+                                     ,view: view});
    _elm.Main.values = {_op: _op
-                      ,MazeAttributes: MazeAttributes
                       ,initWidth: initWidth
                       ,initHeight: initHeight
                       ,initAlg: initAlg
-                      ,init: init
                       ,Refresh: Refresh
                       ,UpdateWidth: UpdateWidth
                       ,UpdateHeight: UpdateHeight
@@ -4847,6 +4822,112 @@ Elm.Maybe.make = function (_elm) {
                        ,Just: Just
                        ,Nothing: Nothing};
    return _elm.Maybe.values;
+};
+Elm.Maze = Elm.Maze || {};
+Elm.Maze.make = function (_elm) {
+   "use strict";
+   _elm.Maze = _elm.Maze || {};
+   if (_elm.Maze.values)
+   return _elm.Maze.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Maze",
+   $Basics = Elm.Basics.make(_elm),
+   $BinaryTree = Elm.BinaryTree.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Sidewinder = Elm.Sidewinder.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var algToString = function (algType) {
+      return function () {
+         switch (algType.ctor)
+         {case "BinaryTree":
+            return "Binary Tree";
+            case "Sidewinder":
+            return "Sidewinder";}
+         _U.badCase($moduleName,
+         "between lines 50 and 52");
+      }();
+   };
+   var getAlgFn = function (algType) {
+      return function () {
+         switch (algType.ctor)
+         {case "BinaryTree":
+            return $BinaryTree.on;
+            case "Sidewinder":
+            return $Sidewinder.on;}
+         _U.badCase($moduleName,
+         "between lines 44 and 46");
+      }();
+   };
+   var view = function (maze) {
+      return A2($Html.div,
+      _L.fromArray([]),
+      _L.fromArray([$Html.text(A2($Basics._op["++"],
+                   algToString(maze.alg),
+                   " algorithm maze"))
+                   ,A2($Html.pre,
+                   _L.fromArray([]),
+                   _L.fromArray([$Html.text($Grid.toAscii(maze.grid))]))]));
+   };
+   var updateSize = F3(function (maze,
+   width,
+   height) {
+      return _U.replace([["grid"
+                         ,getAlgFn(maze.alg)(A3($Grid.createGrid,
+                         width,
+                         height,
+                         $Grid.nextSeed(maze.grid)))]],
+      maze);
+   });
+   var update = function (maze) {
+      return _U.replace([["grid"
+                         ,getAlgFn(maze.alg)($Grid.update(maze.grid))]],
+      maze);
+   };
+   var init = F4(function (algType,
+   width,
+   height,
+   seed) {
+      return function () {
+         var algfn = getAlgFn(algType);
+         var grid = algfn(A3($Grid.createGrid,
+         width,
+         height,
+         seed));
+         return {_: {}
+                ,alg: algType
+                ,grid: grid};
+      }();
+   });
+   var Maze = F2(function (a,b) {
+      return {_: {}
+             ,alg: b
+             ,grid: a};
+   });
+   var Sidewinder = {ctor: "Sidewinder"};
+   var sidewinder = Sidewinder;
+   var BinaryTree = {ctor: "BinaryTree"};
+   var binaryTree = BinaryTree;
+   _elm.Maze.values = {_op: _op
+                      ,BinaryTree: BinaryTree
+                      ,Sidewinder: Sidewinder
+                      ,Maze: Maze
+                      ,binaryTree: binaryTree
+                      ,sidewinder: sidewinder
+                      ,init: init
+                      ,update: update
+                      ,updateSize: updateSize
+                      ,view: view
+                      ,getAlgFn: getAlgFn
+                      ,algToString: algToString};
+   return _elm.Maze.values;
 };
 Elm.Native.Array = {};
 Elm.Native.Array.make = function(localRuntime) {

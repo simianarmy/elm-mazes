@@ -1,0 +1,106 @@
+Elm.Maze = Elm.Maze || {};
+Elm.Maze.make = function (_elm) {
+   "use strict";
+   _elm.Maze = _elm.Maze || {};
+   if (_elm.Maze.values)
+   return _elm.Maze.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Maze",
+   $Basics = Elm.Basics.make(_elm),
+   $BinaryTree = Elm.BinaryTree.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Sidewinder = Elm.Sidewinder.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var algToString = function (algType) {
+      return function () {
+         switch (algType.ctor)
+         {case "BinaryTree":
+            return "Binary Tree";
+            case "Sidewinder":
+            return "Sidewinder";}
+         _U.badCase($moduleName,
+         "between lines 50 and 52");
+      }();
+   };
+   var getAlgFn = function (algType) {
+      return function () {
+         switch (algType.ctor)
+         {case "BinaryTree":
+            return $BinaryTree.on;
+            case "Sidewinder":
+            return $Sidewinder.on;}
+         _U.badCase($moduleName,
+         "between lines 44 and 46");
+      }();
+   };
+   var view = function (maze) {
+      return A2($Html.div,
+      _L.fromArray([]),
+      _L.fromArray([$Html.text(A2($Basics._op["++"],
+                   algToString(maze.alg),
+                   " algorithm maze"))
+                   ,A2($Html.pre,
+                   _L.fromArray([]),
+                   _L.fromArray([$Html.text($Grid.toAscii(maze.grid))]))]));
+   };
+   var updateSize = F3(function (maze,
+   width,
+   height) {
+      return _U.replace([["grid"
+                         ,getAlgFn(maze.alg)(A3($Grid.createGrid,
+                         width,
+                         height,
+                         $Grid.nextSeed(maze.grid)))]],
+      maze);
+   });
+   var update = function (maze) {
+      return _U.replace([["grid"
+                         ,getAlgFn(maze.alg)($Grid.update(maze.grid))]],
+      maze);
+   };
+   var init = F4(function (algType,
+   width,
+   height,
+   seed) {
+      return function () {
+         var algfn = getAlgFn(algType);
+         var grid = algfn(A3($Grid.createGrid,
+         width,
+         height,
+         seed));
+         return {_: {}
+                ,alg: algType
+                ,grid: grid};
+      }();
+   });
+   var Maze = F2(function (a,b) {
+      return {_: {}
+             ,alg: b
+             ,grid: a};
+   });
+   var Sidewinder = {ctor: "Sidewinder"};
+   var sidewinder = Sidewinder;
+   var BinaryTree = {ctor: "BinaryTree"};
+   var binaryTree = BinaryTree;
+   _elm.Maze.values = {_op: _op
+                      ,BinaryTree: BinaryTree
+                      ,Sidewinder: Sidewinder
+                      ,Maze: Maze
+                      ,binaryTree: binaryTree
+                      ,sidewinder: sidewinder
+                      ,init: init
+                      ,update: update
+                      ,updateSize: updateSize
+                      ,view: view
+                      ,getAlgFn: getAlgFn
+                      ,algToString: algToString};
+   return _elm.Maze.values;
+};
