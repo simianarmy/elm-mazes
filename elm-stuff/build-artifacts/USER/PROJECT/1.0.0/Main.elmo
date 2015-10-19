@@ -61,7 +61,15 @@ Elm.Main.make = function (_elm) {
    model) {
       return A2($Html.div,
       _L.fromArray([]),
-      _L.fromArray([$Maze.view(model)
+      _L.fromArray([A2($Html.header,
+                   _L.fromArray([]),
+                   _L.fromArray([A2($Html.h1,
+                   _L.fromArray([]),
+                   _L.fromArray([$Html.text("Amazeball Mazes")]))]))
+                   ,$Maze.view(model)
+                   ,A2($Html.br,
+                   _L.fromArray([]),
+                   _L.fromArray([]))
                    ,A2($Html.input,
                    _L.fromArray([$Html$Attributes.value($Basics.toString(model.grid.rows))
                                 ,A3($Html$Events.on,
@@ -85,7 +93,13 @@ Elm.Main.make = function (_elm) {
                    _L.fromArray([A2($Html$Events.onClick,
                    address,
                    Refresh)]),
-                   _L.fromArray([$Html.text("REFRESH")]))]));
+                   _L.fromArray([$Html.text("REFRESH")]))
+                   ,$Html.text(A2($Basics._op["++"],
+                   "start time: ",
+                   $Basics.toString(startTime)))
+                   ,A2($Html.footer,
+                   _L.fromArray([]),
+                   _L.fromArray([]))]));
    });
    var initAlg = $Maze.sidewinder;
    var initHeight = 10;

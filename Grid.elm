@@ -51,40 +51,39 @@ view : Grid -> Int -> Element
 view grid cellSize =
     let imgWidth = cellSize * grid.cols
         imgHeight = cellSize * grid.rows
+        ox = toFloat (negate imgWidth) / 2.0
+        oy = toFloat imgHeight / 2.0
 
-        maybeVisibleLine : (LineStyle, LineStyle) -> (Bool, Path) -> List Form
-        maybeVisibleLine (visStyle, hiddenStyle) (visible, seg) =
-            let style = if visible then visStyle else hiddenStyle
-            in
-               [traced style seg]
+        maybeVisibleLine : LineStyle -> (Bool, Path) -> List Form
+        maybeVisibleLine style (visible, seg) =
+            if visible
+               then [traced style seg]
+               else []
 
         cellWalls : Cell -> LineStyle -> List Form
         cellWalls cell style =
-            let x1 = 0 
-                y1 = 0 
-                x2 = cellSize
-                y2 = -cellSize
-                invisibleStyle = {style | color <- Color.white}
+            let x1 = toFloat ((cell.col - 1) * cellSize)
+                y1 = toFloat (negate (cell.row - 1) * cellSize)
+                x2 = toFloat (cell.col * cellSize)
+                y2 = toFloat (negate cell.row  * cellSize)
             in
-               List.concatMap (maybeVisibleLine (style, invisibleStyle))
+               List.concatMap (maybeVisibleLine style)
                [
-                   ((isValidCell (north grid cell)), (segment (x1, y1) (x2, y1))),
-                   ((isValidCell (west grid cell)), (segment (x1, y1) (x1, y2))),
-                   ((Cell.isLinked cell (toValidCell (east grid cell))), (segment (x2, y1) (x2, y2))),
-                   ((Cell.isLinked cell (toValidCell (south grid cell))), (segment (x1, y2) (x2, y2)))
+                   ((not <| isValidCell (north grid cell)), (segment (x1, y1) (x2, y1))),
+                   ((not <| isValidCell (west grid cell)), (segment (x1, y1) (x1, y2))),
+                   ((not <| Cell.isLinked cell (toValidCell (east grid cell))), (segment (x2, y1) (x2, y2))),
+                   ((not <| Cell.isLinked cell (toValidCell (south grid cell))), (segment (x1, y2) (x2, y2)))
                ]
 
         paintCell : Cell -> Form
         paintCell cell =
-            let x1 = cell.col * cellSize * -1
-                y1 = cell.row * cellSize * 1
-                style = { defaultLine | width <- 2 }
+            let style = { defaultLine | width <- 2 }
             in
-               group (cellWalls cell style) |>
-               move (toFloat x1, toFloat y1)
+               group (cellWalls cell style)
 
+        walls = List.map paintCell grid.cells
     in
-       collage imgWidth imgHeight (List.map paintCell grid.cells)
+       collage imgWidth imgHeight [group walls |> move (ox, oy)]
 
 getCell : Grid -> Int -> Int -> Maybe Cell
 getCell grid row col =

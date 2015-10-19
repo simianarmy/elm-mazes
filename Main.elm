@@ -42,13 +42,17 @@ update action model =
 view : Signal.Address Action -> Model -> Html
 view address model =
     div [] [
+        header [] [ h1 [] [text "Amazeball Mazes" ]],
         Maze.view model,
+        br [] [],
         input [ value (toString model.grid.rows)
               , on "input" targetValue (Signal.message address << UpdateWidth) ] [],
         text " X ",
         input [ value (toString model.grid.cols)
               , on "input" targetValue (Signal.message address << UpdateHeight)] [],
         button [ onClick address Refresh ] [ text "REFRESH" ]
+        , text ("start time: " ++ (toString startTime)),
+        footer [] []
         ]
 
 port startTime : Float

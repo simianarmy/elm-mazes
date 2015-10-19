@@ -35,8 +35,8 @@ updateSize maze width height =
 view : Maze -> Html
 view maze =
     div [] [
-        text <| (algToString maze.alg) ++ " algorithm maze"
-        , fromElement <| Grid.view maze.grid 20
+        fromElement <| Grid.view maze.grid 20,
+        text <| (algToString maze.alg) ++ " algorithm"
         ]
 
 getAlgFn : Algorithm -> Grid -> Grid

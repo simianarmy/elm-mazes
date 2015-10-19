@@ -44,12 +44,12 @@ Elm.Maze.make = function (_elm) {
    var view = function (maze) {
       return A2($Html.div,
       _L.fromArray([]),
-      _L.fromArray([$Html.text(A2($Basics._op["++"],
-                   algToString(maze.alg),
-                   " algorithm maze"))
-                   ,$Html.fromElement(A2($Grid.view,
+      _L.fromArray([$Html.fromElement(A2($Grid.view,
                    maze.grid,
-                   20))]));
+                   20))
+                   ,$Html.text(A2($Basics._op["++"],
+                   algToString(maze.alg),
+                   " algorithm"))]));
    };
    var updateSize = F3(function (maze,
    width,
