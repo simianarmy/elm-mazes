@@ -7,7 +7,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import StartApp.Simple as StartApp
 
-import Grid exposing (Grid, createGrid, gridToString, toTitle, nextSeed)
+import Grid exposing (Grid, createGrid, toTitle, nextSeed)
 import BinaryTree
 import Sidewinder
 
@@ -35,12 +35,12 @@ type Action = Refresh |
     UpdateWidth String |
     UpdateHeight String
 
-update : Action -> Model -> Model
-update action model =
+update : MazeAttributes -> Action -> Model -> Model
+update context action model =
     case action of
         -- TODO: Implement Grid.update, get dimensions from inputs
         Refresh -> 
-            initAlg (Grid.update model)
+            context.alg (Grid.update model)
         
         UpdateWidth str -> {
             model | rows <- String.toInt str |> Result.toMaybe |> Maybe.withDefault model.rows
@@ -51,11 +51,12 @@ update action model =
         }
 
 -- VIEW
-view : Signal.Address Action -> Model -> Html
-view address model =
+view : MazeAttributes -> Signal.Address Action -> Model -> Html
+view context address model =
     div [] [
         text (toTitle model),
-        pre [] [text (gridToString model)],
+        Grid.view model,
+        --pre [] [text (Grid.toAscii model)],
         input [ value (toString model.rows)
               , on "input" targetValue (Signal.message address << UpdateWidth) ] [],
         text " X ",
@@ -71,14 +72,16 @@ startTimeSeed = Random.initialSeed <| round startTime
 --startTimeSeed = Random.initialSeed 123
 
 main =
-    StartApp.start {
-        model = init {
-            alg = initAlg,
-            width = initWidth,
-            height = initHeight
-            } startTimeSeed
-          , update = update
-          , view =view
-      }
+    let context = {
+        alg = initAlg,
+        width = initWidth,
+        height = initHeight
+    } 
+    in
+       StartApp.start {
+           model = init context startTimeSeed
+                      , update = update context
+                      , view = view context
+                  }
 
 --};</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main, {startTime: Date.now()})</script></body></html>

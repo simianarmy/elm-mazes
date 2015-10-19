@@ -42,7 +42,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 140 and 142");
+         "between lines 141 and 143");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -123,7 +123,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 61 and 63");
+         "between lines 62 and 64");
       }();
    };
    var toValidCell = function (cell) {
@@ -135,7 +135,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 55 and 57");
+         "between lines 56 and 58");
       }();
    };
    var getCell = F3(function (grid,
@@ -190,7 +190,7 @@ Elm.Grid.make = function (_elm) {
                                           ,cellToList(e)]));
       }();
    });
-   var gridToString = function (grid) {
+   var toAscii = function (grid) {
       return function () {
          var cellToString = F2(function (cell,
          ascii) {
@@ -320,6 +320,6 @@ Elm.Grid.make = function (_elm) {
                       ,cellToList: cellToList
                       ,toTitle: toTitle
                       ,RowAscii: RowAscii
-                      ,gridToString: gridToString};
+                      ,toAscii: toAscii};
    return _elm.Grid.values;
 };

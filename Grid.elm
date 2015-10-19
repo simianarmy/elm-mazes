@@ -6,6 +6,8 @@ import List
 import String
 import Rnd exposing (..)
 import Random exposing (..)
+import Graphics.Collage exposing (..)
+import Graphics.Element exposing (Element)
 
 type alias Grid = {rows: Int, cols: Int, cells: List Cell, rnd: GridRnd}
 
@@ -42,6 +44,38 @@ updateRnd grid =
 update : Grid -> Grid
 update grid =
     createGrid grid.rows grid.cols <| nextSeed grid
+
+-- generates collage view of the grid
+view : Grid -> Int -> Element
+view grid cellSize =
+    let imgWidth = cellSize * grid.cols
+        imgHeight = cellSize * grid.rows
+
+        cellWalls : Cell -> LineStyle -> List Form
+        cellWalls cell style =
+            let x1 = 0 
+                y1 = 0 
+                x2 = cellSize
+                y2 = -cellSize
+            in
+               List.filterMap (\x -> not (List.isEmpty x))
+                   [if isValidCell (north grid cell) then traced style (segment (x1, y1) (x2, y1)) else []
+                   , if isValidCell (west grid cell) then traced style (segment (x1, y1) (x1, y2)) else []
+                   , if Cell.isLinked cell (toValidCell (east grid cell)) then traced style (segment (x2, y1) (x2, y2)) else []
+                   , if Cell.isLinked cell (toValidCell (south grid cell)) then traced style (segment (x1, y2) (x2, y2)) else []
+                      ]
+
+        paintCell : Cell -> Form
+        paintCell cell =
+            let x1 = cell.col * cellSize * -1
+                y1 = cell.row * cellSize * 1
+                style = { defaultLine | width <- 2 }
+            in
+               group (cellWalls cell style) |>
+               move (toFloat x1, toFloat y1)
+
+    in
+       collage imgWidth imgHeight (List.map paintCell grid.cells)
 
 getCell : Grid -> Int -> Int -> Maybe Cell
 getCell grid row col =
@@ -151,8 +185,8 @@ type alias RowAscii = {
     bottom : String
 }
 
-gridToString : Grid -> String
-gridToString grid =
+toAscii : Grid -> String
+toAscii grid =
     let cellToString : Cell -> RowAscii -> RowAscii
         cellToString cell ascii =
             let east_boundary = (if isLinked cell (toValidCell (east grid cell)) then " " else "|")

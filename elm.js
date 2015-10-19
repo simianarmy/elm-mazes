@@ -2890,7 +2890,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 140 and 142");
+         "between lines 141 and 143");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -2971,7 +2971,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 61 and 63");
+         "between lines 62 and 64");
       }();
    };
    var toValidCell = function (cell) {
@@ -2983,7 +2983,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 55 and 57");
+         "between lines 56 and 58");
       }();
    };
    var getCell = F3(function (grid,
@@ -3038,7 +3038,7 @@ Elm.Grid.make = function (_elm) {
                                           ,cellToList(e)]));
       }();
    });
-   var gridToString = function (grid) {
+   var toAscii = function (grid) {
       return function () {
          var cellToString = F2(function (cell,
          ascii) {
@@ -3168,7 +3168,7 @@ Elm.Grid.make = function (_elm) {
                       ,cellToList: cellToList
                       ,toTitle: toTitle
                       ,RowAscii: RowAscii
-                      ,gridToString: gridToString};
+                      ,toAscii: toAscii};
    return _elm.Grid.values;
 };
 Elm.Html = Elm.Html || {};
@@ -4668,6 +4668,25 @@ Elm.Main.make = function (_elm) {
       v);
    });
    var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
+   var update = F3(function (context,
+   action,
+   model) {
+      return function () {
+         switch (action.ctor)
+         {case "Refresh":
+            return context.alg($Grid.update(model));
+            case "UpdateHeight":
+            return _U.replace([["cols"
+                               ,$Maybe.withDefault(model.cols)($Result.toMaybe($String.toInt(action._0)))]],
+              model);
+            case "UpdateWidth":
+            return _U.replace([["rows"
+                               ,$Maybe.withDefault(model.rows)($Result.toMaybe($String.toInt(action._0)))]],
+              model);}
+         _U.badCase($moduleName,
+         "between lines 40 and 51");
+      }();
+   });
    var UpdateHeight = function (a) {
       return {ctor: "UpdateHeight"
              ,_0: a};
@@ -4677,14 +4696,15 @@ Elm.Main.make = function (_elm) {
              ,_0: a};
    };
    var Refresh = {ctor: "Refresh"};
-   var view = F2(function (address,
+   var view = F3(function (context,
+   address,
    model) {
       return A2($Html.div,
       _L.fromArray([]),
       _L.fromArray([$Html.text($Grid.toTitle(model))
                    ,A2($Html.pre,
                    _L.fromArray([]),
-                   _L.fromArray([$Html.text($Grid.gridToString(model))]))
+                   _L.fromArray([$Html.text($Grid.toAscii(model))]))
                    ,A2($Html.input,
                    _L.fromArray([$Html$Attributes.value($Basics.toString(model.rows))
                                 ,A3($Html$Events.on,
@@ -4718,35 +4738,20 @@ Elm.Main.make = function (_elm) {
       seed));
    });
    var initAlg = $Sidewinder.on;
-   var update = F2(function (action,
-   model) {
-      return function () {
-         switch (action.ctor)
-         {case "Refresh":
-            return initAlg($Grid.update(model));
-            case "UpdateHeight":
-            return _U.replace([["cols"
-                               ,$Maybe.withDefault(model.cols)($Result.toMaybe($String.toInt(action._0)))]],
-              model);
-            case "UpdateWidth":
-            return _U.replace([["rows"
-                               ,$Maybe.withDefault(model.rows)($Result.toMaybe($String.toInt(action._0)))]],
-              model);}
-         _U.badCase($moduleName,
-         "between lines 40 and 51");
-      }();
-   });
    var initHeight = 20;
    var initWidth = 20;
-   var main = $StartApp$Simple.start({_: {}
-                                     ,model: A2(init,
-                                     {_: {}
-                                     ,alg: initAlg
-                                     ,height: initHeight
-                                     ,width: initWidth},
-                                     startTimeSeed)
-                                     ,update: update
-                                     ,view: view});
+   var main = function () {
+      var context = {_: {}
+                    ,alg: initAlg
+                    ,height: initHeight
+                    ,width: initWidth};
+      return $StartApp$Simple.start({_: {}
+                                    ,model: A2(init,
+                                    context,
+                                    startTimeSeed)
+                                    ,update: update(context)
+                                    ,view: view(context)});
+   }();
    var MazeAttributes = F3(function (a,
    b,
    c) {
