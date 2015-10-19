@@ -84,9 +84,6 @@ Elm.Sidewinder.make = function (_elm) {
          $Grid.rowCells(grid),
          $List.reverse(_L.range(1,
          grid.rows)));
-         var headsOrTails = $Random.generate(A2($Random.$int,
-         1,
-         2));
          return A3($List.foldl,
          processRow,
          grid,

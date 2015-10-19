@@ -13,8 +13,7 @@ type alias RowState = {run : List Cell, grid : Grid}
 
 on : Grid -> Grid
 on grid =
-    let headsOrTails = generate (int 1 2)
-        -- bias is to start at the bottom left...may not matter
+    let -- bias is to start at the bottom left...may not matter
         bottomLeftToTopRightCells = List.concatMap (rowCells grid) (List.reverse [1..grid.rows])
 
         processCell : Cell -> RowState -> RowState
@@ -28,6 +27,7 @@ on grid =
             in
                if shouldCloseOut
                   then 
+                  -- get random cell from run
                   let rand = fst (generate (int 1 (length run')) grid'.rnd.seed)
                       member = toValidCell (head (reverse (take rand run')))
                       northern = north grid' member

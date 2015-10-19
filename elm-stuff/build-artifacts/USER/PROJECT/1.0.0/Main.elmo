@@ -10,88 +10,124 @@ Elm.Main.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Main",
    $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $ElmTest$Assertion = Elm.ElmTest.Assertion.make(_elm),
-   $ElmTest$Runner$Element = Elm.ElmTest.Runner.Element.make(_elm),
-   $ElmTest$Test = Elm.ElmTest.Test.make(_elm),
    $Grid = Elm.Grid.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Set = Elm.Set.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var sidewinderTests = A2($ElmTest$Test.suite,
-   "Sidewinder Algorithm test suite",
-   _L.fromArray([A2($ElmTest$Test.test,
-                "Grid cells are of equal length",
-                function () {
-                   var seed = $Random.initialSeed(123123);
-                   var grid = A3($Grid.createGrid,
-                   3,
-                   3,
-                   seed);
-                   return A2($ElmTest$Assertion.assertEqual,
-                   $List.length(grid.cells),
-                   $List.length($Sidewinder.on(grid).cells));
-                }())
-                ,A2($ElmTest$Test.test,
-                "Cell links are created",
-                function () {
-                   var grid = $Sidewinder.on(A3($Grid.createGrid,
-                   3,
-                   3,
-                   $Random.initialSeed(123123)));
-                   return A2($ElmTest$Assertion.assertEqual,
-                   $List.isEmpty(A2($List.filter,
-                   function (a) {
-                      return $Basics.not($Set.isEmpty($Cell.linked(a)));
-                   },
-                   grid.cells)),
-                   false);
-                }())
-                ,A2($ElmTest$Test.test,
-                "Cell top row eastern links exist",
-                function () {
-                   var grid = $Sidewinder.on(A3($Grid.createGrid,
-                   3,
-                   3,
-                   $Random.initialSeed(123)));
-                   return $ElmTest$Assertion.assert(A2($Set.member,
-                   "1:2",
-                   $Grid.toValidCell(A3($Grid.getCell,
-                   grid,
-                   1,
-                   1)).links) && A2($Set.member,
-                   "1:3",
-                   $Grid.toValidCell(A3($Grid.getCell,
-                   grid,
-                   1,
-                   2)).links));
-                }())
-                ,A2($ElmTest$Test.test,
-                "Cell east row north/south links exist",
-                function () {
-                   var grid = $Sidewinder.on(A3($Grid.createGrid,
-                   3,
-                   3,
-                   $Random.initialSeed(123)));
-                   return $ElmTest$Assertion.assert(A2($Set.member,
-                   "1:3",
-                   $Grid.toValidCell(A3($Grid.getCell,
-                   grid,
-                   2,
-                   3)).links) && A2($Set.member,
-                   "2:3",
-                   $Grid.toValidCell(A3($Grid.getCell,
-                   grid,
-                   3,
-                   3)).links));
-                }())]));
-   var main = $ElmTest$Runner$Element.runDisplay(sidewinderTests);
+   $Signal = Elm.Signal.make(_elm),
+   $StartApp$Simple = Elm.StartApp.Simple.make(_elm),
+   $String = Elm.String.make(_elm);
+   var startTime = Elm.Native.Port.make(_elm).inbound("startTime",
+   "Float",
+   function (v) {
+      return typeof v === "number" ? v : _U.badPort("a number",
+      v);
+   });
+   var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
+   var UpdateHeight = function (a) {
+      return {ctor: "UpdateHeight"
+             ,_0: a};
+   };
+   var UpdateWidth = function (a) {
+      return {ctor: "UpdateWidth"
+             ,_0: a};
+   };
+   var Refresh = {ctor: "Refresh"};
+   var view = F2(function (address,
+   model) {
+      return A2($Html.div,
+      _L.fromArray([]),
+      _L.fromArray([$Html.text($Grid.toTitle(model))
+                   ,A2($Html.pre,
+                   _L.fromArray([]),
+                   _L.fromArray([$Html.text($Grid.gridToString(model))]))
+                   ,A2($Html.input,
+                   _L.fromArray([$Html$Attributes.value($Basics.toString(model.rows))
+                                ,A3($Html$Events.on,
+                                "input",
+                                $Html$Events.targetValue,
+                                function ($) {
+                                   return $Signal.message(address)(UpdateWidth($));
+                                })]),
+                   _L.fromArray([]))
+                   ,$Html.text(" X ")
+                   ,A2($Html.input,
+                   _L.fromArray([$Html$Attributes.value($Basics.toString(model.cols))
+                                ,A3($Html$Events.on,
+                                "input",
+                                $Html$Events.targetValue,
+                                function ($) {
+                                   return $Signal.message(address)(UpdateHeight($));
+                                })]),
+                   _L.fromArray([]))
+                   ,A2($Html.button,
+                   _L.fromArray([A2($Html$Events.onClick,
+                   address,
+                   Refresh)]),
+                   _L.fromArray([$Html.text("REFRESH")]))]));
+   });
+   var init = F2(function (attr,
+   seed) {
+      return attr.alg(A3($Grid.createGrid,
+      attr.width,
+      attr.height,
+      seed));
+   });
+   var initAlg = $Sidewinder.on;
+   var update = F2(function (action,
+   model) {
+      return function () {
+         switch (action.ctor)
+         {case "Refresh":
+            return initAlg($Grid.update(model));
+            case "UpdateHeight":
+            return _U.replace([["cols"
+                               ,$Maybe.withDefault(model.cols)($Result.toMaybe($String.toInt(action._0)))]],
+              model);
+            case "UpdateWidth":
+            return _U.replace([["rows"
+                               ,$Maybe.withDefault(model.rows)($Result.toMaybe($String.toInt(action._0)))]],
+              model);}
+         _U.badCase($moduleName,
+         "between lines 40 and 51");
+      }();
+   });
+   var initHeight = 20;
+   var initWidth = 20;
+   var main = $StartApp$Simple.start({_: {}
+                                     ,model: A2(init,
+                                     {_: {}
+                                     ,alg: initAlg
+                                     ,height: initHeight
+                                     ,width: initWidth},
+                                     startTimeSeed)
+                                     ,update: update
+                                     ,view: view});
+   var MazeAttributes = F3(function (a,
+   b,
+   c) {
+      return {_: {}
+             ,alg: a
+             ,height: c
+             ,width: b};
+   });
    _elm.Main.values = {_op: _op
-                      ,sidewinderTests: sidewinderTests
+                      ,MazeAttributes: MazeAttributes
+                      ,initWidth: initWidth
+                      ,initHeight: initHeight
+                      ,initAlg: initAlg
+                      ,init: init
+                      ,Refresh: Refresh
+                      ,UpdateWidth: UpdateWidth
+                      ,UpdateHeight: UpdateHeight
+                      ,update: update
+                      ,view: view
+                      ,startTimeSeed: startTimeSeed
                       ,main: main};
    return _elm.Main.values;
 };
