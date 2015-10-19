@@ -2859,6 +2859,9 @@ Elm.Grid.make = function (_elm) {
    $moduleName = "Grid",
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
@@ -2890,7 +2893,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 141 and 143");
+         "between lines 183 and 185");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -2971,7 +2974,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 62 and 64");
+         "between lines 104 and 106");
       }();
    };
    var toValidCell = function (cell) {
@@ -2983,7 +2986,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 56 and 58");
+         "between lines 98 and 100");
       }();
    };
    var getCell = F3(function (grid,
@@ -3101,6 +3104,108 @@ Elm.Grid.make = function (_elm) {
          _L.range(1,grid.rows))))));
       }();
    };
+   var view = F2(function (grid,
+   cellSize) {
+      return function () {
+         var maybeVisibleLine = F2(function (_v6,
+         _v7) {
+            return function () {
+               switch (_v7.ctor)
+               {case "_Tuple2":
+                  return function () {
+                       switch (_v6.ctor)
+                       {case "_Tuple2":
+                          return function () {
+                               var style = _v7._0 ? _v6._0 : _v6._1;
+                               return _L.fromArray([A2($Graphics$Collage.traced,
+                               style,
+                               _v7._1)]);
+                            }();}
+                       _U.badCase($moduleName,
+                       "between lines 57 and 59");
+                    }();}
+               _U.badCase($moduleName,
+               "between lines 57 and 59");
+            }();
+         });
+         var cellWalls = F2(function (cell,
+         style) {
+            return function () {
+               var invisibleStyle = _U.replace([["color"
+                                                ,$Color.white]],
+               style);
+               var y2 = 0 - cellSize;
+               var x2 = cellSize;
+               var y1 = 0;
+               var x1 = 0;
+               return A2($List.concatMap,
+               maybeVisibleLine({ctor: "_Tuple2"
+                                ,_0: style
+                                ,_1: invisibleStyle}),
+               _L.fromArray([{ctor: "_Tuple2"
+                             ,_0: isValidCell(A2(north,
+                             grid,
+                             cell))
+                             ,_1: A2($Graphics$Collage.segment,
+                             {ctor: "_Tuple2",_0: x1,_1: y1},
+                             {ctor: "_Tuple2"
+                             ,_0: x2
+                             ,_1: y1})}
+                            ,{ctor: "_Tuple2"
+                             ,_0: isValidCell(A2(west,
+                             grid,
+                             cell))
+                             ,_1: A2($Graphics$Collage.segment,
+                             {ctor: "_Tuple2",_0: x1,_1: y1},
+                             {ctor: "_Tuple2"
+                             ,_0: x1
+                             ,_1: y2})}
+                            ,{ctor: "_Tuple2"
+                             ,_0: A2($Cell.isLinked,
+                             cell,
+                             toValidCell(A2(east,grid,cell)))
+                             ,_1: A2($Graphics$Collage.segment,
+                             {ctor: "_Tuple2",_0: x2,_1: y1},
+                             {ctor: "_Tuple2"
+                             ,_0: x2
+                             ,_1: y2})}
+                            ,{ctor: "_Tuple2"
+                             ,_0: A2($Cell.isLinked,
+                             cell,
+                             toValidCell(A2(south,
+                             grid,
+                             cell)))
+                             ,_1: A2($Graphics$Collage.segment,
+                             {ctor: "_Tuple2",_0: x1,_1: y2},
+                             {ctor: "_Tuple2"
+                             ,_0: x2
+                             ,_1: y2})}]));
+            }();
+         });
+         var paintCell = function (cell) {
+            return function () {
+               var style = _U.replace([["width"
+                                       ,2]],
+               $Graphics$Collage.defaultLine);
+               var y1 = cell.row * cellSize * 1;
+               var x1 = cell.col * cellSize * -1;
+               return $Graphics$Collage.move({ctor: "_Tuple2"
+                                             ,_0: $Basics.toFloat(x1)
+                                             ,_1: $Basics.toFloat(y1)})($Graphics$Collage.group(A2(cellWalls,
+               cell,
+               style)));
+            }();
+         };
+         var imgHeight = cellSize * grid.rows;
+         var imgWidth = cellSize * grid.cols;
+         return A3($Graphics$Collage.collage,
+         imgWidth,
+         imgHeight,
+         A2($List.map,
+         paintCell,
+         grid.cells));
+      }();
+   });
    var updateRnd = function (grid) {
       return _U.replace([["rnd"
                          ,$Rnd.refresh(grid.rnd)]],
@@ -3152,6 +3257,7 @@ Elm.Grid.make = function (_elm) {
                       ,nextSeed: nextSeed
                       ,updateRnd: updateRnd
                       ,update: update
+                      ,view: view
                       ,getCell: getCell
                       ,toValidCell: toValidCell
                       ,isValidCell: isValidCell
@@ -4872,9 +4978,9 @@ Elm.Maze.make = function (_elm) {
       _L.fromArray([$Html.text(A2($Basics._op["++"],
                    algToString(maze.alg),
                    " algorithm maze"))
-                   ,A2($Html.pre,
-                   _L.fromArray([]),
-                   _L.fromArray([$Html.text($Grid.toAscii(maze.grid))]))]));
+                   ,$Html.fromElement(A2($Grid.view,
+                   maze.grid,
+                   20))]));
    };
    var updateSize = F3(function (maze,
    width,
@@ -11037,12 +11143,9 @@ Elm.Native.Utils.make = function(localRuntime) {
 	};
 };
 
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var createElement = require("./vdom/create-element.js")
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
-module.exports = createElement
-
-},{"./vdom/create-element.js":6}],2:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 (function (global){
 var topLevel = typeof global !== 'undefined' ? global :
     typeof window !== 'undefined' ? window : {}
@@ -11060,8 +11163,8 @@ if (typeof document !== 'undefined') {
     module.exports = doccy;
 }
 
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"min-document":24}],3:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"min-document":1}],3:[function(require,module,exports){
 "use strict";
 
 module.exports = function isObject(x) {
@@ -12251,7 +12354,7 @@ var VNode = require('virtual-dom/vnode/vnode');
 var VText = require('virtual-dom/vnode/vtext');
 var diff = require('virtual-dom/vtree/diff');
 var patch = require('virtual-dom/vdom/patch');
-var createElement = require('virtual-dom/create-element');
+var createElement = require('virtual-dom/vdom/create-element');
 var isHook = require("virtual-dom/vnode/is-vhook");
 
 
@@ -12273,24 +12376,14 @@ Elm.Native.VirtualDom.make = function(elm)
 
 	var ATTRIBUTE_KEY = 'UniqueNameThatOthersAreVeryUnlikelyToUse';
 
-	function listToProperties(list)
+
+
+	// VIRTUAL DOM NODES
+
+
+	function text(string)
 	{
-		var object = {};
-		while (list.ctor !== '[]')
-		{
-			var entry = list._0;
-			if (entry.key === ATTRIBUTE_KEY)
-			{
-				object.attributes = object.attributes || {};
-				object.attributes[entry.value.attrKey] = entry.value.attrValue;
-			}
-			else
-			{
-				object[entry.key] = entry.value;
-			}
-			list = list._1;
-		}
-		return object;
+		return new VText(string);
 	}
 
 	function node(name)
@@ -12299,6 +12392,10 @@ Elm.Native.VirtualDom.make = function(elm)
 			return makeNode(name, propertyList, contents);
 		});
 	}
+
+
+	// BUILD VIRTUAL DOME NODES
+
 
 	function makeNode(name, propertyList, contents)
 	{
@@ -12321,7 +12418,7 @@ Elm.Native.VirtualDom.make = function(elm)
 
 		// ensure that setting text of an input does not move the cursor
 		var useSoftSet =
-			name === 'input'
+			(name === 'input' || name === 'textarea')
 			&& props.value !== undefined
 			&& !isHook(props.value);
 
@@ -12332,6 +12429,31 @@ Elm.Native.VirtualDom.make = function(elm)
 
 		return new VNode(name, props, List.toArray(contents), key, namespace);
 	}
+
+	function listToProperties(list)
+	{
+		var object = {};
+		while (list.ctor !== '[]')
+		{
+			var entry = list._0;
+			if (entry.key === ATTRIBUTE_KEY)
+			{
+				object.attributes = object.attributes || {};
+				object.attributes[entry.value.attrKey] = entry.value.attrValue;
+			}
+			else
+			{
+				object[entry.key] = entry.value;
+			}
+			list = list._1;
+		}
+		return object;
+	}
+
+
+
+	// PROPERTIES AND ATTRIBUTES
+
 
 	function property(key, value)
 	{
@@ -12351,6 +12473,63 @@ Elm.Native.VirtualDom.make = function(elm)
 			}
 		};
 	}
+
+
+
+	// NAMESPACED ATTRIBUTES
+
+
+	function attributeNS(namespace, key, value)
+	{
+		return {
+			key: key,
+			value: new AttributeHook(namespace, key, value)
+		};
+	}
+
+	function AttributeHook(namespace, key, value)
+	{
+		if (!(this instanceof AttributeHook))
+		{
+			return new AttributeHook(namespace, key, value);
+		}
+
+		this.namespace = namespace;
+		this.key = key;
+		this.value = value;
+	}
+
+	AttributeHook.prototype.hook = function (node, prop, prev)
+	{
+		if (prev
+			&& prev.type === 'AttributeHook'
+			&& prev.value === this.value
+			&& prev.namespace === this.namespace)
+		{
+			return;
+		}
+
+		node.setAttributeNS(this.namespace, prop, this.value);
+	};
+
+	AttributeHook.prototype.unhook = function (node, prop, next)
+	{
+		if (next
+			&& next.type === 'AttributeHook'
+			&& next.namespace === this.namespace)
+		{
+			return;
+		}
+
+		node.removeAttributeNS(this.namespace, this.key);
+	};
+
+	AttributeHook.prototype.type = 'AttributeHook';
+
+
+
+	// EVENTS
+
 
 	function on(name, options, decoder, createMessage)
 	{
@@ -12391,10 +12570,10 @@ Elm.Native.VirtualDom.make = function(elm)
 		}
 	};
 
-	function text(string)
-	{
-		return new VText(string);
-	}
+
+
+	// INTEGRATION WITH ELEMENTS
+
 
 	function ElementWidget(element)
 	{
@@ -12429,6 +12608,11 @@ Elm.Native.VirtualDom.make = function(elm)
 		});
 	}
 
+
+
+	// RENDER AND UPDATE
+
+
 	function render(model)
 	{
 		var element = Element.createNode('div');
@@ -12448,6 +12632,11 @@ Elm.Native.VirtualDom.make = function(elm)
 		var newNode = patch(node, patches);
 		return newNode;
 	}
+
+
+
+	// LAZINESS
+
 
 	function lazyRef(fn, a)
 	{
@@ -12478,15 +12667,17 @@ Elm.Native.VirtualDom.make = function(elm)
 
 	function Thunk(fn, args, thunk)
 	{
-		this.fn = fn;
-		this.args = args;
+		/* public (used by VirtualDom.js) */
 		this.vnode = null;
 		this.key = undefined;
+
+		/* private */
+		this.fn = fn;
+		this.args = args;
 		this.thunk = thunk;
 	}
 
 	Thunk.prototype.type = "Thunk";
-	Thunk.prototype.update = updateThunk;
 	Thunk.prototype.render = renderThunk;
 
 	function shouldUpdate(current, previous)
@@ -12511,35 +12702,27 @@ Elm.Native.VirtualDom.make = function(elm)
 		return false;
 	}
 
-	function updateThunk(previous, domNode)
+	function renderThunk(previous)
 	{
-		if (!shouldUpdate(this, previous))
+		if (previous == null || shouldUpdate(this, previous))
 		{
-			this.vnode = previous.vnode;
-			return;
+			return this.thunk();
 		}
-
-		if (!this.vnode)
+		else
 		{
-			this.vnode = this.thunk();
+			return previous.vnode;
 		}
-
-		var patches = diff(previous.vnode, this.vnode);
-		patch(domNode, patches);
 	}
 
-	function renderThunk()
-	{
-		return this.thunk();
-	}
 
-	return Elm.Native.VirtualDom.values = {
+	return elm.Native.VirtualDom.values = Elm.Native.VirtualDom.values = {
 		node: node,
 		text: text,
 		on: F4(on),
 
 		property: F2(property),
 		attribute: F2(attribute),
+		attributeNS: F3(attributeNS),
 
 		lazy: F2(lazyRef),
 		lazy2: F3(lazyRef2),
@@ -12553,9 +12736,7 @@ Elm.Native.VirtualDom.make = function(elm)
 	};
 };
 
-},{"virtual-dom/create-element":1,"virtual-dom/vdom/patch":9,"virtual-dom/vnode/is-vhook":13,"virtual-dom/vnode/vnode":18,"virtual-dom/vnode/vtext":20,"virtual-dom/vtree/diff":22}],24:[function(require,module,exports){
-
-},{}]},{},[23]);
+},{"virtual-dom/vdom/create-element":6,"virtual-dom/vdom/patch":9,"virtual-dom/vnode/is-vhook":13,"virtual-dom/vnode/vnode":18,"virtual-dom/vnode/vtext":20,"virtual-dom/vtree/diff":22}]},{},[23]);
 
 Elm.Random = Elm.Random || {};
 Elm.Random.make = function (_elm) {
@@ -14125,6 +14306,7 @@ Elm.VirtualDom.make = function (_elm) {
       decoder,
       toMessage);
    });
+   var attributeNS = $Native$VirtualDom.attributeNS;
    var attribute = $Native$VirtualDom.attribute;
    var property = $Native$VirtualDom.property;
    var Property = {ctor: "Property"};
@@ -14140,6 +14322,7 @@ Elm.VirtualDom.make = function (_elm) {
                             ,fromElement: fromElement
                             ,property: property
                             ,attribute: attribute
+                            ,attributeNS: attributeNS
                             ,on: on
                             ,onWithOptions: onWithOptions
                             ,defaultOptions: defaultOptions

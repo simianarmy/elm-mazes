@@ -4,6 +4,7 @@ import Cell exposing (..)
 import Set
 import List
 import String
+import Color
 import Rnd exposing (..)
 import Random exposing (..)
 import Graphics.Collage exposing (..)
@@ -51,19 +52,27 @@ view grid cellSize =
     let imgWidth = cellSize * grid.cols
         imgHeight = cellSize * grid.rows
 
+        maybeVisibleLine : (LineStyle, LineStyle) -> (Bool, Path) -> List Form
+        maybeVisibleLine (visStyle, hiddenStyle) (visible, seg) =
+            let style = if visible then visStyle else hiddenStyle
+            in
+               [traced style seg]
+
         cellWalls : Cell -> LineStyle -> List Form
         cellWalls cell style =
             let x1 = 0 
                 y1 = 0 
                 x2 = cellSize
                 y2 = -cellSize
+                invisibleStyle = {style | color <- Color.white}
             in
-               List.filterMap (\x -> not (List.isEmpty x))
-                   [if isValidCell (north grid cell) then traced style (segment (x1, y1) (x2, y1)) else []
-                   , if isValidCell (west grid cell) then traced style (segment (x1, y1) (x1, y2)) else []
-                   , if Cell.isLinked cell (toValidCell (east grid cell)) then traced style (segment (x2, y1) (x2, y2)) else []
-                   , if Cell.isLinked cell (toValidCell (south grid cell)) then traced style (segment (x1, y2) (x2, y2)) else []
-                      ]
+               List.concatMap (maybeVisibleLine (style, invisibleStyle))
+               [
+                   ((isValidCell (north grid cell)), (segment (x1, y1) (x2, y1))),
+                   ((isValidCell (west grid cell)), (segment (x1, y1) (x1, y2))),
+                   ((Cell.isLinked cell (toValidCell (east grid cell))), (segment (x2, y1) (x2, y2))),
+                   ((Cell.isLinked cell (toValidCell (south grid cell))), (segment (x1, y2) (x2, y2)))
+               ]
 
         paintCell : Cell -> Form
         paintCell cell =

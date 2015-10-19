@@ -36,7 +36,7 @@ view : Maze -> Html
 view maze =
     div [] [
         text <| (algToString maze.alg) ++ " algorithm maze"
-        , pre [] [text <| Grid.toAscii maze.grid]
+        , fromElement <| Grid.view maze.grid 20
         ]
 
 getAlgFn : Algorithm -> Grid -> Grid

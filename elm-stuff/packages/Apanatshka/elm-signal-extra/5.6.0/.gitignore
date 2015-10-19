@@ -1,7 +1,0 @@
-# Ignore build or dist files
-/elm-stuff
-/elm.js
-.*.swp
-/test/elm-stuff
-/test/elm.js
-/test/elm.html

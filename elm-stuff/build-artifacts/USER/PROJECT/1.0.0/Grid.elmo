@@ -11,6 +11,9 @@ Elm.Grid.make = function (_elm) {
    $moduleName = "Grid",
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
@@ -42,7 +45,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 141 and 143");
+         "between lines 183 and 185");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -123,7 +126,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 62 and 64");
+         "between lines 104 and 106");
       }();
    };
    var toValidCell = function (cell) {
@@ -135,7 +138,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 56 and 58");
+         "between lines 98 and 100");
       }();
    };
    var getCell = F3(function (grid,
@@ -253,6 +256,108 @@ Elm.Grid.make = function (_elm) {
          _L.range(1,grid.rows))))));
       }();
    };
+   var view = F2(function (grid,
+   cellSize) {
+      return function () {
+         var maybeVisibleLine = F2(function (_v6,
+         _v7) {
+            return function () {
+               switch (_v7.ctor)
+               {case "_Tuple2":
+                  return function () {
+                       switch (_v6.ctor)
+                       {case "_Tuple2":
+                          return function () {
+                               var style = _v7._0 ? _v6._0 : _v6._1;
+                               return _L.fromArray([A2($Graphics$Collage.traced,
+                               style,
+                               _v7._1)]);
+                            }();}
+                       _U.badCase($moduleName,
+                       "between lines 57 and 59");
+                    }();}
+               _U.badCase($moduleName,
+               "between lines 57 and 59");
+            }();
+         });
+         var cellWalls = F2(function (cell,
+         style) {
+            return function () {
+               var invisibleStyle = _U.replace([["color"
+                                                ,$Color.white]],
+               style);
+               var y2 = 0 - cellSize;
+               var x2 = cellSize;
+               var y1 = 0;
+               var x1 = 0;
+               return A2($List.concatMap,
+               maybeVisibleLine({ctor: "_Tuple2"
+                                ,_0: style
+                                ,_1: invisibleStyle}),
+               _L.fromArray([{ctor: "_Tuple2"
+                             ,_0: isValidCell(A2(north,
+                             grid,
+                             cell))
+                             ,_1: A2($Graphics$Collage.segment,
+                             {ctor: "_Tuple2",_0: x1,_1: y1},
+                             {ctor: "_Tuple2"
+                             ,_0: x2
+                             ,_1: y1})}
+                            ,{ctor: "_Tuple2"
+                             ,_0: isValidCell(A2(west,
+                             grid,
+                             cell))
+                             ,_1: A2($Graphics$Collage.segment,
+                             {ctor: "_Tuple2",_0: x1,_1: y1},
+                             {ctor: "_Tuple2"
+                             ,_0: x1
+                             ,_1: y2})}
+                            ,{ctor: "_Tuple2"
+                             ,_0: A2($Cell.isLinked,
+                             cell,
+                             toValidCell(A2(east,grid,cell)))
+                             ,_1: A2($Graphics$Collage.segment,
+                             {ctor: "_Tuple2",_0: x2,_1: y1},
+                             {ctor: "_Tuple2"
+                             ,_0: x2
+                             ,_1: y2})}
+                            ,{ctor: "_Tuple2"
+                             ,_0: A2($Cell.isLinked,
+                             cell,
+                             toValidCell(A2(south,
+                             grid,
+                             cell)))
+                             ,_1: A2($Graphics$Collage.segment,
+                             {ctor: "_Tuple2",_0: x1,_1: y2},
+                             {ctor: "_Tuple2"
+                             ,_0: x2
+                             ,_1: y2})}]));
+            }();
+         });
+         var paintCell = function (cell) {
+            return function () {
+               var style = _U.replace([["width"
+                                       ,2]],
+               $Graphics$Collage.defaultLine);
+               var y1 = cell.row * cellSize * 1;
+               var x1 = cell.col * cellSize * -1;
+               return $Graphics$Collage.move({ctor: "_Tuple2"
+                                             ,_0: $Basics.toFloat(x1)
+                                             ,_1: $Basics.toFloat(y1)})($Graphics$Collage.group(A2(cellWalls,
+               cell,
+               style)));
+            }();
+         };
+         var imgHeight = cellSize * grid.rows;
+         var imgWidth = cellSize * grid.cols;
+         return A3($Graphics$Collage.collage,
+         imgWidth,
+         imgHeight,
+         A2($List.map,
+         paintCell,
+         grid.cells));
+      }();
+   });
    var updateRnd = function (grid) {
       return _U.replace([["rnd"
                          ,$Rnd.refresh(grid.rnd)]],
@@ -304,6 +409,7 @@ Elm.Grid.make = function (_elm) {
                       ,nextSeed: nextSeed
                       ,updateRnd: updateRnd
                       ,update: update
+                      ,view: view
                       ,getCell: getCell
                       ,toValidCell: toValidCell
                       ,isValidCell: isValidCell
