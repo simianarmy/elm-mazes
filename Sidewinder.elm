@@ -13,14 +13,14 @@ type alias RowState = {run : List Cell, grid : Grid}
 
 on : Grid -> Grid
 on grid =
-    -- just fuckin generate all the rands at once - keeping the seed updated is impossible
     let headsOrTails = generate (int 1 2)
         -- bias is to start at the bottom left...may not matter
         bottomLeftToTopRightCells = List.concatMap (rowCells grid) (List.reverse [1..grid.rows])
 
         processCell : Cell -> RowState -> RowState
         processCell cell rowState =
-            let atEasternBoundary = not (isValidCell (east rowState.grid cell))
+            let run' = cell :: rowState.run
+                atEasternBoundary = not (isValidCell (east rowState.grid cell))
                 atNorthernBoundary = not (isValidCell (north rowState.grid cell))
                 -- update grid's rnd
                 grid' = updateRnd rowState.grid
@@ -28,8 +28,8 @@ on grid =
             in
                if shouldCloseOut
                   then 
-                  let rand = fst (generate (int 1 (length rowState.run)) grid'.rnd.seed)
-                      member = toValidCell (head (reverse (take rand rowState.run)))
+                  let rand = fst (generate (int 1 (length run')) grid'.rnd.seed)
+                      member = toValidCell (head (reverse (take rand run')))
                       northern = north grid' member
                       grid'' = updateRnd grid'
                   in
@@ -48,6 +48,7 @@ on grid =
                   else 
                   {
                       rowState |
+                      run <- run',
                       -- link cells and update the grid RND
                       grid <- linkCells grid' cell (toValidCell (east grid' cell)) True
                   }
@@ -55,7 +56,7 @@ on grid =
         processRow : Int -> Grid -> Grid
         processRow row curGrid =
             let state = {run = [], grid = curGrid}
-                result = List.foldl processCell state (rowCells grid row)
+                result = List.foldl processCell state (rowCells curGrid row)
             in
                result.grid
     in

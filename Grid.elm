@@ -39,6 +39,10 @@ updateRnd grid =
         rnd <- refresh grid.rnd
     }
 
+update : Grid -> Grid
+update grid =
+    createGrid grid.rows grid.cols <| nextSeed grid
+
 getCell : Grid -> Int -> Int -> Maybe Cell
 getCell grid row col =
     if (row > grid.rows || col > grid.cols || row <= 0 || col <= 0)

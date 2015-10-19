@@ -270,92 +270,6 @@ Elm.Basics.make = function (_elm) {
                         ,GT: GT};
    return _elm.Basics.values;
 };
-Elm.BinaryTree = Elm.BinaryTree || {};
-Elm.BinaryTree.make = function (_elm) {
-   "use strict";
-   _elm.BinaryTree = _elm.BinaryTree || {};
-   if (_elm.BinaryTree.values)
-   return _elm.BinaryTree.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "BinaryTree",
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Random = Elm.Random.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var on = function (grid) {
-      return function () {
-         var getRandomNeighbor = F2(function (cell,
-         randInt) {
-            return function () {
-               var northandeast = $List.concat(_L.fromArray([$Grid.cellToList(A2($Grid.north,
-                                                            grid,
-                                                            cell))
-                                                            ,$Grid.cellToList(A2($Grid.east,
-                                                            grid,
-                                                            cell))]));
-               return $List.isEmpty(northandeast) ? $Maybe.Nothing : _U.eq($List.length(northandeast),
-               1) ? $List.head(northandeast) : $List.head($List.reverse(A2($List.take,
-               randInt,
-               northandeast)));
-            }();
-         });
-         var processCell = F2(function (_v0,
-         grid) {
-            return function () {
-               switch (_v0.ctor)
-               {case "_Tuple2":
-                  return function () {
-                       var neighbor = A2(getRandomNeighbor,
-                       _v0._0,
-                       _v0._1);
-                       return function () {
-                          switch (neighbor.ctor)
-                          {case "Just":
-                             return A4($Grid.linkCells,
-                               grid,
-                               _v0._0,
-                               neighbor._0,
-                               true);
-                             case "Nothing": return grid;}
-                          _U.badCase($moduleName,
-                          "between lines 39 and 42");
-                       }();
-                    }();}
-               _U.badCase($moduleName,
-               "between lines 37 and 42");
-            }();
-         });
-         var randomInts = $Basics.fst(A2($Random.generate,
-         A2($Random.list,
-         $List.length(grid.cells),
-         A2($Random.$int,1,2)),
-         grid.rnd.seed));
-         return A3($List.foldl,
-         processCell,
-         grid,
-         A3($List.map2,
-         F2(function (v0,v1) {
-            return {ctor: "_Tuple2"
-                   ,_0: v0
-                   ,_1: v1};
-         }),
-         grid.cells,
-         randomInts));
-      }();
-   };
-   var name = "Binary Tree";
-   _elm.BinaryTree.values = {_op: _op
-                            ,name: name
-                            ,on: on};
-   return _elm.BinaryTree.values;
-};
 Elm.Cell = Elm.Cell || {};
 Elm.Cell.make = function (_elm) {
    "use strict";
@@ -1958,6 +1872,705 @@ Elm.Dict.make = function (_elm) {
                       ,fromList: fromList};
    return _elm.Dict.values;
 };
+Elm.ElmTest = Elm.ElmTest || {};
+Elm.ElmTest.Assertion = Elm.ElmTest.Assertion || {};
+Elm.ElmTest.Assertion.make = function (_elm) {
+   "use strict";
+   _elm.ElmTest = _elm.ElmTest || {};
+   _elm.ElmTest.Assertion = _elm.ElmTest.Assertion || {};
+   if (_elm.ElmTest.Assertion.values)
+   return _elm.ElmTest.Assertion.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "ElmTest.Assertion",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var AssertNotEqual = F3(function (a,
+   b,
+   c) {
+      return {ctor: "AssertNotEqual"
+             ,_0: a
+             ,_1: b
+             ,_2: c};
+   });
+   var assertNotEqual = F2(function (a,
+   b) {
+      return A3(AssertNotEqual,
+      function (_v0) {
+         return function () {
+            return !_U.eq(a,b);
+         }();
+      },
+      $Basics.toString(a),
+      $Basics.toString(b));
+   });
+   var AssertEqual = F3(function (a,
+   b,
+   c) {
+      return {ctor: "AssertEqual"
+             ,_0: a
+             ,_1: b
+             ,_2: c};
+   });
+   var assertEqual = F2(function (a,
+   b) {
+      return A3(AssertEqual,
+      function (_v2) {
+         return function () {
+            return _U.eq(a,b);
+         }();
+      },
+      $Basics.toString(a),
+      $Basics.toString(b));
+   });
+   var assertionList = F2(function (xs,
+   ys) {
+      return A3($List.map2,
+      assertEqual,
+      xs,
+      ys);
+   });
+   var AssertFalse = function (a) {
+      return {ctor: "AssertFalse"
+             ,_0: a};
+   };
+   var AssertTrue = function (a) {
+      return {ctor: "AssertTrue"
+             ,_0: a};
+   };
+   var assertT = AssertTrue;
+   var assert = function (b) {
+      return AssertTrue(function (_v4) {
+         return function () {
+            return b;
+         }();
+      });
+   };
+   _elm.ElmTest.Assertion.values = {_op: _op
+                                   ,AssertTrue: AssertTrue
+                                   ,AssertFalse: AssertFalse
+                                   ,AssertEqual: AssertEqual
+                                   ,AssertNotEqual: AssertNotEqual
+                                   ,assertT: assertT
+                                   ,assert: assert
+                                   ,assertEqual: assertEqual
+                                   ,assertionList: assertionList
+                                   ,assertNotEqual: assertNotEqual};
+   return _elm.ElmTest.Assertion.values;
+};
+Elm.ElmTest = Elm.ElmTest || {};
+Elm.ElmTest.Run = Elm.ElmTest.Run || {};
+Elm.ElmTest.Run.make = function (_elm) {
+   "use strict";
+   _elm.ElmTest = _elm.ElmTest || {};
+   _elm.ElmTest.Run = _elm.ElmTest.Run || {};
+   if (_elm.ElmTest.Run.values)
+   return _elm.ElmTest.Run.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "ElmTest.Run",
+   $Basics = Elm.Basics.make(_elm),
+   $ElmTest$Assertion = Elm.ElmTest.Assertion.make(_elm),
+   $ElmTest$Test = Elm.ElmTest.Test.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var failedSuites = function (result) {
+      return function () {
+         switch (result.ctor)
+         {case "Report":
+            return function () {
+                 var failed = _U.cmp($List.length(result._1.failures),
+                 0) > 0 ? 1 : 0;
+                 return failed + $List.sum($List.map(failedSuites)(result._1.results));
+              }();}
+         return 0;
+      }();
+   };
+   var passedSuites = function (result) {
+      return function () {
+         switch (result.ctor)
+         {case "Report":
+            return function () {
+                 var passed = _U.eq($List.length(result._1.failures),
+                 0) ? 1 : 0;
+                 return passed + $List.sum($List.map(passedSuites)(result._1.results));
+              }();}
+         return 0;
+      }();
+   };
+   var failedTests = function (result) {
+      return function () {
+         switch (result.ctor)
+         {case "Fail": return 1;
+            case "Pass": return 0;
+            case "Report":
+            return $List.sum($List.map(failedTests)(result._1.results));}
+         _U.badCase($moduleName,
+         "between lines 59 and 62");
+      }();
+   };
+   var passedTests = function (result) {
+      return function () {
+         switch (result.ctor)
+         {case "Fail": return 0;
+            case "Pass": return 1;
+            case "Report":
+            return $List.sum($List.map(passedTests)(result._1.results));}
+         _U.badCase($moduleName,
+         "between lines 53 and 56");
+      }();
+   };
+   var pass = function (m) {
+      return function () {
+         switch (m.ctor)
+         {case "Fail": return false;
+            case "Pass": return true;
+            case "Report":
+            return _U.cmp($List.length(function (_) {
+                 return _.failures;
+              }(m._1)),
+              0) > 0 ? false : true;}
+         _U.badCase($moduleName,
+         "between lines 43 and 46");
+      }();
+   };
+   var fail = function ($) {
+      return $Basics.not(pass($));
+   };
+   var Report = F2(function (a,b) {
+      return {ctor: "Report"
+             ,_0: a
+             ,_1: b};
+   });
+   var Fail = F2(function (a,b) {
+      return {ctor: "Fail"
+             ,_0: a
+             ,_1: b};
+   });
+   var Pass = function (a) {
+      return {ctor: "Pass",_0: a};
+   };
+   var run = function (test) {
+      return function () {
+         switch (test.ctor)
+         {case "Suite":
+            return function () {
+                 var results = A2($List.map,
+                 run,
+                 test._1);
+                 var $ = A2($List.partition,
+                 pass,
+                 results),
+                 passes = $._0,
+                 fails = $._1;
+                 return A2(Report,
+                 test._0,
+                 {_: {}
+                 ,failures: fails
+                 ,passes: passes
+                 ,results: results});
+              }();
+            case "TestCase":
+            return function () {
+                 var runAssertion = F2(function (t,
+                 m) {
+                    return t({ctor: "_Tuple0"}) ? Pass(test._0) : A2(Fail,
+                    test._0,
+                    m);
+                 });
+                 return function () {
+                    switch (test._1.ctor)
+                    {case "AssertEqual":
+                       return runAssertion(test._1._0)(A2($Basics._op["++"],
+                         "Expected: ",
+                         A2($Basics._op["++"],
+                         test._1._1,
+                         A2($Basics._op["++"],
+                         "; got: ",
+                         test._1._2))));
+                       case "AssertFalse":
+                       return runAssertion(test._1._0)("not False");
+                       case "AssertNotEqual":
+                       return runAssertion(test._1._0)(A2($Basics._op["++"],
+                         test._1._1,
+                         A2($Basics._op["++"],
+                         " equals ",
+                         test._1._2)));
+                       case "AssertTrue":
+                       return runAssertion(test._1._0)("not True");}
+                    _U.badCase($moduleName,
+                    "between lines 29 and 34");
+                 }();
+              }();}
+         _U.badCase($moduleName,
+         "between lines 25 and 39");
+      }();
+   };
+   _elm.ElmTest.Run.values = {_op: _op
+                             ,Pass: Pass
+                             ,Fail: Fail
+                             ,Report: Report
+                             ,run: run
+                             ,pass: pass
+                             ,fail: fail
+                             ,passedTests: passedTests
+                             ,failedTests: failedTests
+                             ,passedSuites: passedSuites
+                             ,failedSuites: failedSuites};
+   return _elm.ElmTest.Run.values;
+};
+Elm.ElmTest = Elm.ElmTest || {};
+Elm.ElmTest.Runner = Elm.ElmTest.Runner || {};
+Elm.ElmTest.Runner.Element = Elm.ElmTest.Runner.Element || {};
+Elm.ElmTest.Runner.Element.make = function (_elm) {
+   "use strict";
+   _elm.ElmTest = _elm.ElmTest || {};
+   _elm.ElmTest.Runner = _elm.ElmTest.Runner || {};
+   _elm.ElmTest.Runner.Element = _elm.ElmTest.Runner.Element || {};
+   if (_elm.ElmTest.Runner.Element.values)
+   return _elm.ElmTest.Runner.Element.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "ElmTest.Runner.Element",
+   $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $ElmTest$Run = Elm.ElmTest.Run.make(_elm),
+   $ElmTest$Runner$String = Elm.ElmTest.Runner.String.make(_elm),
+   $ElmTest$Test = Elm.ElmTest.Test.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm),
+   $Text = Elm.Text.make(_elm);
+   var maxOrZero = function (l) {
+      return A3($List.foldl,
+      $Basics.max,
+      0,
+      l);
+   };
+   var indent = function (s) {
+      return function () {
+         var trimmed = $String.trimLeft(s);
+         return $String.length(s) - $String.length(trimmed);
+      }();
+   };
+   var plainText = function (s) {
+      return $Graphics$Element.leftAligned($Text.fromString(s));
+   };
+   var pretty = function (_v0) {
+      return function () {
+         switch (_v0.ctor)
+         {case "_Tuple2":
+            return function () {
+                 var w$ = 5;
+                 var w = indent(_v0._0) * 10;
+                 return function () {
+                    switch (_v0._1.ctor)
+                    {case "Fail":
+                       return $Graphics$Element.color($Color.red)(A2($Graphics$Element.flow,
+                         $Graphics$Element.right,
+                         _L.fromArray([A2($Graphics$Element.spacer,
+                                      w,
+                                      1)
+                                      ,plainText(_v0._0)
+                                      ,A2($Graphics$Element.spacer,
+                                      w$,
+                                      1)])));
+                       case "Pass":
+                       return $Graphics$Element.color($Color.green)(A2($Graphics$Element.flow,
+                         $Graphics$Element.right,
+                         _L.fromArray([A2($Graphics$Element.spacer,
+                                      w,
+                                      1)
+                                      ,plainText(_v0._0)
+                                      ,A2($Graphics$Element.spacer,
+                                      w$,
+                                      1)])));
+                       case "Report":
+                       return function () {
+                            var c = _U.cmp($ElmTest$Run.failedTests(_v0._1),
+                            0) > 0 ? $Color.red : $Color.green;
+                            return $Graphics$Element.color(c)(A2($Graphics$Element.flow,
+                            $Graphics$Element.right,
+                            _L.fromArray([A2($Graphics$Element.spacer,
+                                         w,
+                                         1)
+                                         ,$Graphics$Element.leftAligned($Text.bold($Text.fromString(_v0._0)))
+                                         ,A2($Graphics$Element.spacer,
+                                         w$,
+                                         1)])));
+                         }();}
+                    _U.badCase($moduleName,
+                    "between lines 29 and 33");
+                 }();
+              }();}
+         _U.badCase($moduleName,
+         "between lines 27 and 33");
+      }();
+   };
+   var runDisplay = function (tests) {
+      return function () {
+         var _ = $ElmTest$Runner$String.run(tests);
+         var allPassed = function () {
+            switch (_.ctor)
+            {case "::": switch (_._0.ctor)
+                 {case "_Tuple2":
+                    return _._0._1;}
+                 break;}
+            _U.badCase($moduleName,
+            "on line 45, column 45 to 61");
+         }();
+         var results = function () {
+            switch (_.ctor)
+            {case "::": switch (_._0.ctor)
+                 {case "_Tuple2": return _._1;}
+                 break;}
+            _U.badCase($moduleName,
+            "on line 45, column 45 to 61");
+         }();
+         var summary = function () {
+            switch (_.ctor)
+            {case "::": switch (_._0.ctor)
+                 {case "_Tuple2":
+                    return _._0._0;}
+                 break;}
+            _U.badCase($moduleName,
+            "on line 45, column 45 to 61");
+         }();
+         var results$ = A2($List.map,
+         pretty,
+         results);
+         var maxWidth = maxOrZero($List.map($Graphics$Element.widthOf)(results$));
+         var maxHeight = maxOrZero($List.map($Graphics$Element.heightOf)(results$));
+         var elements = _U.eq(results,
+         _L.fromArray([{ctor: "_Tuple2"
+                       ,_0: ""
+                       ,_1: allPassed}])) ? _L.fromArray([]) : A2($List.map,
+         function ($) {
+            return $Graphics$Element.color($Color.black)(A3($Graphics$Element.container,
+            maxWidth + 2,
+            maxHeight + 2,
+            $Graphics$Element.midLeft)($Graphics$Element.width(maxWidth)($)));
+         },
+         results$);
+         return $Graphics$Element.flow($Graphics$Element.down)(A2($List._op["::"],
+         plainText(summary),
+         A2($List._op["::"],
+         A2($Graphics$Element.spacer,
+         1,
+         10),
+         elements)));
+      }();
+   };
+   _elm.ElmTest.Runner.Element.values = {_op: _op
+                                        ,runDisplay: runDisplay};
+   return _elm.ElmTest.Runner.Element.values;
+};
+Elm.ElmTest = Elm.ElmTest || {};
+Elm.ElmTest.Runner = Elm.ElmTest.Runner || {};
+Elm.ElmTest.Runner.String = Elm.ElmTest.Runner.String || {};
+Elm.ElmTest.Runner.String.make = function (_elm) {
+   "use strict";
+   _elm.ElmTest = _elm.ElmTest || {};
+   _elm.ElmTest.Runner = _elm.ElmTest.Runner || {};
+   _elm.ElmTest.Runner.String = _elm.ElmTest.Runner.String || {};
+   if (_elm.ElmTest.Runner.String.values)
+   return _elm.ElmTest.Runner.String.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "ElmTest.Runner.String",
+   $Basics = Elm.Basics.make(_elm),
+   $ElmTest$Run = Elm.ElmTest.Run.make(_elm),
+   $ElmTest$Test = Elm.ElmTest.Test.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var replicate = F2(function (n,
+   c) {
+      return function () {
+         var go = function (n) {
+            return _U.cmp(n,
+            0) < 1 ? _L.fromArray([]) : A2($List._op["::"],
+            c,
+            go(n - 1));
+         };
+         return $String.fromList(go(n));
+      }();
+   });
+   var vcat = function ($) {
+      return $String.concat($List.intersperse("\n")($));
+   };
+   var indent = function (n) {
+      return function () {
+         var indents = A2(replicate,
+         n,
+         _U.chr(" "));
+         return function ($) {
+            return vcat($List.map($String.append(indents))($String.lines($)));
+         };
+      }();
+   };
+   var pretty = F2(function (n,
+   result) {
+      return function () {
+         var passed = $ElmTest$Run.pass(result);
+         return function () {
+            switch (result.ctor)
+            {case "Fail":
+               return _L.fromArray([{ctor: "_Tuple2"
+                                    ,_0: indent(n)(A2($Basics._op["++"],
+                                    result._0,
+                                    A2($Basics._op["++"],
+                                    ": FAILED. ",
+                                    result._1)))
+                                    ,_1: result}]);
+               case "Pass":
+               return _L.fromArray([{ctor: "_Tuple2"
+                                    ,_0: indent(n)(A2($Basics._op["++"],
+                                    result._0,
+                                    ": passed."))
+                                    ,_1: result}]);
+               case "Report":
+               return function () {
+                    var allPassed = _U.eq($ElmTest$Run.failedTests(result),
+                    0);
+                    var subResults = allPassed ? _L.fromArray([]) : A2($List.concatMap,
+                    pretty(n + 2),
+                    result._1.results);
+                    var msg = A2($Basics._op["++"],
+                    "Test Suite: ",
+                    A2($Basics._op["++"],
+                    result._0,
+                    A2($Basics._op["++"],
+                    ": ",
+                    passed ? "all tests passed" : "FAILED")));
+                    return A2($List._op["::"],
+                    {ctor: "_Tuple2"
+                    ,_0: A2(indent,n,msg)
+                    ,_1: result},
+                    subResults);
+                 }();}
+            _U.badCase($moduleName,
+            "between lines 34 and 43");
+         }();
+      }();
+   });
+   var run = function (t) {
+      return function () {
+         var tests = function () {
+            switch (t.ctor)
+            {case "Suite": return t._1;
+               case "TestCase":
+               return _L.fromArray([A2($ElmTest$Test.TestCase,
+                 t._0,
+                 t._1)]);}
+            _U.badCase($moduleName,
+            "between lines 48 and 51");
+         }();
+         var result = $ElmTest$Run.run(t);
+         var passedTests$ = $ElmTest$Run.passedTests(result);
+         var passedSuites$ = $ElmTest$Run.passedSuites(result);
+         var failedTests$ = $ElmTest$Run.failedTests(result);
+         var allPassed = _U.eq(failedTests$,
+         0) ? $ElmTest$Run.Pass("") : A2($ElmTest$Run.Fail,
+         "",
+         "");
+         var failedSuites$ = $ElmTest$Run.failedSuites(result);
+         var summary = vcat($List.map(indent(2))(_L.fromArray([A2($Basics._op["++"],
+                                                              $Basics.toString($ElmTest$Test.numberOfSuites(t)),
+                                                              A2($Basics._op["++"],
+                                                              " suites run, containing ",
+                                                              A2($Basics._op["++"],
+                                                              $Basics.toString($ElmTest$Test.numberOfTests(t)),
+                                                              " tests")))
+                                                              ,_U.eq(failedTests$,
+                                                              0) ? "All tests passed" : A2($Basics._op["++"],
+                                                              $Basics.toString(passedSuites$),
+                                                              A2($Basics._op["++"],
+                                                              " suites and ",
+                                                              A2($Basics._op["++"],
+                                                              $Basics.toString(passedTests$),
+                                                              " tests passed")))
+                                                              ,_U.eq(failedTests$,
+                                                              0) ? "" : A2($Basics._op["++"],
+                                                              $Basics.toString(failedSuites$),
+                                                              A2($Basics._op["++"],
+                                                              " suites and ",
+                                                              A2($Basics._op["++"],
+                                                              $Basics.toString(failedTests$),
+                                                              " tests failed")))])));
+         var results$ = function () {
+            switch (allPassed.ctor)
+            {case "Pass":
+               return _L.fromArray([{ctor: "_Tuple2"
+                                    ,_0: ""
+                                    ,_1: allPassed}]);}
+            return A2(pretty,0,result);
+         }();
+         return A2($List._op["::"],
+         {ctor: "_Tuple2"
+         ,_0: summary
+         ,_1: allPassed},
+         results$);
+      }();
+   };
+   var runDisplay = function (t) {
+      return function () {
+         var _ = run(t);
+         var results = function () {
+            switch (_.ctor)
+            {case "::": switch (_._0.ctor)
+                 {case "_Tuple2": return _._1;}
+                 break;}
+            _U.badCase($moduleName,
+            "on line 74, column 37 to 42");
+         }();
+         var summary = function () {
+            switch (_.ctor)
+            {case "::": switch (_._0.ctor)
+                 {case "_Tuple2":
+                    return _._0._0;}
+                 break;}
+            _U.badCase($moduleName,
+            "on line 74, column 37 to 42");
+         }();
+         return vcat(A2($List._op["::"],
+         A2($Basics._op["++"],
+         summary,
+         "\n"),
+         A2($List.map,
+         $Basics.fst,
+         results)));
+      }();
+   };
+   _elm.ElmTest.Runner.String.values = {_op: _op
+                                       ,runDisplay: runDisplay
+                                       ,run: run};
+   return _elm.ElmTest.Runner.String.values;
+};
+Elm.ElmTest = Elm.ElmTest || {};
+Elm.ElmTest.Test = Elm.ElmTest.Test || {};
+Elm.ElmTest.Test.make = function (_elm) {
+   "use strict";
+   _elm.ElmTest = _elm.ElmTest || {};
+   _elm.ElmTest.Test = _elm.ElmTest.Test || {};
+   if (_elm.ElmTest.Test.values)
+   return _elm.ElmTest.Test.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "ElmTest.Test",
+   $Basics = Elm.Basics.make(_elm),
+   $ElmTest$Assertion = Elm.ElmTest.Assertion.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var numberOfSuites = function (test) {
+      return function () {
+         switch (test.ctor)
+         {case "Suite":
+            return 1 + $List.sum($List.map(numberOfSuites)(test._1));
+            case "TestCase": return 0;}
+         _U.badCase($moduleName,
+         "between lines 26 and 28");
+      }();
+   };
+   var numberOfTests = function (test) {
+      return function () {
+         switch (test.ctor)
+         {case "Suite":
+            return $List.sum($List.map(numberOfTests)(test._1));
+            case "TestCase": return 1;}
+         _U.badCase($moduleName,
+         "between lines 21 and 23");
+      }();
+   };
+   var nameOf = function (test) {
+      return function () {
+         switch (test.ctor)
+         {case "Suite": return test._0;
+            case "TestCase":
+            return test._0;}
+         _U.badCase($moduleName,
+         "between lines 16 and 18");
+      }();
+   };
+   var Suite = F2(function (a,b) {
+      return {ctor: "Suite"
+             ,_0: a
+             ,_1: b};
+   });
+   var suite = Suite;
+   var TestCase = F2(function (a,
+   b) {
+      return {ctor: "TestCase"
+             ,_0: a
+             ,_1: b};
+   });
+   var test = F2(function (name,
+   a) {
+      return A2(TestCase,name,a);
+   });
+   var defaultTest = function (a) {
+      return function () {
+         var name = function () {
+            switch (a.ctor)
+            {case "AssertEqual":
+               return A2($Basics._op["++"],
+                 a._1,
+                 A2($Basics._op["++"],
+                 " == ",
+                 a._2));
+               case "AssertNotEqual":
+               return A2($Basics._op["++"],
+                 a._1,
+                 A2($Basics._op["++"],
+                 " /= ",
+                 a._2));
+               case "AssertTrue":
+               return "True";}
+            _U.badCase($moduleName,
+            "between lines 41 and 46");
+         }();
+         return A2(test,name,a);
+      }();
+   };
+   var equals = F2(function (a,b) {
+      return defaultTest(A2($ElmTest$Assertion.assertEqual,
+      a,
+      b));
+   });
+   _elm.ElmTest.Test.values = {_op: _op
+                              ,TestCase: TestCase
+                              ,Suite: Suite
+                              ,nameOf: nameOf
+                              ,numberOfTests: numberOfTests
+                              ,numberOfSuites: numberOfSuites
+                              ,equals: equals
+                              ,test: test
+                              ,defaultTest: defaultTest
+                              ,suite: suite};
+   return _elm.ElmTest.Test.values;
+};
 Elm.Graphics = Elm.Graphics || {};
 Elm.Graphics.Collage = Elm.Graphics.Collage || {};
 Elm.Graphics.Collage.make = function (_elm) {
@@ -2890,7 +3503,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 136 and 138");
+         "between lines 140 and 142");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -2971,7 +3584,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 57 and 59");
+         "between lines 61 and 63");
       }();
    };
    var toValidCell = function (cell) {
@@ -2983,7 +3596,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 51 and 53");
+         "between lines 55 and 57");
       }();
    };
    var getCell = F3(function (grid,
@@ -3131,6 +3744,11 @@ Elm.Grid.make = function (_elm) {
                 ,rows: rows};
       }();
    });
+   var update = function (grid) {
+      return A2(createGrid,
+      grid.rows,
+      grid.cols)(nextSeed(grid));
+   };
    var Grid = F4(function (a,
    b,
    c,
@@ -3146,6 +3764,7 @@ Elm.Grid.make = function (_elm) {
                       ,createGrid: createGrid
                       ,nextSeed: nextSeed
                       ,updateRnd: updateRnd
+                      ,update: update
                       ,getCell: getCell
                       ,toValidCell: toValidCell
                       ,isValidCell: isValidCell
@@ -3391,742 +4010,6 @@ Elm.Html.make = function (_elm) {
                       ,menuitem: menuitem
                       ,menu: menu};
    return _elm.Html.values;
-};
-Elm.Html = Elm.Html || {};
-Elm.Html.Attributes = Elm.Html.Attributes || {};
-Elm.Html.Attributes.make = function (_elm) {
-   "use strict";
-   _elm.Html = _elm.Html || {};
-   _elm.Html.Attributes = _elm.Html.Attributes || {};
-   if (_elm.Html.Attributes.values)
-   return _elm.Html.Attributes.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "Html.Attributes",
-   $Basics = Elm.Basics.make(_elm),
-   $Html = Elm.Html.make(_elm),
-   $Json$Encode = Elm.Json.Encode.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $String = Elm.String.make(_elm),
-   $VirtualDom = Elm.VirtualDom.make(_elm);
-   var attribute = $VirtualDom.attribute;
-   var property = $VirtualDom.property;
-   var stringProperty = F2(function (name,
-   string) {
-      return A2(property,
-      name,
-      $Json$Encode.string(string));
-   });
-   var $class = function (name) {
-      return A2(stringProperty,
-      "className",
-      name);
-   };
-   var id = function (name) {
-      return A2(stringProperty,
-      "id",
-      name);
-   };
-   var title = function (name) {
-      return A2(stringProperty,
-      "title",
-      name);
-   };
-   var accesskey = function ($char) {
-      return A2(stringProperty,
-      "accesskey",
-      $String.fromList(_L.fromArray([$char])));
-   };
-   var contextmenu = function (value) {
-      return A2(stringProperty,
-      "contextmenu",
-      value);
-   };
-   var dir = function (value) {
-      return A2(stringProperty,
-      "dir",
-      value);
-   };
-   var draggable = function (value) {
-      return A2(stringProperty,
-      "draggable",
-      value);
-   };
-   var dropzone = function (value) {
-      return A2(stringProperty,
-      "dropzone",
-      value);
-   };
-   var itemprop = function (value) {
-      return A2(stringProperty,
-      "itemprop",
-      value);
-   };
-   var lang = function (value) {
-      return A2(stringProperty,
-      "lang",
-      value);
-   };
-   var tabindex = function (n) {
-      return A2(stringProperty,
-      "tabIndex",
-      $Basics.toString(n));
-   };
-   var charset = function (value) {
-      return A2(stringProperty,
-      "charset",
-      value);
-   };
-   var content = function (value) {
-      return A2(stringProperty,
-      "content",
-      value);
-   };
-   var httpEquiv = function (value) {
-      return A2(stringProperty,
-      "httpEquiv",
-      value);
-   };
-   var language = function (value) {
-      return A2(stringProperty,
-      "language",
-      value);
-   };
-   var src = function (value) {
-      return A2(stringProperty,
-      "src",
-      value);
-   };
-   var height = function (value) {
-      return A2(stringProperty,
-      "height",
-      $Basics.toString(value));
-   };
-   var width = function (value) {
-      return A2(stringProperty,
-      "width",
-      $Basics.toString(value));
-   };
-   var alt = function (value) {
-      return A2(stringProperty,
-      "alt",
-      value);
-   };
-   var preload = function (value) {
-      return A2(stringProperty,
-      "preload",
-      value);
-   };
-   var poster = function (value) {
-      return A2(stringProperty,
-      "poster",
-      value);
-   };
-   var kind = function (value) {
-      return A2(stringProperty,
-      "kind",
-      value);
-   };
-   var srclang = function (value) {
-      return A2(stringProperty,
-      "srclang",
-      value);
-   };
-   var sandbox = function (value) {
-      return A2(stringProperty,
-      "sandbox",
-      value);
-   };
-   var srcdoc = function (value) {
-      return A2(stringProperty,
-      "srcdoc",
-      value);
-   };
-   var type$ = function (value) {
-      return A2(stringProperty,
-      "type",
-      value);
-   };
-   var value = function (value) {
-      return A2(stringProperty,
-      "value",
-      value);
-   };
-   var placeholder = function (value) {
-      return A2(stringProperty,
-      "placeholder",
-      value);
-   };
-   var accept = function (value) {
-      return A2(stringProperty,
-      "accept",
-      value);
-   };
-   var acceptCharset = function (value) {
-      return A2(stringProperty,
-      "acceptCharset",
-      value);
-   };
-   var action = function (value) {
-      return A2(stringProperty,
-      "action",
-      value);
-   };
-   var autocomplete = function (bool) {
-      return A2(stringProperty,
-      "autocomplete",
-      bool ? "on" : "off");
-   };
-   var autosave = function (value) {
-      return A2(stringProperty,
-      "autosave",
-      value);
-   };
-   var enctype = function (value) {
-      return A2(stringProperty,
-      "enctype",
-      value);
-   };
-   var formaction = function (value) {
-      return A2(stringProperty,
-      "formaction",
-      value);
-   };
-   var list = function (value) {
-      return A2(stringProperty,
-      "list",
-      value);
-   };
-   var minlength = function (n) {
-      return A2(stringProperty,
-      "minLength",
-      $Basics.toString(n));
-   };
-   var maxlength = function (n) {
-      return A2(stringProperty,
-      "maxLength",
-      $Basics.toString(n));
-   };
-   var method = function (value) {
-      return A2(stringProperty,
-      "method",
-      value);
-   };
-   var name = function (value) {
-      return A2(stringProperty,
-      "name",
-      value);
-   };
-   var pattern = function (value) {
-      return A2(stringProperty,
-      "pattern",
-      value);
-   };
-   var size = function (n) {
-      return A2(stringProperty,
-      "size",
-      $Basics.toString(n));
-   };
-   var $for = function (value) {
-      return A2(stringProperty,
-      "htmlFor",
-      value);
-   };
-   var form = function (value) {
-      return A2(stringProperty,
-      "form",
-      value);
-   };
-   var max = function (value) {
-      return A2(stringProperty,
-      "max",
-      value);
-   };
-   var min = function (value) {
-      return A2(stringProperty,
-      "min",
-      value);
-   };
-   var step = function (n) {
-      return A2(stringProperty,
-      "step",
-      n);
-   };
-   var cols = function (n) {
-      return A2(stringProperty,
-      "cols",
-      $Basics.toString(n));
-   };
-   var rows = function (n) {
-      return A2(stringProperty,
-      "rows",
-      $Basics.toString(n));
-   };
-   var wrap = function (value) {
-      return A2(stringProperty,
-      "wrap",
-      value);
-   };
-   var usemap = function (value) {
-      return A2(stringProperty,
-      "useMap",
-      value);
-   };
-   var shape = function (value) {
-      return A2(stringProperty,
-      "shape",
-      value);
-   };
-   var coords = function (value) {
-      return A2(stringProperty,
-      "coords",
-      value);
-   };
-   var challenge = function (value) {
-      return A2(stringProperty,
-      "challenge",
-      value);
-   };
-   var keytype = function (value) {
-      return A2(stringProperty,
-      "keytype",
-      value);
-   };
-   var align = function (value) {
-      return A2(stringProperty,
-      "align",
-      value);
-   };
-   var cite = function (value) {
-      return A2(stringProperty,
-      "cite",
-      value);
-   };
-   var href = function (value) {
-      return A2(stringProperty,
-      "href",
-      value);
-   };
-   var target = function (value) {
-      return A2(stringProperty,
-      "target",
-      value);
-   };
-   var downloadAs = function (value) {
-      return A2(stringProperty,
-      "download",
-      value);
-   };
-   var hreflang = function (value) {
-      return A2(stringProperty,
-      "hreflang",
-      value);
-   };
-   var media = function (value) {
-      return A2(stringProperty,
-      "media",
-      value);
-   };
-   var ping = function (value) {
-      return A2(stringProperty,
-      "ping",
-      value);
-   };
-   var rel = function (value) {
-      return A2(stringProperty,
-      "rel",
-      value);
-   };
-   var datetime = function (value) {
-      return A2(stringProperty,
-      "datetime",
-      value);
-   };
-   var pubdate = function (value) {
-      return A2(stringProperty,
-      "pubdate",
-      value);
-   };
-   var start = function (n) {
-      return A2(stringProperty,
-      "start",
-      $Basics.toString(n));
-   };
-   var colspan = function (n) {
-      return A2(stringProperty,
-      "colSpan",
-      $Basics.toString(n));
-   };
-   var headers = function (value) {
-      return A2(stringProperty,
-      "headers",
-      value);
-   };
-   var rowspan = function (n) {
-      return A2(stringProperty,
-      "rowSpan",
-      $Basics.toString(n));
-   };
-   var scope = function (value) {
-      return A2(stringProperty,
-      "scope",
-      value);
-   };
-   var manifest = function (value) {
-      return A2(stringProperty,
-      "manifest",
-      value);
-   };
-   var boolProperty = F2(function (name,
-   bool) {
-      return A2(property,
-      name,
-      $Json$Encode.bool(bool));
-   });
-   var hidden = function (bool) {
-      return A2(boolProperty,
-      "hidden",
-      bool);
-   };
-   var contenteditable = function (bool) {
-      return A2(boolProperty,
-      "contentEditable",
-      bool);
-   };
-   var spellcheck = function (bool) {
-      return A2(boolProperty,
-      "spellcheck",
-      bool);
-   };
-   var async = function (bool) {
-      return A2(boolProperty,
-      "async",
-      bool);
-   };
-   var defer = function (bool) {
-      return A2(boolProperty,
-      "defer",
-      bool);
-   };
-   var scoped = function (bool) {
-      return A2(boolProperty,
-      "scoped",
-      bool);
-   };
-   var autoplay = function (bool) {
-      return A2(boolProperty,
-      "autoplay",
-      bool);
-   };
-   var controls = function (bool) {
-      return A2(boolProperty,
-      "controls",
-      bool);
-   };
-   var loop = function (bool) {
-      return A2(boolProperty,
-      "loop",
-      bool);
-   };
-   var $default = function (bool) {
-      return A2(boolProperty,
-      "default",
-      bool);
-   };
-   var seamless = function (bool) {
-      return A2(boolProperty,
-      "seamless",
-      bool);
-   };
-   var checked = function (bool) {
-      return A2(boolProperty,
-      "checked",
-      bool);
-   };
-   var selected = function (bool) {
-      return A2(boolProperty,
-      "selected",
-      bool);
-   };
-   var autofocus = function (bool) {
-      return A2(boolProperty,
-      "autofocus",
-      bool);
-   };
-   var disabled = function (bool) {
-      return A2(boolProperty,
-      "disabled",
-      bool);
-   };
-   var multiple = function (bool) {
-      return A2(boolProperty,
-      "multiple",
-      bool);
-   };
-   var novalidate = function (bool) {
-      return A2(boolProperty,
-      "noValidate",
-      bool);
-   };
-   var readonly = function (bool) {
-      return A2(boolProperty,
-      "readOnly",
-      bool);
-   };
-   var required = function (bool) {
-      return A2(boolProperty,
-      "required",
-      bool);
-   };
-   var ismap = function (value) {
-      return A2(boolProperty,
-      "isMap",
-      value);
-   };
-   var download = function (bool) {
-      return A2(boolProperty,
-      "download",
-      bool);
-   };
-   var reversed = function (bool) {
-      return A2(boolProperty,
-      "reversed",
-      bool);
-   };
-   var classList = function (list) {
-      return $class($String.join(" ")($List.map($Basics.fst)($List.filter($Basics.snd)(list))));
-   };
-   var style = function (props) {
-      return property("style")($Json$Encode.object($List.map(function (_v0) {
-         return function () {
-            switch (_v0.ctor)
-            {case "_Tuple2":
-               return {ctor: "_Tuple2"
-                      ,_0: _v0._0
-                      ,_1: $Json$Encode.string(_v0._1)};}
-            _U.badCase($moduleName,
-            "on line 156, column 35 to 57");
-         }();
-      })(props)));
-   };
-   var key = function (k) {
-      return A2(stringProperty,
-      "key",
-      k);
-   };
-   _elm.Html.Attributes.values = {_op: _op
-                                 ,key: key
-                                 ,style: style
-                                 ,$class: $class
-                                 ,classList: classList
-                                 ,id: id
-                                 ,title: title
-                                 ,hidden: hidden
-                                 ,type$: type$
-                                 ,value: value
-                                 ,checked: checked
-                                 ,placeholder: placeholder
-                                 ,selected: selected
-                                 ,accept: accept
-                                 ,acceptCharset: acceptCharset
-                                 ,action: action
-                                 ,autocomplete: autocomplete
-                                 ,autofocus: autofocus
-                                 ,autosave: autosave
-                                 ,disabled: disabled
-                                 ,enctype: enctype
-                                 ,formaction: formaction
-                                 ,list: list
-                                 ,maxlength: maxlength
-                                 ,minlength: minlength
-                                 ,method: method
-                                 ,multiple: multiple
-                                 ,name: name
-                                 ,novalidate: novalidate
-                                 ,pattern: pattern
-                                 ,readonly: readonly
-                                 ,required: required
-                                 ,size: size
-                                 ,$for: $for
-                                 ,form: form
-                                 ,max: max
-                                 ,min: min
-                                 ,step: step
-                                 ,cols: cols
-                                 ,rows: rows
-                                 ,wrap: wrap
-                                 ,href: href
-                                 ,target: target
-                                 ,download: download
-                                 ,downloadAs: downloadAs
-                                 ,hreflang: hreflang
-                                 ,media: media
-                                 ,ping: ping
-                                 ,rel: rel
-                                 ,ismap: ismap
-                                 ,usemap: usemap
-                                 ,shape: shape
-                                 ,coords: coords
-                                 ,src: src
-                                 ,height: height
-                                 ,width: width
-                                 ,alt: alt
-                                 ,autoplay: autoplay
-                                 ,controls: controls
-                                 ,loop: loop
-                                 ,preload: preload
-                                 ,poster: poster
-                                 ,$default: $default
-                                 ,kind: kind
-                                 ,srclang: srclang
-                                 ,sandbox: sandbox
-                                 ,seamless: seamless
-                                 ,srcdoc: srcdoc
-                                 ,reversed: reversed
-                                 ,start: start
-                                 ,align: align
-                                 ,colspan: colspan
-                                 ,rowspan: rowspan
-                                 ,headers: headers
-                                 ,scope: scope
-                                 ,async: async
-                                 ,charset: charset
-                                 ,content: content
-                                 ,defer: defer
-                                 ,httpEquiv: httpEquiv
-                                 ,language: language
-                                 ,scoped: scoped
-                                 ,accesskey: accesskey
-                                 ,contenteditable: contenteditable
-                                 ,contextmenu: contextmenu
-                                 ,dir: dir
-                                 ,draggable: draggable
-                                 ,dropzone: dropzone
-                                 ,itemprop: itemprop
-                                 ,lang: lang
-                                 ,spellcheck: spellcheck
-                                 ,tabindex: tabindex
-                                 ,challenge: challenge
-                                 ,keytype: keytype
-                                 ,cite: cite
-                                 ,datetime: datetime
-                                 ,pubdate: pubdate
-                                 ,manifest: manifest
-                                 ,property: property
-                                 ,attribute: attribute};
-   return _elm.Html.Attributes.values;
-};
-Elm.Html = Elm.Html || {};
-Elm.Html.Events = Elm.Html.Events || {};
-Elm.Html.Events.make = function (_elm) {
-   "use strict";
-   _elm.Html = _elm.Html || {};
-   _elm.Html.Events = _elm.Html.Events || {};
-   if (_elm.Html.Events.values)
-   return _elm.Html.Events.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "Html.Events",
-   $Basics = Elm.Basics.make(_elm),
-   $Html = Elm.Html.make(_elm),
-   $Json$Decode = Elm.Json.Decode.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $VirtualDom = Elm.VirtualDom.make(_elm);
-   var keyCode = A2($Json$Decode._op[":="],
-   "keyCode",
-   $Json$Decode.$int);
-   var targetChecked = A2($Json$Decode.at,
-   _L.fromArray(["target"
-                ,"checked"]),
-   $Json$Decode.bool);
-   var targetValue = A2($Json$Decode.at,
-   _L.fromArray(["target"
-                ,"value"]),
-   $Json$Decode.string);
-   var defaultOptions = $VirtualDom.defaultOptions;
-   var Options = F2(function (a,
-   b) {
-      return {_: {}
-             ,preventDefault: b
-             ,stopPropagation: a};
-   });
-   var onWithOptions = $VirtualDom.onWithOptions;
-   var on = $VirtualDom.on;
-   var messageOn = F3(function (name,
-   addr,
-   msg) {
-      return A3(on,
-      name,
-      $Json$Decode.value,
-      function (_v0) {
-         return function () {
-            return A2($Signal.message,
-            addr,
-            msg);
-         }();
-      });
-   });
-   var onClick = messageOn("click");
-   var onDoubleClick = messageOn("dblclick");
-   var onMouseMove = messageOn("mousemove");
-   var onMouseDown = messageOn("mousedown");
-   var onMouseUp = messageOn("mouseup");
-   var onMouseEnter = messageOn("mouseenter");
-   var onMouseLeave = messageOn("mouseleave");
-   var onMouseOver = messageOn("mouseover");
-   var onMouseOut = messageOn("mouseout");
-   var onBlur = messageOn("blur");
-   var onFocus = messageOn("focus");
-   var onSubmit = messageOn("submit");
-   var onKey = F3(function (name,
-   addr,
-   handler) {
-      return A3(on,
-      name,
-      keyCode,
-      function (code) {
-         return A2($Signal.message,
-         addr,
-         handler(code));
-      });
-   });
-   var onKeyUp = onKey("keyup");
-   var onKeyDown = onKey("keydown");
-   var onKeyPress = onKey("keypress");
-   _elm.Html.Events.values = {_op: _op
-                             ,onBlur: onBlur
-                             ,onFocus: onFocus
-                             ,onSubmit: onSubmit
-                             ,onKeyUp: onKeyUp
-                             ,onKeyDown: onKeyDown
-                             ,onKeyPress: onKeyPress
-                             ,onClick: onClick
-                             ,onDoubleClick: onDoubleClick
-                             ,onMouseMove: onMouseMove
-                             ,onMouseDown: onMouseDown
-                             ,onMouseUp: onMouseUp
-                             ,onMouseEnter: onMouseEnter
-                             ,onMouseLeave: onMouseLeave
-                             ,onMouseOver: onMouseOver
-                             ,onMouseOut: onMouseOut
-                             ,on: on
-                             ,onWithOptions: onWithOptions
-                             ,defaultOptions: defaultOptions
-                             ,targetValue: targetValue
-                             ,targetChecked: targetChecked
-                             ,keyCode: keyCode
-                             ,Options: Options};
-   return _elm.Html.Events.values;
 };
 Elm.Json = Elm.Json || {};
 Elm.Json.Decode = Elm.Json.Decode || {};
@@ -4643,69 +4526,88 @@ Elm.Main.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Main",
    $Basics = Elm.Basics.make(_elm),
-   $BinaryTree = Elm.BinaryTree.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $ElmTest$Assertion = Elm.ElmTest.Assertion.make(_elm),
+   $ElmTest$Runner$Element = Elm.ElmTest.Runner.Element.make(_elm),
+   $ElmTest$Test = Elm.ElmTest.Test.make(_elm),
    $Grid = Elm.Grid.make(_elm),
-   $Html = Elm.Html.make(_elm),
-   $Html$Events = Elm.Html.Events.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Set = Elm.Set.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $StartApp$Simple = Elm.StartApp.Simple.make(_elm);
-   var startTime = Elm.Native.Port.make(_elm).inbound("startTime",
-   "Float",
-   function (v) {
-      return typeof v === "number" ? v : _U.badPort("a number",
-      v);
-   });
-   var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
-   var Refresh = {ctor: "Refresh"};
-   var view = F2(function (address,
-   model) {
-      return A2($Html.div,
-      _L.fromArray([]),
-      _L.fromArray([$Html.text($Grid.toTitle(model))
-                   ,A2($Html.pre,
-                   _L.fromArray([]),
-                   _L.fromArray([$Html.text($Grid.gridToString(model))]))
-                   ,A2($Html.button,
-                   _L.fromArray([A2($Html$Events.onClick,
-                   address,
-                   Refresh)]),
-                   _L.fromArray([$Html.text("REFRESH")]))]));
-   });
-   var init = F2(function (alg,
-   seed) {
-      return alg(A3($Grid.createGrid,
-      20,
-      20,
-      seed));
-   });
-   var update = F2(function (action,
-   model) {
-      return function () {
-         switch (action.ctor)
-         {case "Refresh": return A2(init,
-              $BinaryTree.on,
-              $Grid.nextSeed(model));}
-         _U.badCase($moduleName,
-         "between lines 28 and 29");
-      }();
-   });
-   var main = $StartApp$Simple.start({_: {}
-                                     ,model: A2(init,
-                                     $Sidewinder.on,
-                                     startTimeSeed)
-                                     ,update: update
-                                     ,view: view});
+   $Signal = Elm.Signal.make(_elm);
+   var sidewinderTests = A2($ElmTest$Test.suite,
+   "Sidewinder Algorithm test suite",
+   _L.fromArray([A2($ElmTest$Test.test,
+                "Grid cells are of equal length",
+                function () {
+                   var seed = $Random.initialSeed(123123);
+                   var grid = A3($Grid.createGrid,
+                   3,
+                   3,
+                   seed);
+                   return A2($ElmTest$Assertion.assertEqual,
+                   $List.length(grid.cells),
+                   $List.length($Sidewinder.on(grid).cells));
+                }())
+                ,A2($ElmTest$Test.test,
+                "Cell links are created",
+                function () {
+                   var grid = $Sidewinder.on(A3($Grid.createGrid,
+                   3,
+                   3,
+                   $Random.initialSeed(123123)));
+                   return A2($ElmTest$Assertion.assertEqual,
+                   $List.isEmpty(A2($List.filter,
+                   function (a) {
+                      return $Basics.not($Set.isEmpty($Cell.linked(a)));
+                   },
+                   grid.cells)),
+                   false);
+                }())
+                ,A2($ElmTest$Test.test,
+                "Cell top row eastern links exist",
+                function () {
+                   var grid = $Sidewinder.on(A3($Grid.createGrid,
+                   3,
+                   3,
+                   $Random.initialSeed(123)));
+                   return $ElmTest$Assertion.assert(A2($Set.member,
+                   "1:2",
+                   $Grid.toValidCell(A3($Grid.getCell,
+                   grid,
+                   1,
+                   1)).links) && A2($Set.member,
+                   "1:3",
+                   $Grid.toValidCell(A3($Grid.getCell,
+                   grid,
+                   1,
+                   2)).links));
+                }())
+                ,A2($ElmTest$Test.test,
+                "Cell east row north/south links exist",
+                function () {
+                   var grid = $Sidewinder.on(A3($Grid.createGrid,
+                   3,
+                   3,
+                   $Random.initialSeed(123)));
+                   return $ElmTest$Assertion.assert(A2($Set.member,
+                   "1:3",
+                   $Grid.toValidCell(A3($Grid.getCell,
+                   grid,
+                   2,
+                   3)).links) && A2($Set.member,
+                   "2:3",
+                   $Grid.toValidCell(A3($Grid.getCell,
+                   grid,
+                   3,
+                   3)).links));
+                }())]));
+   var main = $ElmTest$Runner$Element.runDisplay(sidewinderTests);
    _elm.Main.values = {_op: _op
-                      ,init: init
-                      ,Refresh: Refresh
-                      ,update: update
-                      ,view: view
-                      ,startTimeSeed: startTimeSeed
+                      ,sidewinderTests: sidewinderTests
                       ,main: main};
    return _elm.Main.values;
 };
@@ -13187,16 +13089,19 @@ Elm.Sidewinder.make = function (_elm) {
                rowState.grid,
                cell)));
                var shouldCloseOut = atEasternBoundary || $Basics.not(atNorthernBoundary) && grid$.rnd.heads;
+               var run$ = A2($List._op["::"],
+               cell,
+               rowState.run);
                return shouldCloseOut ? function () {
                   var grid$$ = $Grid.updateRnd(grid$);
                   var rand = $Basics.fst(A2($Random.generate,
                   A2($Random.$int,
                   1,
-                  $List.length(rowState.run)),
+                  $List.length(run$)),
                   grid$.rnd.seed));
                   var member = $Grid.toValidCell($List.head($List.reverse(A2($List.take,
                   rand,
-                  rowState.run))));
+                  run$))));
                   var northern = A2($Grid.north,
                   grid$,
                   member);
@@ -13209,7 +13114,8 @@ Elm.Sidewinder.make = function (_elm) {
                                                        ,run: _L.fromArray([])} : {_: {}
                                                                                  ,grid: grid$$
                                                                                  ,run: _L.fromArray([])};
-               }() : _U.replace([["grid"
+               }() : _U.replace([["run",run$]
+                                ,["grid"
                                  ,A4($Grid.linkCells,
                                  grid$,
                                  cell,
@@ -13229,7 +13135,7 @@ Elm.Sidewinder.make = function (_elm) {
                var result = A3($List.foldl,
                processCell,
                state,
-               A2($Grid.rowCells,grid,row));
+               A2($Grid.rowCells,curGrid,row));
                return result.grid;
             }();
          });
@@ -13401,63 +13307,6 @@ Elm.Signal.make = function (_elm) {
                         ,forwardTo: forwardTo
                         ,Mailbox: Mailbox};
    return _elm.Signal.values;
-};
-Elm.StartApp = Elm.StartApp || {};
-Elm.StartApp.Simple = Elm.StartApp.Simple || {};
-Elm.StartApp.Simple.make = function (_elm) {
-   "use strict";
-   _elm.StartApp = _elm.StartApp || {};
-   _elm.StartApp.Simple = _elm.StartApp.Simple || {};
-   if (_elm.StartApp.Simple.values)
-   return _elm.StartApp.Simple.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "StartApp.Simple",
-   $Basics = Elm.Basics.make(_elm),
-   $Html = Elm.Html.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var start = function (config) {
-      return function () {
-         var actions = $Signal.mailbox($Maybe.Nothing);
-         var address = A2($Signal.forwardTo,
-         actions.address,
-         $Maybe.Just);
-         var model = A3($Signal.foldp,
-         F2(function (_v0,model) {
-            return function () {
-               switch (_v0.ctor)
-               {case "Just":
-                  return A2(config.update,
-                    _v0._0,
-                    model);}
-               _U.badCase($moduleName,
-               "on line 91, column 34 to 60");
-            }();
-         }),
-         config.model,
-         actions.signal);
-         return A2($Signal.map,
-         config.view(address),
-         model);
-      }();
-   };
-   var Config = F3(function (a,
-   b,
-   c) {
-      return {_: {}
-             ,model: a
-             ,update: c
-             ,view: b};
-   });
-   _elm.StartApp.Simple.values = {_op: _op
-                                 ,Config: Config
-                                 ,start: start};
-   return _elm.StartApp.Simple.values;
 };
 Elm.String = Elm.String || {};
 Elm.String.make = function (_elm) {

@@ -30,16 +30,19 @@ Elm.Sidewinder.make = function (_elm) {
                rowState.grid,
                cell)));
                var shouldCloseOut = atEasternBoundary || $Basics.not(atNorthernBoundary) && grid$.rnd.heads;
+               var run$ = A2($List._op["::"],
+               cell,
+               rowState.run);
                return shouldCloseOut ? function () {
                   var grid$$ = $Grid.updateRnd(grid$);
                   var rand = $Basics.fst(A2($Random.generate,
                   A2($Random.$int,
                   1,
-                  $List.length(rowState.run)),
+                  $List.length(run$)),
                   grid$.rnd.seed));
                   var member = $Grid.toValidCell($List.head($List.reverse(A2($List.take,
                   rand,
-                  rowState.run))));
+                  run$))));
                   var northern = A2($Grid.north,
                   grid$,
                   member);
@@ -52,7 +55,8 @@ Elm.Sidewinder.make = function (_elm) {
                                                        ,run: _L.fromArray([])} : {_: {}
                                                                                  ,grid: grid$$
                                                                                  ,run: _L.fromArray([])};
-               }() : _U.replace([["grid"
+               }() : _U.replace([["run",run$]
+                                ,["grid"
                                  ,A4($Grid.linkCells,
                                  grid$,
                                  cell,
@@ -72,7 +76,7 @@ Elm.Sidewinder.make = function (_elm) {
                var result = A3($List.foldl,
                processCell,
                state,
-               A2($Grid.rowCells,grid,row));
+               A2($Grid.rowCells,curGrid,row));
                return result.grid;
             }();
          });

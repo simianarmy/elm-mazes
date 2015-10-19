@@ -2,9 +2,9 @@ module Main where
 
 import Random exposing (Seed)
 import Html exposing (..)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import StartApp.Simple exposing (start)
+import StartApp.Simple as StartApp
 
 import Grid exposing (Grid, createGrid, gridToString, toTitle, nextSeed)
 import BinaryTree
@@ -14,10 +14,19 @@ import Sidewinder
 
 type alias Model = Grid
 type alias MazeAlgorithm = Grid -> Grid
+type alias MazeAttributes = {
+    alg : MazeAlgorithm,
+    width : Int,
+    height : Int
+}
 
-init : MazeAlgorithm -> Seed -> Grid
-init alg seed =
-    alg (createGrid 20 20 seed)
+initWidth = 20 
+initHeight = 20 
+initAlg = Sidewinder.on
+
+init : MazeAttributes -> Seed -> Grid
+init attr seed =
+    attr.alg (createGrid attr.width attr.height seed)
 
 -- UPDATE
 
@@ -26,7 +35,9 @@ type Action = Refresh
 update : Action -> Model -> Model
 update action model =
     case action of
-        Refresh -> init BinaryTree.on (nextSeed model)
+        -- TODO: Implement Grid.update, get dimensions from inputs
+        Refresh -> 
+            initAlg (Grid.update model)
 
 -- VIEW
 view : Signal.Address Action -> Model -> Html
@@ -34,6 +45,9 @@ view address model =
     div [] [
         text (toTitle model),
         pre [] [text (gridToString model)],
+        input [ value (toString model.rows) ] [],
+        text " X ",
+        input [ value (toString model.cols) ] [],
         button [ onClick address Refresh ] [ text "REFRESH" ]
         ]
 
@@ -44,8 +58,12 @@ startTimeSeed = Random.initialSeed <| round startTime
 --startTimeSeed = Random.initialSeed 123
 
 main =
-    start {
-        model = init Sidewinder.on startTimeSeed
+    StartApp.start {
+        model = init {
+            alg = initAlg,
+            width = initWidth,
+            height = initHeight
+            } startTimeSeed
           , update = update
           , view =view
       }
