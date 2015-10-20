@@ -1,6 +1,7 @@
 module Grid where
 
 import Cell exposing (..)
+import Dijkstra
 import Set
 import List
 import String
@@ -170,6 +171,11 @@ rowCells grid row =
 size : Grid -> Int
 size grid =
     grid.rows * grid.cols
+
+-- Returns all distances from a root cell
+distances : Grid -> Cell -> Distances
+distances grid cell =
+    Dijkstra.cellDistances grid cell
 
 -- cardinal index of a cell in a grid (1,1) = 1, etc
 cellIndex : Grid -> Cell -> Int

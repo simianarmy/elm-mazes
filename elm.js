@@ -1956,6 +1956,66 @@ Elm.Dict.make = function (_elm) {
                       ,fromList: fromList};
    return _elm.Dict.values;
 };
+Elm.Distances = Elm.Distances || {};
+Elm.Distances.make = function (_elm) {
+   "use strict";
+   _elm.Distances = _elm.Distances || {};
+   if (_elm.Distances.values)
+   return _elm.Distances.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Distances",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var cells = function (dists) {
+      return $Dict.keys(dists.cells);
+   };
+   var add = F3(function (dists,
+   cell,
+   dist) {
+      return _U.replace([["cells"
+                         ,A3($Dict.insert,
+                         cell.id,
+                         dist,
+                         dists.cells)]],
+      dists);
+   });
+   var lookup = F2(function (dists,
+   cell) {
+      return A2($Maybe.withDefault,
+      0,
+      A2($Dict.get,
+      cell.id,
+      dists.cells));
+   });
+   var init = function (cell) {
+      return {_: {}
+             ,cells: A2($Dict.singleton,
+             cell.id,
+             0)
+             ,root: cell};
+   };
+   var Distances = F2(function (a,
+   b) {
+      return {_: {}
+             ,cells: b
+             ,root: a};
+   });
+   _elm.Distances.values = {_op: _op
+                           ,Distances: Distances
+                           ,init: init
+                           ,lookup: lookup
+                           ,add: add
+                           ,cells: cells};
+   return _elm.Distances.values;
+};
 Elm.Graphics = Elm.Graphics || {};
 Elm.Graphics.Collage = Elm.Graphics.Collage || {};
 Elm.Graphics.Collage.make = function (_elm) {
@@ -2857,6 +2917,7 @@ Elm.Grid.make = function (_elm) {
    $moduleName = "Grid",
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
+   $Distances = Elm.Distances.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
@@ -2890,12 +2951,20 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 182 and 184");
+         "between lines 191 and 193");
       }();
    };
    var cellIndex = F2(function (grid,
    cell) {
       return grid.cols * (cell.row - 1) + cell.col;
+   });
+   var distances = F2(function (grid,
+   cell) {
+      return function () {
+         var frontier = _L.fromArray([cell]);
+         var d = $Distances.init(cell);
+         return d;
+      }();
    });
    var size = function (grid) {
       return grid.rows * grid.cols;
@@ -2971,7 +3040,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 103 and 105");
+         "between lines 104 and 106");
       }();
    };
    var toValidCell = function (cell) {
@@ -2983,7 +3052,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 97 and 99");
+         "between lines 98 and 100");
       }();
    };
    var getCell = F3(function (grid,
@@ -3113,7 +3182,7 @@ Elm.Grid.make = function (_elm) {
                     style,
                     _v6._1)]) : _L.fromArray([]);}
                _U.badCase($moduleName,
-               "between lines 59 and 61");
+               "between lines 60 and 62");
             }();
          });
          var cellWalls = F2(function (cell,
@@ -3256,6 +3325,7 @@ Elm.Grid.make = function (_elm) {
                       ,unlinkCells: unlinkCells
                       ,rowCells: rowCells
                       ,size: size
+                      ,distances: distances
                       ,cellIndex: cellIndex
                       ,cellToList: cellToList
                       ,toTitle: toTitle

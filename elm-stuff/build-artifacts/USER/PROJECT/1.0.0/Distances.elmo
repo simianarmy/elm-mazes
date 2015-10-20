@@ -1,0 +1,60 @@
+Elm.Distances = Elm.Distances || {};
+Elm.Distances.make = function (_elm) {
+   "use strict";
+   _elm.Distances = _elm.Distances || {};
+   if (_elm.Distances.values)
+   return _elm.Distances.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Distances",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var cells = function (dists) {
+      return $Dict.keys(dists.cells);
+   };
+   var add = F3(function (dists,
+   cell,
+   dist) {
+      return _U.replace([["cells"
+                         ,A3($Dict.insert,
+                         cell.id,
+                         dist,
+                         dists.cells)]],
+      dists);
+   });
+   var lookup = F2(function (dists,
+   cell) {
+      return A2($Maybe.withDefault,
+      0,
+      A2($Dict.get,
+      cell.id,
+      dists.cells));
+   });
+   var init = function (cell) {
+      return {_: {}
+             ,cells: A2($Dict.singleton,
+             cell.id,
+             0)
+             ,root: cell};
+   };
+   var Distances = F2(function (a,
+   b) {
+      return {_: {}
+             ,cells: b
+             ,root: a};
+   });
+   _elm.Distances.values = {_op: _op
+                           ,Distances: Distances
+                           ,init: init
+                           ,lookup: lookup
+                           ,add: add
+                           ,cells: cells};
+   return _elm.Distances.values;
+};
