@@ -3,8 +3,9 @@ module Main where
 import String
 import Random exposing (Seed)
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
+import Json.Decode as JD
 import StartApp.Simple as StartApp
 
 import Maze exposing (..)
@@ -15,13 +16,13 @@ type alias Model = Maze
 
 initWidth = 10
 initHeight = 10
-initAlg = Maze.sidewinder
 
 -- UPDATE
 
 type Action = Refresh |
     UpdateWidth String |
-    UpdateHeight String
+    UpdateHeight String |
+    SelectAlg String
 
 update : Action -> Model -> Model
 update action model =
@@ -38,21 +39,32 @@ update action model =
             Maze.updateSize model model.grid.rows
             (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.grid.cols)
 
+        SelectAlg str ->
+            Maze.update {model | alg <- Maze.algByName str}
+
 -- VIEW
 view : Signal.Address Action -> Model -> Html
 view address model =
+    let
+        selectEvent = Html.Events.on "change" targetValue
+            (\val -> Signal.message address <| SelectAlg <| val)
+        algToOptions attr =
+            option [selected (attr.alg == Maze.defaultAlgorithm)] [text attr.name]
+    in
     div [] [
         header [] [ h1 [] [text "Amazeball Mazes" ]],
         Maze.view model,
         br [] [],
-        input [ value (toString model.grid.rows)
+        input [ class "sizeInput", value (toString model.grid.rows)
               , on "input" targetValue (Signal.message address << UpdateWidth) ] [],
         text " X ",
-        input [ value (toString model.grid.cols)
+        input [ class "sizeInput", value (toString model.grid.cols)
               , on "input" targetValue (Signal.message address << UpdateHeight)] [],
+        br [] [],
+        select [ selectEvent ] (List.map algToOptions Maze.algorithms),
         button [ onClick address Refresh ] [ text "REFRESH" ]
-        , text ("start time: " ++ (toString startTime)),
-        footer [] []
+        --, text ("start time: " ++ (toString startTime)),
+        , footer [] []
         ]
 
 port startTime : Float
@@ -63,7 +75,7 @@ startTimeSeed = Random.initialSeed <| round startTime
 
 main =
     StartApp.start {
-        model = Maze.init initAlg initWidth initHeight startTimeSeed
+        model = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed
                    , update = update
                    , view = view
                }

@@ -53,11 +53,11 @@ Elm.BinaryTree.make = function (_elm) {
                                true);
                              case "Nothing": return grid;}
                           _U.badCase($moduleName,
-                          "between lines 39 and 42");
+                          "between lines 35 and 38");
                        }();
                     }();}
                _U.badCase($moduleName,
-               "between lines 37 and 42");
+               "between lines 33 and 38");
             }();
          });
          var randomInts = $Basics.fst(A2($Random.generate,
@@ -78,9 +78,7 @@ Elm.BinaryTree.make = function (_elm) {
          randomInts));
       }();
    };
-   var name = "Binary Tree";
    _elm.BinaryTree.values = {_op: _op
-                            ,name: name
                             ,on: on};
    return _elm.BinaryTree.values;
 };

@@ -9,6 +9,10 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 
 type Algorithm = BinaryTree | Sidewinder
+type alias AlgAttr = {
+    alg : Algorithm,
+    name : String
+}
 type alias Maze = {
     grid : Grid,
     alg : Algorithm
@@ -16,6 +20,8 @@ type alias Maze = {
 
 binaryTree = BinaryTree
 sidewinder = Sidewinder
+
+defaultAlgorithm = sidewinder
 
 init : Algorithm -> Int -> Int -> Seed -> Maze
 init algType width height seed =
@@ -35,9 +41,13 @@ updateSize maze width height =
 view : Maze -> Html
 view maze =
     div [] [
-        fromElement <| Grid.view maze.grid 20,
+        fromElement <| Grid.view maze.grid 30,
         text <| (algToString maze.alg) ++ " algorithm"
         ]
+
+algorithms : List AlgAttr
+algorithms =
+    [{alg = BinaryTree, name = "Binary Tree"}, {alg = Sidewinder, name = "Sidewinder"}]
 
 getAlgFn : Algorithm -> Grid -> Grid
 getAlgFn algType =
@@ -50,3 +60,12 @@ algToString algType =
     case algType of
         BinaryTree -> "Binary Tree"
         Sidewinder -> "Sidewinder"
+
+algByName : String -> Algorithm
+algByName str =
+    let res = List.head <| List.filter (\a -> a.name == str) algorithms
+    in
+       case res of
+           Just a -> a.alg
+           _ -> Sidewinder
+

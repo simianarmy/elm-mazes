@@ -9,10 +9,6 @@ import Random exposing (..)
 import Grid exposing (..)
 import Cell exposing (..)
 
-name : String
-name =
-    "Binary Tree"
-
 on : Grid -> Grid
 on grid =
     -- just fuckin generate all the rands at once - keeping the seed updated is impossible

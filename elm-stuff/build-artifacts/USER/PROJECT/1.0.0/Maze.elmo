@@ -27,7 +27,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 50 and 52");
+         "between lines 60 and 62");
       }();
    };
    var getAlgFn = function (algType) {
@@ -38,7 +38,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 44 and 46");
+         "between lines 54 and 56");
       }();
    };
    var view = function (maze) {
@@ -46,7 +46,7 @@ Elm.Maze.make = function (_elm) {
       _L.fromArray([]),
       _L.fromArray([$Html.fromElement(A2($Grid.view,
                    maze.grid,
-                   20))
+                   30))
                    ,$Html.text(A2($Basics._op["++"],
                    algToString(maze.alg),
                    " algorithm"))]));
@@ -86,21 +86,53 @@ Elm.Maze.make = function (_elm) {
              ,alg: b
              ,grid: a};
    });
+   var AlgAttr = F2(function (a,
+   b) {
+      return {_: {}
+             ,alg: a
+             ,name: b};
+   });
    var Sidewinder = {ctor: "Sidewinder"};
    var sidewinder = Sidewinder;
+   var defaultAlgorithm = sidewinder;
    var BinaryTree = {ctor: "BinaryTree"};
    var binaryTree = BinaryTree;
+   var algorithms = _L.fromArray([{_: {}
+                                  ,alg: BinaryTree
+                                  ,name: "Binary Tree"}
+                                 ,{_: {}
+                                  ,alg: Sidewinder
+                                  ,name: "Sidewinder"}]);
+   var algByName = function (str) {
+      return function () {
+         var res = $List.head(A2($List.filter,
+         function (a) {
+            return _U.eq(a.name,str);
+         },
+         algorithms));
+         return function () {
+            switch (res.ctor)
+            {case "Just":
+               return res._0.alg;}
+            return Sidewinder;
+         }();
+      }();
+   };
    _elm.Maze.values = {_op: _op
                       ,BinaryTree: BinaryTree
                       ,Sidewinder: Sidewinder
+                      ,AlgAttr: AlgAttr
                       ,Maze: Maze
                       ,binaryTree: binaryTree
                       ,sidewinder: sidewinder
+                      ,defaultAlgorithm: defaultAlgorithm
                       ,init: init
                       ,update: update
                       ,updateSize: updateSize
                       ,view: view
+                      ,algorithms: algorithms
                       ,getAlgFn: getAlgFn
-                      ,algToString: algToString};
+                      ,algToString: algToString
+                      ,algByName: algByName};
    return _elm.Maze.values;
 };

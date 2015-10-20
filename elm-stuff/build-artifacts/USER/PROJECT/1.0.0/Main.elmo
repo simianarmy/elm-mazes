@@ -34,6 +34,10 @@ Elm.Main.make = function (_elm) {
          switch (action.ctor)
          {case "Refresh":
             return $Maze.update(model);
+            case "SelectAlg":
+            return $Maze.update(_U.replace([["alg"
+                                            ,$Maze.algByName(action._0)]],
+              model));
             case "UpdateHeight":
             return A3($Maze.updateSize,
               model,
@@ -45,9 +49,13 @@ Elm.Main.make = function (_elm) {
               $Maybe.withDefault(model.grid.rows)($Result.toMaybe($String.toInt(action._0))),
               model.grid.cols);}
          _U.badCase($moduleName,
-         "between lines 28 and 39");
+         "between lines 29 and 43");
       }();
    });
+   var SelectAlg = function (a) {
+      return {ctor: "SelectAlg"
+             ,_0: a};
+   };
    var UpdateHeight = function (a) {
       return {ctor: "UpdateHeight"
              ,_0: a};
@@ -59,54 +67,74 @@ Elm.Main.make = function (_elm) {
    var Refresh = {ctor: "Refresh"};
    var view = F2(function (address,
    model) {
-      return A2($Html.div,
-      _L.fromArray([]),
-      _L.fromArray([A2($Html.header,
-                   _L.fromArray([]),
-                   _L.fromArray([A2($Html.h1,
-                   _L.fromArray([]),
-                   _L.fromArray([$Html.text("Amazeball Mazes")]))]))
-                   ,$Maze.view(model)
-                   ,A2($Html.br,
-                   _L.fromArray([]),
-                   _L.fromArray([]))
-                   ,A2($Html.input,
-                   _L.fromArray([$Html$Attributes.value($Basics.toString(model.grid.rows))
-                                ,A3($Html$Events.on,
-                                "input",
-                                $Html$Events.targetValue,
-                                function ($) {
-                                   return $Signal.message(address)(UpdateWidth($));
-                                })]),
-                   _L.fromArray([]))
-                   ,$Html.text(" X ")
-                   ,A2($Html.input,
-                   _L.fromArray([$Html$Attributes.value($Basics.toString(model.grid.cols))
-                                ,A3($Html$Events.on,
-                                "input",
-                                $Html$Events.targetValue,
-                                function ($) {
-                                   return $Signal.message(address)(UpdateHeight($));
-                                })]),
-                   _L.fromArray([]))
-                   ,A2($Html.button,
-                   _L.fromArray([A2($Html$Events.onClick,
-                   address,
-                   Refresh)]),
-                   _L.fromArray([$Html.text("REFRESH")]))
-                   ,$Html.text(A2($Basics._op["++"],
-                   "start time: ",
-                   $Basics.toString(startTime)))
-                   ,A2($Html.footer,
-                   _L.fromArray([]),
-                   _L.fromArray([]))]));
+      return function () {
+         var algToOptions = function (attr) {
+            return A2($Html.option,
+            _L.fromArray([$Html$Attributes.selected(_U.eq(attr.alg,
+            $Maze.defaultAlgorithm))]),
+            _L.fromArray([$Html.text(attr.name)]));
+         };
+         var selectEvent = A3($Html$Events.on,
+         "change",
+         $Html$Events.targetValue,
+         function (val) {
+            return $Signal.message(address)(SelectAlg(val));
+         });
+         return A2($Html.div,
+         _L.fromArray([]),
+         _L.fromArray([A2($Html.header,
+                      _L.fromArray([]),
+                      _L.fromArray([A2($Html.h1,
+                      _L.fromArray([]),
+                      _L.fromArray([$Html.text("Amazeball Mazes")]))]))
+                      ,$Maze.view(model)
+                      ,A2($Html.br,
+                      _L.fromArray([]),
+                      _L.fromArray([]))
+                      ,A2($Html.input,
+                      _L.fromArray([$Html$Attributes.$class("sizeInput")
+                                   ,$Html$Attributes.value($Basics.toString(model.grid.rows))
+                                   ,A3($Html$Events.on,
+                                   "input",
+                                   $Html$Events.targetValue,
+                                   function ($) {
+                                      return $Signal.message(address)(UpdateWidth($));
+                                   })]),
+                      _L.fromArray([]))
+                      ,$Html.text(" X ")
+                      ,A2($Html.input,
+                      _L.fromArray([$Html$Attributes.$class("sizeInput")
+                                   ,$Html$Attributes.value($Basics.toString(model.grid.cols))
+                                   ,A3($Html$Events.on,
+                                   "input",
+                                   $Html$Events.targetValue,
+                                   function ($) {
+                                      return $Signal.message(address)(UpdateHeight($));
+                                   })]),
+                      _L.fromArray([]))
+                      ,A2($Html.br,
+                      _L.fromArray([]),
+                      _L.fromArray([]))
+                      ,A2($Html.select,
+                      _L.fromArray([selectEvent]),
+                      A2($List.map,
+                      algToOptions,
+                      $Maze.algorithms))
+                      ,A2($Html.button,
+                      _L.fromArray([A2($Html$Events.onClick,
+                      address,
+                      Refresh)]),
+                      _L.fromArray([$Html.text("REFRESH")]))
+                      ,A2($Html.footer,
+                      _L.fromArray([]),
+                      _L.fromArray([]))]));
+      }();
    });
-   var initAlg = $Maze.sidewinder;
    var initHeight = 10;
    var initWidth = 10;
    var main = $StartApp$Simple.start({_: {}
                                      ,model: A4($Maze.init,
-                                     initAlg,
+                                     $Maze.defaultAlgorithm,
                                      initWidth,
                                      initHeight,
                                      startTimeSeed)
@@ -115,10 +143,10 @@ Elm.Main.make = function (_elm) {
    _elm.Main.values = {_op: _op
                       ,initWidth: initWidth
                       ,initHeight: initHeight
-                      ,initAlg: initAlg
                       ,Refresh: Refresh
                       ,UpdateWidth: UpdateWidth
                       ,UpdateHeight: UpdateHeight
+                      ,SelectAlg: SelectAlg
                       ,update: update
                       ,view: view
                       ,startTimeSeed: startTimeSeed
