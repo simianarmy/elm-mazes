@@ -11,7 +11,6 @@ Elm.Grid.make = function (_elm) {
    $moduleName = "Grid",
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
-   $Distances = Elm.Distances.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
@@ -45,20 +44,12 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 191 and 193");
+         "between lines 195 and 197");
       }();
    };
    var cellIndex = F2(function (grid,
    cell) {
       return grid.cols * (cell.row - 1) + cell.col;
-   });
-   var distances = F2(function (grid,
-   cell) {
-      return function () {
-         var frontier = _L.fromArray([cell]);
-         var d = $Distances.init(cell);
-         return d;
-      }();
    });
    var size = function (grid) {
       return grid.rows * grid.cols;
@@ -134,7 +125,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 104 and 106");
+         "between lines 103 and 105");
       }();
    };
    var toValidCell = function (cell) {
@@ -146,7 +137,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 98 and 100");
+         "between lines 97 and 99");
       }();
    };
    var getCell = F3(function (grid,
@@ -264,6 +255,23 @@ Elm.Grid.make = function (_elm) {
          _L.range(1,grid.rows))))));
       }();
    };
+   var cellIdToCell = F2(function (grid,
+   cellid) {
+      return function () {
+         var col = $Basics.snd(cellid);
+         var row = $Basics.fst(cellid);
+         return toValidCell(A3(getCell,
+         grid,
+         row,
+         col));
+      }();
+   });
+   var linkedCells = F2(function (grid,
+   cell) {
+      return A2($List.map,
+      cellIdToCell(grid),
+      $Set.toList(cell.links));
+   });
    var view = F2(function (grid,
    cellSize) {
       return function () {
@@ -276,7 +284,7 @@ Elm.Grid.make = function (_elm) {
                     style,
                     _v6._1)]) : _L.fromArray([]);}
                _U.badCase($moduleName,
-               "between lines 60 and 62");
+               "between lines 59 and 61");
             }();
          });
          var cellWalls = F2(function (cell,
@@ -417,10 +425,11 @@ Elm.Grid.make = function (_elm) {
                       ,neighbors: neighbors
                       ,linkCells: linkCells
                       ,unlinkCells: unlinkCells
+                      ,linkedCells: linkedCells
                       ,rowCells: rowCells
                       ,size: size
-                      ,distances: distances
                       ,cellIndex: cellIndex
+                      ,cellIdToCell: cellIdToCell
                       ,cellToList: cellToList
                       ,toTitle: toTitle
                       ,RowAscii: RowAscii

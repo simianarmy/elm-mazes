@@ -37,11 +37,9 @@ Elm.Cell.make = function (_elm) {
    };
    var createCellID = F2(function (a,
    b) {
-      return A2($Basics._op["++"],
-      $Basics.toString(a),
-      A2($Basics._op["++"],
-      ":",
-      $Basics.toString(b)));
+      return {ctor: "_Tuple2"
+             ,_0: a
+             ,_1: b};
    });
    var createCell = F2(function (row,
    col) {

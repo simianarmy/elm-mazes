@@ -10,7 +10,6 @@ Elm.Repl.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Repl",
    $Basics = Elm.Basics.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Maze = Elm.Maze.make(_elm),
@@ -20,28 +19,13 @@ Elm.Repl.make = function (_elm) {
    var tsol = {ctor: "_Tuple0"};
    var maze = A4($Maze.init,
    $Maze.sidewinder,
-   10,
-   10,
-   $Random.initialSeed(1445286921099));
-   var grid = maze.grid;
-   var cell = A3($Grid.getCell,
-   grid,
-   1,
-   2);
-   var cell$ = $Grid.toValidCell(cell);
-   var deltron3030 = $Grid.isValidCell(A2($Grid.west,
-   grid,
-   $Grid.toValidCell(cell)));
-   var n = A2($Grid.north,
-   maze.grid,
-   $Grid.toValidCell(cell));
+   3,
+   3,
+   $Random.initialSeed(123));
+   var deltron3030 = $Maze.distances(maze);
    _elm.Repl.values = {_op: _op
-                      ,cell: cell
-                      ,cell$: cell$
                       ,deltron3030: deltron3030
-                      ,grid: grid
                       ,maze: maze
-                      ,n: n
                       ,tsol: tsol};
    return _elm.Repl.values;
 };

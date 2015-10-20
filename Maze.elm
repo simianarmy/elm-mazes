@@ -1,8 +1,11 @@
 module Maze where
 
 import Grid exposing (..)
+import Cell exposing (Cell)
 import BinaryTree
 import Sidewinder
+import Dijkstra
+import Distances exposing (Distances)
 
 import Random exposing (Seed)
 import Html exposing (..)
@@ -68,4 +71,11 @@ algByName str =
        case res of
            Just a -> a.alg
            _ -> Sidewinder
+
+-- Returns all distances from a root cell
+distances : Maze -> Distances
+distances maze =
+    let rootCell = toValidCell <| Grid.getCell maze.grid 1 1
+    in
+        Dijkstra.cellDistances maze.grid rootCell
 

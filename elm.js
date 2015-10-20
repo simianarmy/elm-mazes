@@ -393,11 +393,9 @@ Elm.Cell.make = function (_elm) {
    };
    var createCellID = F2(function (a,
    b) {
-      return A2($Basics._op["++"],
-      $Basics.toString(a),
-      A2($Basics._op["++"],
-      ":",
-      $Basics.toString(b)));
+      return {ctor: "_Tuple2"
+             ,_0: a
+             ,_1: b};
    });
    var createCell = F2(function (row,
    col) {
@@ -1956,6 +1954,106 @@ Elm.Dict.make = function (_elm) {
                       ,fromList: fromList};
    return _elm.Dict.values;
 };
+Elm.Dijkstra = Elm.Dijkstra || {};
+Elm.Dijkstra.make = function (_elm) {
+   "use strict";
+   _elm.Dijkstra = _elm.Dijkstra || {};
+   if (_elm.Dijkstra.values)
+   return _elm.Dijkstra.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Dijkstra",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Distances = Elm.Distances.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var scanCell = F3(function (cell,
+   linked,
+   diter) {
+      return $Basics.not(_U.eq(A2($Distances.lookup,
+      diter.dists,
+      linked),
+      -1)) ? diter : function () {
+         var curDist = A2($Distances.lookup,
+         diter.dists,
+         cell);
+         return _U.replace([["newFrontier"
+                            ,A2($List.append,
+                            diter.newFrontier,
+                            _L.fromArray([linked]))]
+                           ,["dists"
+                            ,A3($Distances.add,
+                            diter.dists,
+                            linked,
+                            curDist + 1)]],
+         diter);
+      }();
+   });
+   var scanCellLinks = F2(function (cell,
+   diter) {
+      return A2($List.foldl,
+      scanCell(cell),
+      diter)(A2($Grid.linkedCells,
+      diter.grid,
+      cell));
+   });
+   var scanFrontier = function (diter) {
+      return function () {
+         var res = A3($List.foldl,
+         scanCellLinks,
+         diter,
+         diter.frontier);
+         return _U.replace([["frontier"
+                            ,res.newFrontier]],
+         res);
+      }();
+   };
+   var frontierAcc = function (diter) {
+      return $List.isEmpty(diter.frontier) ? diter : function () {
+         var acc = _U.replace([["newFrontier"
+                               ,_L.fromArray([])]],
+         diter);
+         return frontierAcc(scanFrontier(acc));
+      }();
+   };
+   var cellDistances = F2(function (grid,
+   cell) {
+      return function () {
+         var acc = {_: {}
+                   ,dists: $Distances.init(cell)
+                   ,frontier: _L.fromArray([cell])
+                   ,grid: grid
+                   ,newFrontier: _L.fromArray([])};
+         return function (_) {
+            return _.dists;
+         }(frontierAcc(acc));
+      }();
+   });
+   var DijkstraIter = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,dists: a
+             ,frontier: c
+             ,grid: b
+             ,newFrontier: d};
+   });
+   _elm.Dijkstra.values = {_op: _op
+                          ,DijkstraIter: DijkstraIter
+                          ,scanCell: scanCell
+                          ,scanCellLinks: scanCellLinks
+                          ,scanFrontier: scanFrontier
+                          ,frontierAcc: frontierAcc
+                          ,cellDistances: cellDistances};
+   return _elm.Dijkstra.values;
+};
 Elm.Distances = Elm.Distances || {};
 Elm.Distances.make = function (_elm) {
    "use strict";
@@ -1990,7 +2088,7 @@ Elm.Distances.make = function (_elm) {
    var lookup = F2(function (dists,
    cell) {
       return A2($Maybe.withDefault,
-      0,
+      -1,
       A2($Dict.get,
       cell.id,
       dists.cells));
@@ -2917,7 +3015,6 @@ Elm.Grid.make = function (_elm) {
    $moduleName = "Grid",
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
-   $Distances = Elm.Distances.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
@@ -2951,20 +3048,12 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 191 and 193");
+         "between lines 195 and 197");
       }();
    };
    var cellIndex = F2(function (grid,
    cell) {
       return grid.cols * (cell.row - 1) + cell.col;
-   });
-   var distances = F2(function (grid,
-   cell) {
-      return function () {
-         var frontier = _L.fromArray([cell]);
-         var d = $Distances.init(cell);
-         return d;
-      }();
    });
    var size = function (grid) {
       return grid.rows * grid.cols;
@@ -3040,7 +3129,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 104 and 106");
+         "between lines 103 and 105");
       }();
    };
    var toValidCell = function (cell) {
@@ -3052,7 +3141,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 98 and 100");
+         "between lines 97 and 99");
       }();
    };
    var getCell = F3(function (grid,
@@ -3170,6 +3259,23 @@ Elm.Grid.make = function (_elm) {
          _L.range(1,grid.rows))))));
       }();
    };
+   var cellIdToCell = F2(function (grid,
+   cellid) {
+      return function () {
+         var col = $Basics.snd(cellid);
+         var row = $Basics.fst(cellid);
+         return toValidCell(A3(getCell,
+         grid,
+         row,
+         col));
+      }();
+   });
+   var linkedCells = F2(function (grid,
+   cell) {
+      return A2($List.map,
+      cellIdToCell(grid),
+      $Set.toList(cell.links));
+   });
    var view = F2(function (grid,
    cellSize) {
       return function () {
@@ -3182,7 +3288,7 @@ Elm.Grid.make = function (_elm) {
                     style,
                     _v6._1)]) : _L.fromArray([]);}
                _U.badCase($moduleName,
-               "between lines 60 and 62");
+               "between lines 59 and 61");
             }();
          });
          var cellWalls = F2(function (cell,
@@ -3323,10 +3429,11 @@ Elm.Grid.make = function (_elm) {
                       ,neighbors: neighbors
                       ,linkCells: linkCells
                       ,unlinkCells: unlinkCells
+                      ,linkedCells: linkedCells
                       ,rowCells: rowCells
                       ,size: size
-                      ,distances: distances
                       ,cellIndex: cellIndex
+                      ,cellIdToCell: cellIdToCell
                       ,cellToList: cellToList
                       ,toTitle: toTitle
                       ,RowAscii: RowAscii
@@ -5040,6 +5147,8 @@ Elm.Maze.make = function (_elm) {
    $moduleName = "Maze",
    $Basics = Elm.Basics.make(_elm),
    $BinaryTree = Elm.BinaryTree.make(_elm),
+   $Dijkstra = Elm.Dijkstra.make(_elm),
+   $Distances = Elm.Distances.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
@@ -5048,6 +5157,17 @@ Elm.Maze.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm);
+   var distances = function (maze) {
+      return function () {
+         var rootCell = $Grid.toValidCell(A3($Grid.getCell,
+         maze.grid,
+         1,
+         1));
+         return A2($Dijkstra.cellDistances,
+         maze.grid,
+         rootCell);
+      }();
+   };
    var algToString = function (algType) {
       return function () {
          switch (algType.ctor)
@@ -5056,7 +5176,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 60 and 62");
+         "between lines 63 and 65");
       }();
    };
    var getAlgFn = function (algType) {
@@ -5067,7 +5187,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 54 and 56");
+         "between lines 57 and 59");
       }();
    };
    var view = function (maze) {
@@ -5162,7 +5282,8 @@ Elm.Maze.make = function (_elm) {
                       ,algorithms: algorithms
                       ,getAlgFn: getAlgFn
                       ,algToString: algToString
-                      ,algByName: algByName};
+                      ,algByName: algByName
+                      ,distances: distances};
    return _elm.Maze.values;
 };
 Elm.Native.Array = {};

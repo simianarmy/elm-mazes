@@ -11,6 +11,8 @@ Elm.Maze.make = function (_elm) {
    $moduleName = "Maze",
    $Basics = Elm.Basics.make(_elm),
    $BinaryTree = Elm.BinaryTree.make(_elm),
+   $Dijkstra = Elm.Dijkstra.make(_elm),
+   $Distances = Elm.Distances.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
@@ -19,6 +21,17 @@ Elm.Maze.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm);
+   var distances = function (maze) {
+      return function () {
+         var rootCell = $Grid.toValidCell(A3($Grid.getCell,
+         maze.grid,
+         1,
+         1));
+         return A2($Dijkstra.cellDistances,
+         maze.grid,
+         rootCell);
+      }();
+   };
    var algToString = function (algType) {
       return function () {
          switch (algType.ctor)
@@ -27,7 +40,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 60 and 62");
+         "between lines 63 and 65");
       }();
    };
    var getAlgFn = function (algType) {
@@ -38,7 +51,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 54 and 56");
+         "between lines 57 and 59");
       }();
    };
    var view = function (maze) {
@@ -133,6 +146,7 @@ Elm.Maze.make = function (_elm) {
                       ,algorithms: algorithms
                       ,getAlgFn: getAlgFn
                       ,algToString: algToString
-                      ,algByName: algByName};
+                      ,algByName: algByName
+                      ,distances: distances};
    return _elm.Maze.values;
 };

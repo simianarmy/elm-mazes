@@ -4,7 +4,7 @@ import Set exposing (..)
 
 -- MODEL
 
-type alias CellID = String
+type alias CellID = (Int,Int)
 type alias Cell = {
     id: CellID,
     row: Int,
@@ -25,7 +25,8 @@ createCell row col =
 -- generate a unique id string
 createCellID : Int -> Int -> CellID
 createCellID a b =
-    toString a ++ ":" ++ toString b
+    --toString a ++ ":" ++ toString b
+    (a, b)
 
 -- returns all linked cells
 linked : Cell -> Set CellID

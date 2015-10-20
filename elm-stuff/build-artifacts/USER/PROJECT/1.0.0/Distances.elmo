@@ -32,7 +32,7 @@ Elm.Distances.make = function (_elm) {
    var lookup = F2(function (dists,
    cell) {
       return A2($Maybe.withDefault,
-      0,
+      -1,
       A2($Dict.get,
       cell.id,
       dists.cells));

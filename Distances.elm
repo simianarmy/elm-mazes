@@ -5,7 +5,7 @@ import Dict exposing (Dict)
 
 type alias Distances = {
     root : Cell,
-    cells : Dict String Int
+    cells : Dict (Int, Int) Int
 }
 
 init : Cell -> Distances
@@ -14,13 +14,13 @@ init cell =
 
 lookup : Distances -> Cell -> Int
 lookup dists cell =
-    Maybe.withDefault 0 (Dict.get cell.id dists.cells)
+    Maybe.withDefault -1 (Dict.get cell.id dists.cells)
 
 add : Distances -> Cell -> Int -> Distances
 add dists cell dist =
     {dists | cells <- Dict.insert cell.id dist dists.cells}
 
-cells : Distances -> List String
+cells : Distances -> List (Int, Int)
 cells dists =
     Dict.keys dists.cells
 

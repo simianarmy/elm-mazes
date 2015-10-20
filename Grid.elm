@@ -1,7 +1,6 @@
 module Grid where
 
 import Cell exposing (..)
-import Dijkstra
 import Set
 import List
 import String
@@ -164,6 +163,11 @@ unlinkCells grid cell cellToUnlink bidi =
     in
        {grid | cells <- List.map unlinkMatched grid.cells}
 
+-- returns all cells linked to a cell
+linkedCells : Grid -> Cell -> List Cell
+linkedCells grid cell =
+    List.map (cellIdToCell grid) (Set.toList cell.links)
+
 rowCells : Grid -> Int -> List Cell
 rowCells grid row =
     List.filter (\c -> c.row == row) grid.cells
@@ -172,15 +176,18 @@ size : Grid -> Int
 size grid =
     grid.rows * grid.cols
 
--- Returns all distances from a root cell
-distances : Grid -> Cell -> Distances
-distances grid cell =
-    Dijkstra.cellDistances grid cell
-
 -- cardinal index of a cell in a grid (1,1) = 1, etc
 cellIndex : Grid -> Cell -> Int
 cellIndex grid cell =
     (grid.cols * (cell.row - 1)) + cell.col
+
+-- returns cell by its id
+cellIdToCell : Grid -> CellID -> Cell
+cellIdToCell grid cellid =
+    let row = (fst cellid)
+        col = (snd cellid)
+    in
+       toValidCell <| getCell grid row col
 
 -- Helper to make a maybe cell a list (empty if maybe)
 cellToList : Maybe Cell -> List Cell
