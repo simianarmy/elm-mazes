@@ -41,11 +41,15 @@ updateSize : Maze -> Int -> Int -> Maze
 updateSize maze width height =
     {maze | grid <- getAlgFn maze.alg <| createGrid width height (nextSeed maze.grid)}
 
+plainAsciiCell : Cell -> String
+plainAsciiCell cell = " "
+
 view : Maze -> Html
 view maze =
     div [] [
         fromElement <| Grid.view maze.grid 30,
         text <| (algToString maze.alg) ++ " algorithm"
+        , pre [] [text <| toAscii plainAsciiCell maze.grid]
         ]
 
 algorithms : List AlgAttr

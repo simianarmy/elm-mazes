@@ -3048,7 +3048,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 195 and 197");
+         "between lines 196 and 198");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -3129,7 +3129,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 103 and 105");
+         "between lines 104 and 106");
       }();
    };
    var toValidCell = function (cell) {
@@ -3141,7 +3141,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 97 and 99");
+         "between lines 98 and 100");
       }();
    };
    var getCell = F3(function (grid,
@@ -3196,7 +3196,8 @@ Elm.Grid.make = function (_elm) {
                                           ,cellToList(e)]));
       }();
    });
-   var toAscii = function (grid) {
+   var toAscii = F2(function (cellViewer,
+   grid) {
       return function () {
          var cellToString = F2(function (cell,
          ascii) {
@@ -3213,11 +3214,16 @@ Elm.Grid.make = function (_elm) {
                toValidCell(A2(east,
                grid,
                cell))) ? " " : "|";
+               var body = A2($Basics._op["++"],
+               " ",
+               A2($Basics._op["++"],
+               cellViewer(cell),
+               " "));
                return _U.replace([["top"
                                   ,A2($Basics._op["++"],
                                   curtop,
                                   A2($Basics._op["++"],
-                                  A2($String.repeat,3," "),
+                                  body,
                                   east_boundary))]
                                  ,["bottom"
                                   ,A2($Basics._op["++"],
@@ -3258,7 +3264,7 @@ Elm.Grid.make = function (_elm) {
          rowToStrings,
          _L.range(1,grid.rows))))));
       }();
-   };
+   });
    var cellIdToCell = F2(function (grid,
    cellid) {
       return function () {
@@ -3288,7 +3294,7 @@ Elm.Grid.make = function (_elm) {
                     style,
                     _v6._1)]) : _L.fromArray([]);}
                _U.badCase($moduleName,
-               "between lines 59 and 61");
+               "between lines 60 and 62");
             }();
          });
          var cellWalls = F2(function (cell,
@@ -3402,6 +3408,8 @@ Elm.Grid.make = function (_elm) {
       grid.rows,
       grid.cols)(nextSeed(grid));
    };
+   var Distances = {ctor: "Distances"};
+   var Normal = {ctor: "Normal"};
    var Grid = F4(function (a,
    b,
    c,
@@ -3414,6 +3422,8 @@ Elm.Grid.make = function (_elm) {
    });
    _elm.Grid.values = {_op: _op
                       ,Grid: Grid
+                      ,Normal: Normal
+                      ,Distances: Distances
                       ,createGrid: createGrid
                       ,nextSeed: nextSeed
                       ,updateRnd: updateRnd
@@ -5147,6 +5157,7 @@ Elm.Maze.make = function (_elm) {
    $moduleName = "Maze",
    $Basics = Elm.Basics.make(_elm),
    $BinaryTree = Elm.BinaryTree.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
    $Dijkstra = Elm.Dijkstra.make(_elm),
    $Distances = Elm.Distances.make(_elm),
    $Grid = Elm.Grid.make(_elm),
@@ -5176,7 +5187,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 63 and 65");
+         "between lines 67 and 69");
       }();
    };
    var getAlgFn = function (algType) {
@@ -5187,8 +5198,11 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 57 and 59");
+         "between lines 61 and 63");
       }();
+   };
+   var plainAsciiCell = function (cell) {
+      return " ";
    };
    var view = function (maze) {
       return A2($Html.div,
@@ -5198,7 +5212,12 @@ Elm.Maze.make = function (_elm) {
                    30))
                    ,$Html.text(A2($Basics._op["++"],
                    algToString(maze.alg),
-                   " algorithm"))]));
+                   " algorithm"))
+                   ,A2($Html.pre,
+                   _L.fromArray([]),
+                   _L.fromArray([$Html.text(A2($Grid.toAscii,
+                   plainAsciiCell,
+                   maze.grid))]))]));
    };
    var updateSize = F3(function (maze,
    width,
@@ -5278,6 +5297,7 @@ Elm.Maze.make = function (_elm) {
                       ,init: init
                       ,update: update
                       ,updateSize: updateSize
+                      ,plainAsciiCell: plainAsciiCell
                       ,view: view
                       ,algorithms: algorithms
                       ,getAlgFn: getAlgFn

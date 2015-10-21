@@ -11,6 +11,7 @@ Elm.Maze.make = function (_elm) {
    $moduleName = "Maze",
    $Basics = Elm.Basics.make(_elm),
    $BinaryTree = Elm.BinaryTree.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
    $Dijkstra = Elm.Dijkstra.make(_elm),
    $Distances = Elm.Distances.make(_elm),
    $Grid = Elm.Grid.make(_elm),
@@ -40,7 +41,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 63 and 65");
+         "between lines 67 and 69");
       }();
    };
    var getAlgFn = function (algType) {
@@ -51,8 +52,11 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 57 and 59");
+         "between lines 61 and 63");
       }();
+   };
+   var plainAsciiCell = function (cell) {
+      return " ";
    };
    var view = function (maze) {
       return A2($Html.div,
@@ -62,7 +66,12 @@ Elm.Maze.make = function (_elm) {
                    30))
                    ,$Html.text(A2($Basics._op["++"],
                    algToString(maze.alg),
-                   " algorithm"))]));
+                   " algorithm"))
+                   ,A2($Html.pre,
+                   _L.fromArray([]),
+                   _L.fromArray([$Html.text(A2($Grid.toAscii,
+                   plainAsciiCell,
+                   maze.grid))]))]));
    };
    var updateSize = F3(function (maze,
    width,
@@ -142,6 +151,7 @@ Elm.Maze.make = function (_elm) {
                       ,init: init
                       ,update: update
                       ,updateSize: updateSize
+                      ,plainAsciiCell: plainAsciiCell
                       ,view: view
                       ,algorithms: algorithms
                       ,getAlgFn: getAlgFn

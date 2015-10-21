@@ -11,6 +11,7 @@ import Graphics.Collage exposing (..)
 import Graphics.Element exposing (Element)
 
 type alias Grid = {rows: Int, cols: Int, cells: List Cell, rnd: GridRnd}
+type Display = Normal | Distances
 
 createGrid : Int -> Int -> Seed -> Grid
 createGrid rows cols initSeed =
@@ -206,18 +207,19 @@ type alias RowAscii = {
     bottom : String
 }
 
-toAscii : Grid -> String
-toAscii grid =
+toAscii : (Cell -> String) -> Grid -> String
+toAscii cellViewer grid =
     let cellToString : Cell -> RowAscii -> RowAscii
         cellToString cell ascii =
-            let east_boundary = (if isLinked cell (toValidCell (east grid cell)) then " " else "|")
+            let body = " " ++ (cellViewer cell) grid ++ " "
+                east_boundary = (if isLinked cell (toValidCell (east grid cell)) then " " else "|")
                 south_boundary = (if isLinked cell (toValidCell (south grid cell)) then "   " else "---")
                 curtop = ascii.top
                 curbottom = ascii.bottom
             in
                {
                    ascii |
-                   top <- curtop ++ (String.repeat 3 " ") ++ east_boundary,
+                   top <- curtop ++ body ++ east_boundary,
                    bottom <- curbottom ++ south_boundary ++ "+"
                }
 
