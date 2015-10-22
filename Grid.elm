@@ -201,17 +201,20 @@ toTitle : Grid -> String
 toTitle grid =
     toString grid.rows ++ " X " ++ toString grid.cols ++ " Grid"
 
+plainAsciiCell : Grid -> Cell -> String
+plainAsciiCell grid cell = " "
+
 -- Returns ASCII representation of a grid
 type alias RowAscii = {
     top : String, 
     bottom : String
 }
 
-toAscii : (Cell -> String) -> Grid -> String
+toAscii : (Grid -> Cell -> String) -> Grid -> String
 toAscii cellViewer grid =
     let cellToString : Cell -> RowAscii -> RowAscii
         cellToString cell ascii =
-            let body = " " ++ (cellViewer cell) grid ++ " "
+            let body = " " ++ (cellViewer grid cell) ++ " "
                 east_boundary = (if isLinked cell (toValidCell (east grid cell)) then " " else "|")
                 south_boundary = (if isLinked cell (toValidCell (south grid cell)) then "   " else "---")
                 curtop = ascii.top

@@ -1954,166 +1954,6 @@ Elm.Dict.make = function (_elm) {
                       ,fromList: fromList};
    return _elm.Dict.values;
 };
-Elm.Dijkstra = Elm.Dijkstra || {};
-Elm.Dijkstra.make = function (_elm) {
-   "use strict";
-   _elm.Dijkstra = _elm.Dijkstra || {};
-   if (_elm.Dijkstra.values)
-   return _elm.Dijkstra.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "Dijkstra",
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Distances = Elm.Distances.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var scanCell = F3(function (cell,
-   linked,
-   diter) {
-      return $Basics.not(_U.eq(A2($Distances.lookup,
-      diter.dists,
-      linked),
-      -1)) ? diter : function () {
-         var curDist = A2($Distances.lookup,
-         diter.dists,
-         cell);
-         return _U.replace([["newFrontier"
-                            ,A2($List.append,
-                            diter.newFrontier,
-                            _L.fromArray([linked]))]
-                           ,["dists"
-                            ,A3($Distances.add,
-                            diter.dists,
-                            linked,
-                            curDist + 1)]],
-         diter);
-      }();
-   });
-   var scanCellLinks = F2(function (cell,
-   diter) {
-      return A2($List.foldl,
-      scanCell(cell),
-      diter)(A2($Grid.linkedCells,
-      diter.grid,
-      cell));
-   });
-   var scanFrontier = function (diter) {
-      return function () {
-         var res = A3($List.foldl,
-         scanCellLinks,
-         diter,
-         diter.frontier);
-         return _U.replace([["frontier"
-                            ,res.newFrontier]],
-         res);
-      }();
-   };
-   var frontierAcc = function (diter) {
-      return $List.isEmpty(diter.frontier) ? diter : function () {
-         var acc = _U.replace([["newFrontier"
-                               ,_L.fromArray([])]],
-         diter);
-         return frontierAcc(scanFrontier(acc));
-      }();
-   };
-   var cellDistances = F2(function (grid,
-   cell) {
-      return function () {
-         var acc = {_: {}
-                   ,dists: $Distances.init(cell)
-                   ,frontier: _L.fromArray([cell])
-                   ,grid: grid
-                   ,newFrontier: _L.fromArray([])};
-         return function (_) {
-            return _.dists;
-         }(frontierAcc(acc));
-      }();
-   });
-   var DijkstraIter = F4(function (a,
-   b,
-   c,
-   d) {
-      return {_: {}
-             ,dists: a
-             ,frontier: c
-             ,grid: b
-             ,newFrontier: d};
-   });
-   _elm.Dijkstra.values = {_op: _op
-                          ,DijkstraIter: DijkstraIter
-                          ,scanCell: scanCell
-                          ,scanCellLinks: scanCellLinks
-                          ,scanFrontier: scanFrontier
-                          ,frontierAcc: frontierAcc
-                          ,cellDistances: cellDistances};
-   return _elm.Dijkstra.values;
-};
-Elm.Distances = Elm.Distances || {};
-Elm.Distances.make = function (_elm) {
-   "use strict";
-   _elm.Distances = _elm.Distances || {};
-   if (_elm.Distances.values)
-   return _elm.Distances.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "Distances",
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Dict = Elm.Dict.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var cells = function (dists) {
-      return $Dict.keys(dists.cells);
-   };
-   var add = F3(function (dists,
-   cell,
-   dist) {
-      return _U.replace([["cells"
-                         ,A3($Dict.insert,
-                         cell.id,
-                         dist,
-                         dists.cells)]],
-      dists);
-   });
-   var lookup = F2(function (dists,
-   cell) {
-      return A2($Maybe.withDefault,
-      -1,
-      A2($Dict.get,
-      cell.id,
-      dists.cells));
-   });
-   var init = function (cell) {
-      return {_: {}
-             ,cells: A2($Dict.singleton,
-             cell.id,
-             0)
-             ,root: cell};
-   };
-   var Distances = F2(function (a,
-   b) {
-      return {_: {}
-             ,cells: b
-             ,root: a};
-   });
-   _elm.Distances.values = {_op: _op
-                           ,Distances: Distances
-                           ,init: init
-                           ,lookup: lookup
-                           ,add: add
-                           ,cells: cells};
-   return _elm.Distances.values;
-};
 Elm.Graphics = Elm.Graphics || {};
 Elm.Graphics.Collage = Elm.Graphics.Collage || {};
 Elm.Graphics.Collage.make = function (_elm) {
@@ -3217,7 +3057,7 @@ Elm.Grid.make = function (_elm) {
                var body = A2($Basics._op["++"],
                " ",
                A2($Basics._op["++"],
-               cellViewer(cell),
+               A2(cellViewer,grid,cell),
                " "));
                return _U.replace([["top"
                                   ,A2($Basics._op["++"],
@@ -5158,8 +4998,6 @@ Elm.Maze.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $BinaryTree = Elm.BinaryTree.make(_elm),
    $Cell = Elm.Cell.make(_elm),
-   $Dijkstra = Elm.Dijkstra.make(_elm),
-   $Distances = Elm.Distances.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
@@ -5168,17 +5006,6 @@ Elm.Maze.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var distances = function (maze) {
-      return function () {
-         var rootCell = $Grid.toValidCell(A3($Grid.getCell,
-         maze.grid,
-         1,
-         1));
-         return A2($Dijkstra.cellDistances,
-         maze.grid,
-         rootCell);
-      }();
-   };
    var algToString = function (algType) {
       return function () {
          switch (algType.ctor)
@@ -5187,7 +5014,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 67 and 69");
+         "between lines 65 and 67");
       }();
    };
    var getAlgFn = function (algType) {
@@ -5198,12 +5025,13 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 61 and 63");
+         "between lines 59 and 61");
       }();
    };
-   var plainAsciiCell = function (cell) {
+   var plainAsciiCell = F2(function (grid,
+   cell) {
       return " ";
-   };
+   });
    var view = function (maze) {
       return A2($Html.div,
       _L.fromArray([]),
@@ -5302,8 +5130,7 @@ Elm.Maze.make = function (_elm) {
                       ,algorithms: algorithms
                       ,getAlgFn: getAlgFn
                       ,algToString: algToString
-                      ,algByName: algByName
-                      ,distances: distances};
+                      ,algByName: algByName};
    return _elm.Maze.values;
 };
 Elm.Native.Array = {};

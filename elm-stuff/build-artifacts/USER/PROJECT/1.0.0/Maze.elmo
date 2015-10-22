@@ -12,8 +12,6 @@ Elm.Maze.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $BinaryTree = Elm.BinaryTree.make(_elm),
    $Cell = Elm.Cell.make(_elm),
-   $Dijkstra = Elm.Dijkstra.make(_elm),
-   $Distances = Elm.Distances.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
@@ -22,17 +20,6 @@ Elm.Maze.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var distances = function (maze) {
-      return function () {
-         var rootCell = $Grid.toValidCell(A3($Grid.getCell,
-         maze.grid,
-         1,
-         1));
-         return A2($Dijkstra.cellDistances,
-         maze.grid,
-         rootCell);
-      }();
-   };
    var algToString = function (algType) {
       return function () {
          switch (algType.ctor)
@@ -41,7 +28,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 67 and 69");
+         "between lines 65 and 67");
       }();
    };
    var getAlgFn = function (algType) {
@@ -52,12 +39,13 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 61 and 63");
+         "between lines 59 and 61");
       }();
    };
-   var plainAsciiCell = function (cell) {
+   var plainAsciiCell = F2(function (grid,
+   cell) {
       return " ";
-   };
+   });
    var view = function (maze) {
       return A2($Html.div,
       _L.fromArray([]),
@@ -156,7 +144,6 @@ Elm.Maze.make = function (_elm) {
                       ,algorithms: algorithms
                       ,getAlgFn: getAlgFn
                       ,algToString: algToString
-                      ,algByName: algByName
-                      ,distances: distances};
+                      ,algByName: algByName};
    return _elm.Maze.values;
 };

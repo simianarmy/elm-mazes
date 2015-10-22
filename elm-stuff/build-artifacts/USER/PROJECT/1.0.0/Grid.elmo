@@ -27,6 +27,10 @@ Elm.Grid.make = function (_elm) {
              ,bottom: b
              ,top: a};
    });
+   var plainAsciiCell = F2(function (grid,
+   cell) {
+      return " ";
+   });
    var toTitle = function (grid) {
       return A2($Basics._op["++"],
       $Basics.toString(grid.rows),
@@ -213,7 +217,7 @@ Elm.Grid.make = function (_elm) {
                var body = A2($Basics._op["++"],
                " ",
                A2($Basics._op["++"],
-               cellViewer(cell),
+               A2(cellViewer,grid,cell),
                " "));
                return _U.replace([["top"
                                   ,A2($Basics._op["++"],
@@ -442,6 +446,7 @@ Elm.Grid.make = function (_elm) {
                       ,cellIdToCell: cellIdToCell
                       ,cellToList: cellToList
                       ,toTitle: toTitle
+                      ,plainAsciiCell: plainAsciiCell
                       ,RowAscii: RowAscii
                       ,toAscii: toAscii};
    return _elm.Grid.values;
