@@ -28,7 +28,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 72 and 74");
+         "between lines 69 and 71");
       }();
    };
    var getAlgFn = function (algType) {
@@ -39,25 +39,18 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 66 and 68");
+         "between lines 63 and 65");
       }();
    };
    var viewDistances = function (maze) {
       return function () {
          var root = $Grid.toValidCell(A3($Grid.getCell,
          maze.grid,
-         1,
+         maze.grid.rows,
          1));
-         var distanceGrid = A2($DistanceGrid.createDistanceGrid,
+         return A2($DistanceGrid.viewDistances,
          maze.grid,
          root);
-         return A2($Html.div,
-         _L.fromArray([]),
-         _L.fromArray([A2($Html.pre,
-         _L.fromArray([]),
-         _L.fromArray([$Html.text(A2($Grid.toAscii,
-         $DistanceGrid.distanceAsciiCell,
-         distanceGrid))]))]));
       }();
    };
    var view = function (maze) {

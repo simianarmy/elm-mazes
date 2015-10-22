@@ -207,8 +207,8 @@ toTitle : Grid a -> String
 toTitle grid =
     toString grid.rows ++ " X " ++ toString grid.cols ++ " Grid"
 
-plainAsciiCell : Grid a -> Cell -> String
-plainAsciiCell grid cell = " "
+cellToAscii : Grid a -> Cell -> String
+cellToAscii grid cell = " "
 
 -- Returns ASCII representation of a grid
 type alias RowAscii = {

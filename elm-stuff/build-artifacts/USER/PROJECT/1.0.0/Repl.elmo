@@ -10,14 +10,21 @@ Elm.Repl.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Repl",
    $Basics = Elm.Basics.make(_elm),
+   $IntToBaseX = Elm.IntToBaseX.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
+   var val = 10 / 2 | 0;
    var tsol = {ctor: "_Tuple0"};
-   var d = 18;
+   var digits = $IntToBaseX.digitMap;
+   var deltron3030 = A2($IntToBaseX.toBaseX,
+   35,
+   36);
    _elm.Repl.values = {_op: _op
-                      ,d: d
-                      ,tsol: tsol};
+                      ,deltron3030: deltron3030
+                      ,digits: digits
+                      ,tsol: tsol
+                      ,val: val};
    return _elm.Repl.values;
 };

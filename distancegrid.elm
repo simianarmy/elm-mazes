@@ -1,12 +1,12 @@
 module DistanceGrid where
 
-import Grid exposing (..)
+import Grid exposing (Grid, toAscii)
 import Cell exposing (Cell)
 import Dijkstra
-import Distances exposing (..)
+import Distances exposing (Distances)
+import IntToBaseX exposing (toBaseX)
 
 import Html exposing (..)
-import Html.Attributes exposing (..)
 
 type alias CellDistances a = {
     a|
@@ -16,29 +16,29 @@ type alias CellDistances a = {
 -- Creates grid with distances from Grid
 createDistanceGrid : Grid {} -> Cell -> CellDistances (Grid {})
 createDistanceGrid grid root =
-    let distances = Dijkstra.cellDistances grid root
-    in
-       {grid | dists = distances}
+    {grid |
+        dists = distances grid root
+    }
 
 -- Returns all distances from a root cell
 distances : Grid {} -> Cell -> Distances
-distances grid rootCell =
-    Dijkstra.cellDistances grid rootCell
+distances grid root =
+    Dijkstra.cellDistances grid root
 
-distanceAsciiCell : CellDistances (Grid {}) -> Cell -> String
-distanceAsciiCell dgrid cell =
+cellToAscii : CellDistances (Grid {}) -> Cell -> String
+cellToAscii dgrid cell =
     let dist = Distances.lookup dgrid.dists cell
     in
        if dist == -1
-          then plainAsciiCell dgrid cell
-          else toString dist
+          then Grid.cellToAscii dgrid cell
+          else toBaseX dist 36
 
 -- distances view
 viewDistances : Grid {} -> Cell -> Html
 viewDistances grid root =
-    let dgrid = {grid | dists = distances grid root}
+    let dgrid = createDistanceGrid grid root
     in
        div [] [
-           pre [] [text <| toAscii distanceAsciiCell dgrid]
+           pre [] [text <| toAscii cellToAscii dgrid]
            ]
 

@@ -27,7 +27,7 @@ Elm.Grid.make = function (_elm) {
              ,bottom: b
              ,top: a};
    });
-   var plainAsciiCell = F2(function (grid,
+   var cellToAscii = F2(function (grid,
    cell) {
       return " ";
    });
@@ -445,7 +445,7 @@ Elm.Grid.make = function (_elm) {
                       ,cellIdToCell: cellIdToCell
                       ,cellToList: cellToList
                       ,toTitle: toTitle
-                      ,plainAsciiCell: plainAsciiCell
+                      ,cellToAscii: cellToAscii
                       ,RowAscii: RowAscii
                       ,toAscii: toAscii};
    return _elm.Grid.values;

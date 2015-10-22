@@ -2071,52 +2071,50 @@ Elm.DistanceGrid.make = function (_elm) {
    $Distances = Elm.Distances.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $Html = Elm.Html.make(_elm),
+   $IntToBaseX = Elm.IntToBaseX.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var distanceAsciiCell = F2(function (dgrid,
+   var cellToAscii = F2(function (dgrid,
    cell) {
       return function () {
          var dist = A2($Distances.lookup,
          dgrid.dists,
          cell);
          return _U.eq(dist,
-         -1) ? A2($Grid.plainAsciiCell,
+         -1) ? A2($Grid.cellToAscii,
          dgrid,
-         cell) : $Basics.toString(dist);
+         cell) : A2($IntToBaseX.toBaseX,
+         dist,
+         36);
       }();
    });
    var distances = F2(function (grid,
-   rootCell) {
+   root) {
       return A2($Dijkstra.cellDistances,
       grid,
-      rootCell);
+      root);
+   });
+   var createDistanceGrid = F2(function (grid,
+   root) {
+      return _U.insert("dists",
+      A2(distances,grid,root),
+      grid);
    });
    var viewDistances = F2(function (grid,
    root) {
       return function () {
-         var dgrid = _U.insert("dists",
-         A2(distances,grid,root),
-         grid);
+         var dgrid = A2(createDistanceGrid,
+         grid,
+         root);
          return A2($Html.div,
          _L.fromArray([]),
          _L.fromArray([A2($Html.pre,
          _L.fromArray([]),
          _L.fromArray([$Html.text(A2($Grid.toAscii,
-         distanceAsciiCell,
+         cellToAscii,
          dgrid))]))]));
-      }();
-   });
-   var createDistanceGrid = F2(function (grid,
-   root) {
-      return function () {
-         var distances = A2($Dijkstra.cellDistances,
-         grid,
-         root);
-         return _U.insert("dists",
-         distances,
-         grid);
       }();
    });
    var CellDistances = F2(function (a,
@@ -2129,7 +2127,7 @@ Elm.DistanceGrid.make = function (_elm) {
                               ,CellDistances: CellDistances
                               ,createDistanceGrid: createDistanceGrid
                               ,distances: distances
-                              ,distanceAsciiCell: distanceAsciiCell
+                              ,cellToAscii: cellToAscii
                               ,viewDistances: viewDistances};
    return _elm.DistanceGrid.values;
 };
@@ -3110,7 +3108,7 @@ Elm.Grid.make = function (_elm) {
              ,bottom: b
              ,top: a};
    });
-   var plainAsciiCell = F2(function (grid,
+   var cellToAscii = F2(function (grid,
    cell) {
       return " ";
    });
@@ -3528,7 +3526,7 @@ Elm.Grid.make = function (_elm) {
                       ,cellIdToCell: cellIdToCell
                       ,cellToList: cellToList
                       ,toTitle: toTitle
-                      ,plainAsciiCell: plainAsciiCell
+                      ,cellToAscii: cellToAscii
                       ,RowAscii: RowAscii
                       ,toAscii: toAscii};
    return _elm.Grid.values;
@@ -4496,6 +4494,69 @@ Elm.Html.Events.make = function (_elm) {
                              ,Options: Options};
    return _elm.Html.Events.values;
 };
+Elm.IntToBaseX = Elm.IntToBaseX || {};
+Elm.IntToBaseX.make = function (_elm) {
+   "use strict";
+   _elm.IntToBaseX = _elm.IntToBaseX || {};
+   if (_elm.IntToBaseX.values)
+   return _elm.IntToBaseX.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "IntToBaseX",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var digitMap = "0123456789abcdefghijklmnopqrstuvwxyz";
+   var lookupDigitChar = function (n) {
+      return A3($String.slice,
+      n,
+      n + 1,
+      digitMap);
+   };
+   var toBaseX = F2(function (num,
+   base) {
+      return function () {
+         var convert = F2(function (str,
+         v) {
+            return _U.eq(v,
+            0) ? str : function () {
+               var c = A2($Basics._op["++"],
+               lookupDigitChar(A2($Basics._op["%"],
+               v,
+               base)),
+               str);
+               return A2(convert,
+               c,
+               v / base | 0);
+            }();
+         });
+         return _U.cmp(base,
+         2) < 0 || _U.cmp(36,
+         base) < 0 ? A2($Basics._op["++"],
+         "illegal radix ",
+         $Basics.toString(base)) : _U.eq(num,
+         0) ? "0" : function () {
+            var num$ = _U.cmp(num,
+            0) < 0 ? $Basics.negate(num) : num;
+            var res = A2(convert,"",num$);
+            return _U.cmp(num,
+            0) < 0 ? A2($Basics._op["++"],
+            "-",
+            res) : res;
+         }();
+      }();
+   });
+   _elm.IntToBaseX.values = {_op: _op
+                            ,digitMap: digitMap
+                            ,lookupDigitChar: lookupDigitChar
+                            ,toBaseX: toBaseX};
+   return _elm.IntToBaseX.values;
+};
 Elm.Json = Elm.Json || {};
 Elm.Json.Decode = Elm.Json.Decode || {};
 Elm.Json.Decode.make = function (_elm) {
@@ -5258,7 +5319,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 72 and 74");
+         "between lines 69 and 71");
       }();
    };
    var getAlgFn = function (algType) {
@@ -5269,25 +5330,18 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 66 and 68");
+         "between lines 63 and 65");
       }();
    };
    var viewDistances = function (maze) {
       return function () {
          var root = $Grid.toValidCell(A3($Grid.getCell,
          maze.grid,
-         1,
+         maze.grid.rows,
          1));
-         var distanceGrid = A2($DistanceGrid.createDistanceGrid,
+         return A2($DistanceGrid.viewDistances,
          maze.grid,
          root);
-         return A2($Html.div,
-         _L.fromArray([]),
-         _L.fromArray([A2($Html.pre,
-         _L.fromArray([]),
-         _L.fromArray([$Html.text(A2($Grid.toAscii,
-         $DistanceGrid.distanceAsciiCell,
-         distanceGrid))]))]));
       }();
    };
    var view = function (maze) {

@@ -1,0 +1,63 @@
+Elm.IntToBaseX = Elm.IntToBaseX || {};
+Elm.IntToBaseX.make = function (_elm) {
+   "use strict";
+   _elm.IntToBaseX = _elm.IntToBaseX || {};
+   if (_elm.IntToBaseX.values)
+   return _elm.IntToBaseX.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "IntToBaseX",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var digitMap = "0123456789abcdefghijklmnopqrstuvwxyz";
+   var lookupDigitChar = function (n) {
+      return A3($String.slice,
+      n,
+      n + 1,
+      digitMap);
+   };
+   var toBaseX = F2(function (num,
+   base) {
+      return function () {
+         var convert = F2(function (str,
+         v) {
+            return _U.eq(v,
+            0) ? str : function () {
+               var c = A2($Basics._op["++"],
+               lookupDigitChar(A2($Basics._op["%"],
+               v,
+               base)),
+               str);
+               return A2(convert,
+               c,
+               v / base | 0);
+            }();
+         });
+         return _U.cmp(base,
+         2) < 0 || _U.cmp(36,
+         base) < 0 ? A2($Basics._op["++"],
+         "illegal radix ",
+         $Basics.toString(base)) : _U.eq(num,
+         0) ? "0" : function () {
+            var num$ = _U.cmp(num,
+            0) < 0 ? $Basics.negate(num) : num;
+            var res = A2(convert,"",num$);
+            return _U.cmp(num,
+            0) < 0 ? A2($Basics._op["++"],
+            "-",
+            res) : res;
+         }();
+      }();
+   });
+   _elm.IntToBaseX.values = {_op: _op
+                            ,digitMap: digitMap
+                            ,lookupDigitChar: lookupDigitChar
+                            ,toBaseX: toBaseX};
+   return _elm.IntToBaseX.values;
+};

@@ -50,12 +50,9 @@ view maze =
 
 viewDistances : Maze -> Html
 viewDistances maze =
-    let root = toValidCell <| getCell maze.grid 1 1
-        distanceGrid = createDistanceGrid maze.grid root
+    let root = toValidCell <| getCell maze.grid maze.grid.rows 1
     in
-       div [] [
-           pre [] [text <| toAscii DistanceGrid.distanceAsciiCell distanceGrid]
-           ]
+       DistanceGrid.viewDistances maze.grid root
 
 algorithms : List AlgAttr
 algorithms =
