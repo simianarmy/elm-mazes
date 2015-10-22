@@ -12,20 +12,12 @@ Elm.Repl.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Maze = Elm.Maze.make(_elm),
-   $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var tsol = {ctor: "_Tuple0"};
-   var maze = A4($Maze.init,
-   $Maze.sidewinder,
-   3,
-   3,
-   $Random.initialSeed(123));
-   var deltron3030 = $Maze.distances(maze);
+   var d = 18;
    _elm.Repl.values = {_op: _op
-                      ,deltron3030: deltron3030
-                      ,maze: maze
+                      ,d: d
                       ,tsol: tsol};
    return _elm.Repl.values;
 };

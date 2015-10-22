@@ -10,10 +10,16 @@ import Random exposing (..)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (Element)
 
-type alias Grid = {rows: Int, cols: Int, cells: List Cell, rnd: GridRnd}
-type Display = Normal | Distances
+-- made extensible to contain additional data (ie. distances)
+type alias Grid a =
+    {a | 
+        rows: Int,
+        cols: Int,
+        cells: List Cell,
+        rnd: GridRnd
+}
 
-createGrid : Int -> Int -> Seed -> Grid
+createGrid : Int -> Int -> Seed -> Grid {}
 createGrid rows cols initSeed =
     let 
         makeRow : Int -> Int -> List Cell
@@ -32,23 +38,23 @@ createGrid rows cols initSeed =
        }
 
 -- random number helpers
-nextSeed : Grid -> Seed
+nextSeed : Grid a -> Seed
 nextSeed grid =
     (refresh grid.rnd).seed
 
-updateRnd : Grid -> Grid
+updateRnd : Grid a -> Grid a
 updateRnd grid =
     {
         grid |
         rnd <- refresh grid.rnd
     }
 
-update : Grid -> Grid
+update : Grid a -> Grid {}
 update grid =
     createGrid grid.rows grid.cols <| nextSeed grid
 
 -- generates collage view of the grid
-view : Grid -> Int -> Element
+view : Grid a -> Int -> Element
 view grid cellSize =
     let imgWidth = cellSize * grid.cols
         imgHeight = cellSize * grid.rows
@@ -86,7 +92,7 @@ view grid cellSize =
     in
        collage imgWidth imgHeight [group walls |> move (ox, oy)]
 
-getCell : Grid -> Int -> Int -> Maybe Cell
+getCell : Grid a -> Int -> Int -> Maybe Cell
 getCell grid row col =
     if (row > grid.rows || col > grid.cols || row <= 0 || col <= 0)
        then Nothing
@@ -105,23 +111,23 @@ isValidCell cell =
         Nothing -> False
         Just cell -> True
 
-north : Grid -> Cell -> Maybe Cell
+north : Grid a -> Cell -> Maybe Cell
 north grid cell =
     getCell grid (cell.row - 1) cell.col
 
-south : Grid -> Cell -> Maybe Cell
+south : Grid a -> Cell -> Maybe Cell
 south grid cell =
     getCell grid (cell.row + 1) cell.col
 
-west : Grid -> Cell -> Maybe Cell
+west : Grid a -> Cell -> Maybe Cell
 west grid cell =
     getCell grid cell.row (cell.col - 1)
 
-east : Grid -> Cell -> Maybe Cell
+east : Grid a -> Cell -> Maybe Cell
 east grid cell =
     getCell grid cell.row (cell.col + 1)
 
-neighbors : Grid -> Cell -> List Cell
+neighbors : Grid a -> Cell -> List Cell
 neighbors grid cell =
     let n = north grid cell
         s = south grid cell
@@ -131,7 +137,7 @@ neighbors grid cell =
        List.concat [(cellToList n), (cellToList s), (cellToList w), (cellToList e)]
 
 -- link 2 cells
-linkCells : Grid -> Cell -> Cell -> Bool -> Grid
+linkCells : Grid a -> Cell -> Cell -> Bool -> Grid a
 linkCells grid cell cellToLink bidi =
     let linkCell : Cell -> Cell -> Cell
         linkCell cell1 cell2 = {
@@ -148,7 +154,7 @@ linkCells grid cell cellToLink bidi =
         {grid | cells <- List.map linkMatched grid.cells}
 
 -- unlink 2 cells w/ optional bidirectional flag
-unlinkCells : Grid -> Cell -> Cell -> Bool -> Grid
+unlinkCells : Grid a -> Cell -> Cell -> Bool -> Grid a
 unlinkCells grid cell cellToUnlink bidi =
     let unlinkCell : Cell -> Cell -> Cell
         unlinkCell cell1 cell2 = {
@@ -165,25 +171,25 @@ unlinkCells grid cell cellToUnlink bidi =
        {grid | cells <- List.map unlinkMatched grid.cells}
 
 -- returns all cells linked to a cell
-linkedCells : Grid -> Cell -> List Cell
+linkedCells : Grid a -> Cell -> List Cell
 linkedCells grid cell =
     List.map (cellIdToCell grid) (Set.toList cell.links)
 
-rowCells : Grid -> Int -> List Cell
+rowCells : Grid a -> Int -> List Cell
 rowCells grid row =
     List.filter (\c -> c.row == row) grid.cells
 
-size : Grid -> Int
+size : Grid a -> Int
 size grid =
     grid.rows * grid.cols
 
 -- cardinal index of a cell in a grid (1,1) = 1, etc
-cellIndex : Grid -> Cell -> Int
+cellIndex : Grid a -> Cell -> Int
 cellIndex grid cell =
     (grid.cols * (cell.row - 1)) + cell.col
 
 -- returns cell by its id
-cellIdToCell : Grid -> CellID -> Cell
+cellIdToCell : Grid a -> CellID -> Cell
 cellIdToCell grid cellid =
     let row = (fst cellid)
         col = (snd cellid)
@@ -197,11 +203,11 @@ cellToList cell =
         Just cell -> [cell]
         Nothing -> []
 
-toTitle : Grid -> String
+toTitle : Grid a -> String
 toTitle grid =
     toString grid.rows ++ " X " ++ toString grid.cols ++ " Grid"
 
-plainAsciiCell : Grid -> Cell -> String
+plainAsciiCell : Grid a -> Cell -> String
 plainAsciiCell grid cell = " "
 
 -- Returns ASCII representation of a grid
@@ -210,7 +216,7 @@ type alias RowAscii = {
     bottom : String
 }
 
-toAscii : (Grid -> Cell -> String) -> Grid -> String
+toAscii : (Grid a -> Cell -> String) -> Grid a -> String
 toAscii cellViewer grid =
     let cellToString : Cell -> RowAscii -> RowAscii
         cellToString cell ascii =

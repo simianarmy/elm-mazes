@@ -1,7 +1,7 @@
 module Maze where
 
 import Grid exposing (..)
-import DistanceGrid
+import DistanceGrid exposing (..)
 import Cell exposing (Cell)
 import BinaryTree
 import Sidewinder
@@ -16,7 +16,7 @@ type alias AlgAttr = {
     name : String
 }
 type alias Maze = {
-    grid : Grid,
+    grid : Grid {},
     alg : Algorithm
 }
 
@@ -45,14 +45,23 @@ view maze =
     div [] [
         fromElement <| Grid.view maze.grid 30,
         text <| (algToString maze.alg) ++ " algorithm"
-        , pre [] [text <| toAscii plainAsciiCell maze.grid]
+        --, pre [] [text <| toAscii plainAsciiCell maze.grid]
         ]
+
+viewDistances : Maze -> Html
+viewDistances maze =
+    let root = toValidCell <| getCell maze.grid 1 1
+        distanceGrid = createDistanceGrid maze.grid root
+    in
+       div [] [
+           pre [] [text <| toAscii DistanceGrid.distanceAsciiCell distanceGrid]
+           ]
 
 algorithms : List AlgAttr
 algorithms =
     [{alg = BinaryTree, name = "Binary Tree"}, {alg = Sidewinder, name = "Sidewinder"}]
 
-getAlgFn : Algorithm -> Grid -> Grid
+getAlgFn : Algorithm -> Grid {} -> Grid {}
 getAlgFn algType =
     case algType of
         BinaryTree -> BinaryTree.on

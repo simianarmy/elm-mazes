@@ -11,7 +11,7 @@ Elm.Maze.make = function (_elm) {
    $moduleName = "Maze",
    $Basics = Elm.Basics.make(_elm),
    $BinaryTree = Elm.BinaryTree.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
+   $DistanceGrid = Elm.DistanceGrid.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
@@ -28,7 +28,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 65 and 67");
+         "between lines 72 and 74");
       }();
    };
    var getAlgFn = function (algType) {
@@ -39,13 +39,27 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 59 and 61");
+         "between lines 66 and 68");
       }();
    };
-   var plainAsciiCell = F2(function (grid,
-   cell) {
-      return " ";
-   });
+   var viewDistances = function (maze) {
+      return function () {
+         var root = $Grid.toValidCell(A3($Grid.getCell,
+         maze.grid,
+         1,
+         1));
+         var distanceGrid = A2($DistanceGrid.createDistanceGrid,
+         maze.grid,
+         root);
+         return A2($Html.div,
+         _L.fromArray([]),
+         _L.fromArray([A2($Html.pre,
+         _L.fromArray([]),
+         _L.fromArray([$Html.text(A2($Grid.toAscii,
+         $DistanceGrid.distanceAsciiCell,
+         distanceGrid))]))]));
+      }();
+   };
    var view = function (maze) {
       return A2($Html.div,
       _L.fromArray([]),
@@ -54,12 +68,7 @@ Elm.Maze.make = function (_elm) {
                    30))
                    ,$Html.text(A2($Basics._op["++"],
                    algToString(maze.alg),
-                   " algorithm"))
-                   ,A2($Html.pre,
-                   _L.fromArray([]),
-                   _L.fromArray([$Html.text(A2($Grid.toAscii,
-                   plainAsciiCell,
-                   maze.grid))]))]));
+                   " algorithm"))]));
    };
    var updateSize = F3(function (maze,
    width,
@@ -139,8 +148,8 @@ Elm.Maze.make = function (_elm) {
                       ,init: init
                       ,update: update
                       ,updateSize: updateSize
-                      ,plainAsciiCell: plainAsciiCell
                       ,view: view
+                      ,viewDistances: viewDistances
                       ,algorithms: algorithms
                       ,getAlgFn: getAlgFn
                       ,algToString: algToString

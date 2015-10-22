@@ -1,0 +1,79 @@
+Elm.DistanceGrid = Elm.DistanceGrid || {};
+Elm.DistanceGrid.make = function (_elm) {
+   "use strict";
+   _elm.DistanceGrid = _elm.DistanceGrid || {};
+   if (_elm.DistanceGrid.values)
+   return _elm.DistanceGrid.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "DistanceGrid",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Dijkstra = Elm.Dijkstra.make(_elm),
+   $Distances = Elm.Distances.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var distanceAsciiCell = F2(function (dgrid,
+   cell) {
+      return function () {
+         var dist = A2($Distances.lookup,
+         dgrid.dists,
+         cell);
+         return _U.eq(dist,
+         -1) ? A2($Grid.plainAsciiCell,
+         dgrid,
+         cell) : $Basics.toString(dist);
+      }();
+   });
+   var distances = F2(function (grid,
+   rootCell) {
+      return A2($Dijkstra.cellDistances,
+      grid,
+      rootCell);
+   });
+   var viewDistances = F2(function (grid,
+   root) {
+      return function () {
+         var dgrid = _U.insert("dists",
+         A2(distances,grid,root),
+         grid);
+         return A2($Html.div,
+         _L.fromArray([]),
+         _L.fromArray([A2($Html.pre,
+         _L.fromArray([]),
+         _L.fromArray([$Html.text(A2($Grid.toAscii,
+         distanceAsciiCell,
+         dgrid))]))]));
+      }();
+   });
+   var createDistanceGrid = F2(function (grid,
+   root) {
+      return function () {
+         var distances = A2($Dijkstra.cellDistances,
+         grid,
+         root);
+         return _U.insert("dists",
+         distances,
+         grid);
+      }();
+   });
+   var CellDistances = F2(function (a,
+   b) {
+      return _U.insert("dists",
+      a,
+      b);
+   });
+   _elm.DistanceGrid.values = {_op: _op
+                              ,CellDistances: CellDistances
+                              ,createDistanceGrid: createDistanceGrid
+                              ,distances: distances
+                              ,distanceAsciiCell: distanceAsciiCell
+                              ,viewDistances: viewDistances};
+   return _elm.DistanceGrid.values;
+};

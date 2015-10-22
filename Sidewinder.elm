@@ -9,9 +9,9 @@ import Random exposing (..)
 import Grid exposing (..)
 import Cell exposing (Cell)
 
-type alias RowState = {run : List Cell, grid : Grid}
+type alias RowState = {run : List Cell, grid : Grid {}}
 
-on : Grid -> Grid
+on : Grid {} -> Grid {}
 on grid =
     let -- bias is to start at the bottom left...may not matter
         bottomLeftToTopRightCells = List.concatMap (rowCells grid) (List.reverse [1..grid.rows])
@@ -53,7 +53,7 @@ on grid =
                       grid <- linkCells grid' cell (toValidCell (east grid' cell)) True
                   }
 
-        processRow : Int -> Grid -> Grid
+        processRow : Int -> Grid {} -> Grid {}
         processRow row curGrid =
             let state = {run = [], grid = curGrid}
                 result = List.foldl processCell state (rowCells curGrid row)

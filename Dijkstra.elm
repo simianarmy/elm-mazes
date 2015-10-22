@@ -6,7 +6,7 @@ import Grid exposing (Grid)
 
 type alias DijkstraIter = {
     dists : Distances,
-    grid: Grid,
+    grid: Grid {},
     frontier : List Cell,
     newFrontier : List Cell
 }
@@ -49,7 +49,7 @@ frontierAcc diter =
 
 -- the public api
 -- TODO: move the rest inside here
-cellDistances : Grid -> Cell -> Distances
+cellDistances : Grid {} -> Cell -> Distances
 cellDistances grid cell =
     let acc = {
         grid = grid,

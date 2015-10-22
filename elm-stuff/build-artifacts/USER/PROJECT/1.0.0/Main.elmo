@@ -88,6 +88,7 @@ Elm.Main.make = function (_elm) {
                       _L.fromArray([]),
                       _L.fromArray([$Html.text("Amazeball Mazes")]))]))
                       ,$Maze.view(model)
+                      ,$Maze.viewDistances(model)
                       ,A2($Html.br,
                       _L.fromArray([]),
                       _L.fromArray([]))

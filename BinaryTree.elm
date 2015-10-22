@@ -9,7 +9,7 @@ import Random exposing (..)
 import Grid exposing (..)
 import Cell exposing (..)
 
-on : Grid -> Grid
+on : Grid {} -> Grid {}
 on grid =
     -- just fuckin generate all the rands at once - keeping the seed updated is impossible
     let randomInts = fst <| generate (list (length grid.cells) (int 1 2)) grid.rnd.seed
@@ -28,7 +28,7 @@ on grid =
                        -- pick one of two
                        head (reverse (take randInt northandeast))
 
-        processCell : (Cell, Int) -> Grid -> Grid
+        processCell : (Cell, Int) -> Grid {} -> Grid {}
         processCell (cell, randInt) grid =
             let neighbor = getRandomNeighbor cell randInt
             in

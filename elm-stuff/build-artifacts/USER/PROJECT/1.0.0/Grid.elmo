@@ -48,7 +48,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 196 and 198");
+         "between lines 202 and 204");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -129,7 +129,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 104 and 106");
+         "between lines 110 and 112");
       }();
    };
    var toValidCell = function (cell) {
@@ -141,7 +141,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 98 and 100");
+         "between lines 104 and 106");
       }();
    };
    var getCell = F3(function (grid,
@@ -294,7 +294,7 @@ Elm.Grid.make = function (_elm) {
                     style,
                     _v6._1)]) : _L.fromArray([]);}
                _U.badCase($moduleName,
-               "between lines 60 and 62");
+               "between lines 66 and 68");
             }();
          });
          var cellWalls = F2(function (cell,
@@ -408,22 +408,21 @@ Elm.Grid.make = function (_elm) {
       grid.rows,
       grid.cols)(nextSeed(grid));
    };
-   var Distances = {ctor: "Distances"};
-   var Normal = {ctor: "Normal"};
-   var Grid = F4(function (a,
+   var Grid = F5(function (a,
    b,
    c,
-   d) {
-      return {_: {}
-             ,cells: c
-             ,cols: b
-             ,rnd: d
-             ,rows: a};
+   d,
+   e) {
+      return _U.insert("rnd",
+      d,
+      _U.insert("cells",
+      c,
+      _U.insert("cols",
+      b,
+      _U.insert("rows",a,e))));
    });
    _elm.Grid.values = {_op: _op
                       ,Grid: Grid
-                      ,Normal: Normal
-                      ,Distances: Distances
                       ,createGrid: createGrid
                       ,nextSeed: nextSeed
                       ,updateRnd: updateRnd

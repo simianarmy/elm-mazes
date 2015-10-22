@@ -8,31 +8,37 @@ import Distances exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 
-type alias DistanceGrid = {
-    grid : Grid,
-    distances : Distances
+type alias CellDistances a = {
+    a|
+        dists: Distances
 }
 
--- Returns all distances from a root cell
-distances : DistanceGrid -> Distances
-distances dgrid =
-    let rootCell = toValidCell <| Grid.getCell dgrid.grid 1 1
+-- Creates grid with distances from Grid
+createDistanceGrid : Grid {} -> Cell -> CellDistances (Grid {})
+createDistanceGrid grid root =
+    let distances = Dijkstra.cellDistances grid root
     in
-        Dijkstra.cellDistances dgrid rootCell
+       {grid | dists = distances}
 
-distanceAsciiCell : DistanceGrid -> Cell -> String
+-- Returns all distances from a root cell
+distances : Grid {} -> Cell -> Distances
+distances grid rootCell =
+    Dijkstra.cellDistances grid rootCell
+
+distanceAsciiCell : CellDistances (Grid {}) -> Cell -> String
 distanceAsciiCell dgrid cell =
-    let dist = Distances.lookup dgrid.distances cell
+    let dist = Distances.lookup dgrid.dists cell
     in
        if dist == -1
-          then plainAsciiCell dgrid.grid cell
+          then plainAsciiCell dgrid cell
           else toString dist
 
 -- distances view
-viewDistances grid =
-    let grid' = {grid = grid, distances = distances grid}
+viewDistances : Grid {} -> Cell -> Html
+viewDistances grid root =
+    let dgrid = {grid | dists = distances grid root}
     in
        div [] [
-           pre [] [text <| toAscii distanceAsciiCell grid']
+           pre [] [text <| toAscii distanceAsciiCell dgrid]
            ]
 

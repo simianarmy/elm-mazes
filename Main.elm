@@ -54,6 +54,7 @@ view address model =
     div [] [
         header [] [ h1 [] [text "Amazeball Mazes" ]],
         Maze.view model,
+        Maze.viewDistances model,
         br [] [],
         input [ class "sizeInput", value (toString model.grid.rows)
               , on "input" targetValue (Signal.message address << UpdateWidth) ] [],
