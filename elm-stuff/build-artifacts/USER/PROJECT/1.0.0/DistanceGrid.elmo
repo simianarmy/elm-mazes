@@ -101,6 +101,33 @@ Elm.DistanceGrid.make = function (_elm) {
          current);
       }();
    });
+   var longestPath = F2(function (grid,
+   root) {
+      return function () {
+         var dgrid = A2(createDistanceGrid,
+         grid,
+         root);
+         var $ = $Distances.max(dgrid.dists),
+         cellId = $._0,
+         distance = $._1;
+         var newStartCell = A2($Grid.cellIdToCell,
+         grid,
+         cellId);
+         var dgrid$ = A2(createDistanceGrid,
+         grid,
+         newStartCell);
+         var $ = $Distances.max(dgrid$.dists),
+         goalId = $._0,
+         distance$ = $._1;
+         var goal = A2($Grid.cellIdToCell,
+         grid,
+         goalId);
+         return A3(pathTo,
+         grid,
+         newStartCell,
+         goal);
+      }();
+   });
    var CellDistances = F2(function (a,
    b) {
       return _U.insert("dists",
@@ -113,6 +140,7 @@ Elm.DistanceGrid.make = function (_elm) {
                               ,distances: distances
                               ,cellToAscii: cellToAscii
                               ,viewDistances: viewDistances
-                              ,pathTo: pathTo};
+                              ,pathTo: pathTo
+                              ,longestPath: longestPath};
    return _elm.DistanceGrid.values;
 };

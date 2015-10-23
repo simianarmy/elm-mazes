@@ -19,6 +19,22 @@ Elm.Distances.make = function (_elm) {
    var cells = function (dists) {
       return $Dict.keys(dists.cells);
    };
+   var max = function (dists) {
+      return function () {
+         var maxDist = $List.reverse($List.sortBy($Basics.snd)($Dict.toList(dists.cells)));
+         return function () {
+            var _v0 = $List.head(maxDist);
+            switch (_v0.ctor)
+            {case "Just": return _v0._0;
+               case "Nothing":
+               return {ctor: "_Tuple2"
+                      ,_0: dists.root.id
+                      ,_1: 0};}
+            _U.badCase($moduleName,
+            "between lines 28 and 30");
+         }();
+      }();
+   };
    var add = F3(function (dists,
    cell,
    dist) {
@@ -55,6 +71,7 @@ Elm.Distances.make = function (_elm) {
                            ,init: init
                            ,lookup: lookup
                            ,add: add
+                           ,max: max
                            ,cells: cells};
    return _elm.Distances.values;
 };

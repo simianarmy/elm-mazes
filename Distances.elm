@@ -1,11 +1,11 @@
 module Distances where
 
-import Cell exposing (Cell)
+import Cell exposing (Cell, CellID)
 import Dict exposing (Dict)
 
 type alias Distances = {
     root : Cell,
-    cells : Dict (Int, Int) Int
+    cells : Dict CellID Int
 }
 
 init : Cell -> Distances
@@ -19,6 +19,15 @@ lookup dists cell =
 add : Distances -> Cell -> Int -> Distances
 add dists cell dist =
     {dists | cells <- Dict.insert cell.id dist dists.cells}
+
+-- Returns cell id and distance of largest distance
+max : Distances -> (CellID, Int)
+max dists =
+    let maxDist = List.reverse <| List.sortBy snd <| Dict.toList dists.cells
+    in
+       case List.head maxDist of
+           Just d -> d
+           Nothing -> (dists.root.id, 0)
 
 cells : Distances -> List (Int, Int)
 cells dists =

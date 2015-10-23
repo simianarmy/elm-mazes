@@ -67,3 +67,15 @@ pathTo grid root goal =
 
     in
        walkPath breadcrumbs current
+
+-- Finds longest path from a cell
+longestPath : Grid {} -> Cell -> Distances
+longestPath grid root =
+    let dgrid = createDistanceGrid grid root
+        (cellId, distance) = Distances.max dgrid.dists
+        newStartCell = Grid.cellIdToCell grid cellId
+        dgrid' = createDistanceGrid grid newStartCell
+        (goalId, distance') = Distances.max dgrid'.dists
+        goal = Grid.cellIdToCell grid goalId
+    in
+       pathTo grid newStartCell goal

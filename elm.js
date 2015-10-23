@@ -2153,6 +2153,33 @@ Elm.DistanceGrid.make = function (_elm) {
          current);
       }();
    });
+   var longestPath = F2(function (grid,
+   root) {
+      return function () {
+         var dgrid = A2(createDistanceGrid,
+         grid,
+         root);
+         var $ = $Distances.max(dgrid.dists),
+         cellId = $._0,
+         distance = $._1;
+         var newStartCell = A2($Grid.cellIdToCell,
+         grid,
+         cellId);
+         var dgrid$ = A2(createDistanceGrid,
+         grid,
+         newStartCell);
+         var $ = $Distances.max(dgrid$.dists),
+         goalId = $._0,
+         distance$ = $._1;
+         var goal = A2($Grid.cellIdToCell,
+         grid,
+         goalId);
+         return A3(pathTo,
+         grid,
+         newStartCell,
+         goal);
+      }();
+   });
    var CellDistances = F2(function (a,
    b) {
       return _U.insert("dists",
@@ -2165,7 +2192,8 @@ Elm.DistanceGrid.make = function (_elm) {
                               ,distances: distances
                               ,cellToAscii: cellToAscii
                               ,viewDistances: viewDistances
-                              ,pathTo: pathTo};
+                              ,pathTo: pathTo
+                              ,longestPath: longestPath};
    return _elm.DistanceGrid.values;
 };
 Elm.Distances = Elm.Distances || {};
@@ -2188,6 +2216,22 @@ Elm.Distances.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm);
    var cells = function (dists) {
       return $Dict.keys(dists.cells);
+   };
+   var max = function (dists) {
+      return function () {
+         var maxDist = $List.reverse($List.sortBy($Basics.snd)($Dict.toList(dists.cells)));
+         return function () {
+            var _v0 = $List.head(maxDist);
+            switch (_v0.ctor)
+            {case "Just": return _v0._0;
+               case "Nothing":
+               return {ctor: "_Tuple2"
+                      ,_0: dists.root.id
+                      ,_1: 0};}
+            _U.badCase($moduleName,
+            "between lines 28 and 30");
+         }();
+      }();
    };
    var add = F3(function (dists,
    cell,
@@ -2225,6 +2269,7 @@ Elm.Distances.make = function (_elm) {
                            ,init: init
                            ,lookup: lookup
                            ,add: add
+                           ,max: max
                            ,cells: cells};
    return _elm.Distances.values;
 };
@@ -5356,7 +5401,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 77 and 79");
+         "between lines 82 and 84");
       }();
    };
    var getAlgFn = function (algType) {
@@ -5367,7 +5412,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 71 and 73");
+         "between lines 76 and 78");
       }();
    };
    var viewDistances = function (maze) {
@@ -5390,26 +5435,40 @@ Elm.Maze.make = function (_elm) {
          var pathGrid = _U.replace([["dists"
                                     ,pathDistances]],
          dgrid);
+         var longDistances = A2($DistanceGrid.longestPath,
+         maze.grid,
+         root);
+         var longGrid = _U.replace([["dists"
+                                    ,longDistances]],
+         dgrid);
          return A2($Html.div,
          _L.fromArray([]),
-         _L.fromArray([A2($Html.pre,
+         _L.fromArray([A2($Html.br,
                       _L.fromArray([]),
-                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(dgrid))]))
-                      ,$Html.text("path from NW corner to SW corner:")
+                      _L.fromArray([]))
+                      ,$Html.text("Cell distances from NW corner:")
                       ,A2($Html.pre,
                       _L.fromArray([]),
-                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(pathGrid))]))]));
+                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(dgrid))]))
+                      ,$Html.text("Shortest path from NW corner to SW corner:")
+                      ,A2($Html.pre,
+                      _L.fromArray([]),
+                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(pathGrid))]))
+                      ,$Html.text("Longest path:")
+                      ,A2($Html.pre,
+                      _L.fromArray([]),
+                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(longGrid))]))]));
       }();
    };
    var view = function (maze) {
       return A2($Html.div,
       _L.fromArray([]),
-      _L.fromArray([$Html.fromElement(A2($Grid.view,
-                   maze.grid,
-                   30))
-                   ,$Html.text(A2($Basics._op["++"],
+      _L.fromArray([$Html.text(A2($Basics._op["++"],
                    algToString(maze.alg),
-                   " algorithm"))]));
+                   " algorithm"))
+                   ,$Html.fromElement(A2($Grid.view,
+                   maze.grid,
+                   30))]));
    };
    var updateSize = F3(function (maze,
    width,

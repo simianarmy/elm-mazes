@@ -43,9 +43,8 @@ updateSize maze width height =
 view : Maze -> Html
 view maze =
     div [] [
-        fromElement <| Grid.view maze.grid 30,
         text <| (algToString maze.alg) ++ " algorithm"
-        --, pre [] [text <| toAscii plainAsciiCell maze.grid]
+        , fromElement <| Grid.view maze.grid 30
         ]
 
 viewDistances : Maze -> Html
@@ -55,11 +54,17 @@ viewDistances maze =
         dgrid = DistanceGrid.createDistanceGrid maze.grid root
         pathDistances = DistanceGrid.pathTo maze.grid root goal
         pathGrid = {dgrid | dists <- pathDistances}
+        longDistances = DistanceGrid.longestPath maze.grid root
+        longGrid = {dgrid | dists <- longDistances}
     in
        div [] [
-           pre [] [text <| DistanceGrid.viewDistances dgrid]
-           , text "path from NW corner to SW corner:"
+          br [] [] 
+           , text "Cell distances from NW corner:"
+           , pre [] [text <| DistanceGrid.viewDistances dgrid]
+           , text "Shortest path from NW corner to SW corner:"
            , pre [] [text <| DistanceGrid.viewDistances pathGrid]
+           , text "Longest path:"
+           , pre [] [text <| DistanceGrid.viewDistances longGrid]
            ]
 
 algorithms : List AlgAttr

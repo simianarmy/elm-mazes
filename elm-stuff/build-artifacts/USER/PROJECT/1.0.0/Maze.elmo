@@ -28,7 +28,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 77 and 79");
+         "between lines 82 and 84");
       }();
    };
    var getAlgFn = function (algType) {
@@ -39,7 +39,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 71 and 73");
+         "between lines 76 and 78");
       }();
    };
    var viewDistances = function (maze) {
@@ -62,26 +62,40 @@ Elm.Maze.make = function (_elm) {
          var pathGrid = _U.replace([["dists"
                                     ,pathDistances]],
          dgrid);
+         var longDistances = A2($DistanceGrid.longestPath,
+         maze.grid,
+         root);
+         var longGrid = _U.replace([["dists"
+                                    ,longDistances]],
+         dgrid);
          return A2($Html.div,
          _L.fromArray([]),
-         _L.fromArray([A2($Html.pre,
+         _L.fromArray([A2($Html.br,
                       _L.fromArray([]),
-                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(dgrid))]))
-                      ,$Html.text("path from NW corner to SW corner:")
+                      _L.fromArray([]))
+                      ,$Html.text("Cell distances from NW corner:")
                       ,A2($Html.pre,
                       _L.fromArray([]),
-                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(pathGrid))]))]));
+                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(dgrid))]))
+                      ,$Html.text("Shortest path from NW corner to SW corner:")
+                      ,A2($Html.pre,
+                      _L.fromArray([]),
+                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(pathGrid))]))
+                      ,$Html.text("Longest path:")
+                      ,A2($Html.pre,
+                      _L.fromArray([]),
+                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(longGrid))]))]));
       }();
    };
    var view = function (maze) {
       return A2($Html.div,
       _L.fromArray([]),
-      _L.fromArray([$Html.fromElement(A2($Grid.view,
-                   maze.grid,
-                   30))
-                   ,$Html.text(A2($Basics._op["++"],
+      _L.fromArray([$Html.text(A2($Basics._op["++"],
                    algToString(maze.alg),
-                   " algorithm"))]));
+                   " algorithm"))
+                   ,$Html.fromElement(A2($Grid.view,
+                   maze.grid,
+                   30))]));
    };
    var updateSize = F3(function (maze,
    width,
