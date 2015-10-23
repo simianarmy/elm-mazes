@@ -14,7 +14,6 @@ Elm.DistanceGrid.make = function (_elm) {
    $Dijkstra = Elm.Dijkstra.make(_elm),
    $Distances = Elm.Distances.make(_elm),
    $Grid = Elm.Grid.make(_elm),
-   $Html = Elm.Html.make(_elm),
    $IntToBaseX = Elm.IntToBaseX.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
@@ -34,6 +33,11 @@ Elm.DistanceGrid.make = function (_elm) {
          36);
       }();
    });
+   var viewDistances = function (dgrid) {
+      return A2($Grid.toAscii,
+      cellToAscii,
+      dgrid);
+   };
    var distances = F2(function (grid,
    root) {
       return A2($Dijkstra.cellDistances,
@@ -46,19 +50,55 @@ Elm.DistanceGrid.make = function (_elm) {
       A2(distances,grid,root),
       grid);
    });
-   var viewDistances = F2(function (grid,
-   root) {
+   var pathTo = F3(function (grid,
+   root,
+   goal) {
       return function () {
+         var current = goal;
          var dgrid = A2(createDistanceGrid,
          grid,
          root);
-         return A2($Html.div,
-         _L.fromArray([]),
-         _L.fromArray([A2($Html.pre,
-         _L.fromArray([]),
-         _L.fromArray([$Html.text(A2($Grid.toAscii,
-         cellToAscii,
-         dgrid))]))]));
+         var breadcrumbs = A3($Distances.add,
+         $Distances.init(root),
+         current,
+         A2($Distances.lookup,
+         dgrid.dists,
+         current));
+         var walkPath = F2(function (breadcrumbs$,
+         current$) {
+            return _U.eq(current$.id,
+            root.id) ? breadcrumbs$ : function () {
+               var currentDistance = A2($Distances.lookup,
+               dgrid.dists,
+               current$);
+               var links = A2($Grid.linkedCells,
+               grid,
+               current$);
+               var res = A2($List.filter,
+               function (neighbor) {
+                  return _U.cmp(A2($Distances.lookup,
+                  dgrid.dists,
+                  neighbor),
+                  currentDistance) < 0;
+               },
+               links);
+               return $List.isEmpty(res) ? breadcrumbs$ : function () {
+                  var neighbor = $Grid.toValidCell($List.head(res));
+                  var breadcrumbs$$ = A3($Distances.add,
+                  breadcrumbs$,
+                  neighbor,
+                  A2($Distances.lookup,
+                  dgrid.dists,
+                  neighbor));
+                  return A2(walkPath,
+                  breadcrumbs$$,
+                  neighbor);
+               }();
+            }();
+         });
+         return A2(walkPath,
+         breadcrumbs,
+         current);
       }();
    });
    var CellDistances = F2(function (a,
@@ -72,6 +112,7 @@ Elm.DistanceGrid.make = function (_elm) {
                               ,createDistanceGrid: createDistanceGrid
                               ,distances: distances
                               ,cellToAscii: cellToAscii
-                              ,viewDistances: viewDistances};
+                              ,viewDistances: viewDistances
+                              ,pathTo: pathTo};
    return _elm.DistanceGrid.values;
 };

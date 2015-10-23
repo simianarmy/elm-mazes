@@ -17,55 +17,6 @@ Elm.Dijkstra.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var scanCell = F3(function (cell,
-   linked,
-   diter) {
-      return $Basics.not(_U.eq(A2($Distances.lookup,
-      diter.dists,
-      linked),
-      -1)) ? diter : function () {
-         var curDist = A2($Distances.lookup,
-         diter.dists,
-         cell);
-         return _U.replace([["newFrontier"
-                            ,A2($List.append,
-                            diter.newFrontier,
-                            _L.fromArray([linked]))]
-                           ,["dists"
-                            ,A3($Distances.add,
-                            diter.dists,
-                            linked,
-                            curDist + 1)]],
-         diter);
-      }();
-   });
-   var scanCellLinks = F2(function (cell,
-   diter) {
-      return A2($List.foldl,
-      scanCell(cell),
-      diter)(A2($Grid.linkedCells,
-      diter.grid,
-      cell));
-   });
-   var scanFrontier = function (diter) {
-      return function () {
-         var res = A3($List.foldl,
-         scanCellLinks,
-         diter,
-         diter.frontier);
-         return _U.replace([["frontier"
-                            ,res.newFrontier]],
-         res);
-      }();
-   };
-   var frontierAcc = function (diter) {
-      return $List.isEmpty(diter.frontier) ? diter : function () {
-         var acc = _U.replace([["newFrontier"
-                               ,_L.fromArray([])]],
-         diter);
-         return frontierAcc(scanFrontier(acc));
-      }();
-   };
    var cellDistances = F2(function (grid,
    cell) {
       return function () {
@@ -74,6 +25,55 @@ Elm.Dijkstra.make = function (_elm) {
                    ,frontier: _L.fromArray([cell])
                    ,grid: grid
                    ,newFrontier: _L.fromArray([])};
+         var scanCell = F3(function (cell,
+         linked,
+         diter) {
+            return $Basics.not(_U.eq(A2($Distances.lookup,
+            diter.dists,
+            linked),
+            -1)) ? diter : function () {
+               var curDist = A2($Distances.lookup,
+               diter.dists,
+               cell);
+               return _U.replace([["newFrontier"
+                                  ,A2($List.append,
+                                  diter.newFrontier,
+                                  _L.fromArray([linked]))]
+                                 ,["dists"
+                                  ,A3($Distances.add,
+                                  diter.dists,
+                                  linked,
+                                  curDist + 1)]],
+               diter);
+            }();
+         });
+         var scanCellLinks = F2(function (cell,
+         diter) {
+            return A2($List.foldl,
+            scanCell(cell),
+            diter)(A2($Grid.linkedCells,
+            diter.grid,
+            cell));
+         });
+         var scanFrontier = function (diter) {
+            return function () {
+               var res = A3($List.foldl,
+               scanCellLinks,
+               diter,
+               diter.frontier);
+               return _U.replace([["frontier"
+                                  ,res.newFrontier]],
+               res);
+            }();
+         };
+         var frontierAcc = function (diter) {
+            return $List.isEmpty(diter.frontier) ? diter : function () {
+               var acc = _U.replace([["newFrontier"
+                                     ,_L.fromArray([])]],
+               diter);
+               return frontierAcc(scanFrontier(acc));
+            }();
+         };
          return function (_) {
             return _.dists;
          }(frontierAcc(acc));
@@ -91,10 +91,6 @@ Elm.Dijkstra.make = function (_elm) {
    });
    _elm.Dijkstra.values = {_op: _op
                           ,DijkstraIter: DijkstraIter
-                          ,scanCell: scanCell
-                          ,scanCellLinks: scanCellLinks
-                          ,scanFrontier: scanFrontier
-                          ,frontierAcc: frontierAcc
                           ,cellDistances: cellDistances};
    return _elm.Dijkstra.values;
 };

@@ -50,9 +50,17 @@ view maze =
 
 viewDistances : Maze -> Html
 viewDistances maze =
-    let root = toValidCell <| getCell maze.grid maze.grid.rows 1
+    let root = toValidCell <| getCell maze.grid 1 1
+        goal = toValidCell <| getCell maze.grid maze.grid.rows 1
+        dgrid = DistanceGrid.createDistanceGrid maze.grid root
+        pathDistances = DistanceGrid.pathTo maze.grid root goal
+        pathGrid = {dgrid | dists <- pathDistances}
     in
-       DistanceGrid.viewDistances maze.grid root
+       div [] [
+           pre [] [text <| DistanceGrid.viewDistances dgrid]
+           , text "path from NW corner to SW corner:"
+           , pre [] [text <| DistanceGrid.viewDistances pathGrid]
+           ]
 
 algorithms : List AlgAttr
 algorithms =

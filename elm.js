@@ -1973,55 +1973,6 @@ Elm.Dijkstra.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var scanCell = F3(function (cell,
-   linked,
-   diter) {
-      return $Basics.not(_U.eq(A2($Distances.lookup,
-      diter.dists,
-      linked),
-      -1)) ? diter : function () {
-         var curDist = A2($Distances.lookup,
-         diter.dists,
-         cell);
-         return _U.replace([["newFrontier"
-                            ,A2($List.append,
-                            diter.newFrontier,
-                            _L.fromArray([linked]))]
-                           ,["dists"
-                            ,A3($Distances.add,
-                            diter.dists,
-                            linked,
-                            curDist + 1)]],
-         diter);
-      }();
-   });
-   var scanCellLinks = F2(function (cell,
-   diter) {
-      return A2($List.foldl,
-      scanCell(cell),
-      diter)(A2($Grid.linkedCells,
-      diter.grid,
-      cell));
-   });
-   var scanFrontier = function (diter) {
-      return function () {
-         var res = A3($List.foldl,
-         scanCellLinks,
-         diter,
-         diter.frontier);
-         return _U.replace([["frontier"
-                            ,res.newFrontier]],
-         res);
-      }();
-   };
-   var frontierAcc = function (diter) {
-      return $List.isEmpty(diter.frontier) ? diter : function () {
-         var acc = _U.replace([["newFrontier"
-                               ,_L.fromArray([])]],
-         diter);
-         return frontierAcc(scanFrontier(acc));
-      }();
-   };
    var cellDistances = F2(function (grid,
    cell) {
       return function () {
@@ -2030,6 +1981,55 @@ Elm.Dijkstra.make = function (_elm) {
                    ,frontier: _L.fromArray([cell])
                    ,grid: grid
                    ,newFrontier: _L.fromArray([])};
+         var scanCell = F3(function (cell,
+         linked,
+         diter) {
+            return $Basics.not(_U.eq(A2($Distances.lookup,
+            diter.dists,
+            linked),
+            -1)) ? diter : function () {
+               var curDist = A2($Distances.lookup,
+               diter.dists,
+               cell);
+               return _U.replace([["newFrontier"
+                                  ,A2($List.append,
+                                  diter.newFrontier,
+                                  _L.fromArray([linked]))]
+                                 ,["dists"
+                                  ,A3($Distances.add,
+                                  diter.dists,
+                                  linked,
+                                  curDist + 1)]],
+               diter);
+            }();
+         });
+         var scanCellLinks = F2(function (cell,
+         diter) {
+            return A2($List.foldl,
+            scanCell(cell),
+            diter)(A2($Grid.linkedCells,
+            diter.grid,
+            cell));
+         });
+         var scanFrontier = function (diter) {
+            return function () {
+               var res = A3($List.foldl,
+               scanCellLinks,
+               diter,
+               diter.frontier);
+               return _U.replace([["frontier"
+                                  ,res.newFrontier]],
+               res);
+            }();
+         };
+         var frontierAcc = function (diter) {
+            return $List.isEmpty(diter.frontier) ? diter : function () {
+               var acc = _U.replace([["newFrontier"
+                                     ,_L.fromArray([])]],
+               diter);
+               return frontierAcc(scanFrontier(acc));
+            }();
+         };
          return function (_) {
             return _.dists;
          }(frontierAcc(acc));
@@ -2047,10 +2047,6 @@ Elm.Dijkstra.make = function (_elm) {
    });
    _elm.Dijkstra.values = {_op: _op
                           ,DijkstraIter: DijkstraIter
-                          ,scanCell: scanCell
-                          ,scanCellLinks: scanCellLinks
-                          ,scanFrontier: scanFrontier
-                          ,frontierAcc: frontierAcc
                           ,cellDistances: cellDistances};
    return _elm.Dijkstra.values;
 };
@@ -2070,7 +2066,6 @@ Elm.DistanceGrid.make = function (_elm) {
    $Dijkstra = Elm.Dijkstra.make(_elm),
    $Distances = Elm.Distances.make(_elm),
    $Grid = Elm.Grid.make(_elm),
-   $Html = Elm.Html.make(_elm),
    $IntToBaseX = Elm.IntToBaseX.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
@@ -2090,6 +2085,11 @@ Elm.DistanceGrid.make = function (_elm) {
          36);
       }();
    });
+   var viewDistances = function (dgrid) {
+      return A2($Grid.toAscii,
+      cellToAscii,
+      dgrid);
+   };
    var distances = F2(function (grid,
    root) {
       return A2($Dijkstra.cellDistances,
@@ -2102,19 +2102,55 @@ Elm.DistanceGrid.make = function (_elm) {
       A2(distances,grid,root),
       grid);
    });
-   var viewDistances = F2(function (grid,
-   root) {
+   var pathTo = F3(function (grid,
+   root,
+   goal) {
       return function () {
+         var current = goal;
          var dgrid = A2(createDistanceGrid,
          grid,
          root);
-         return A2($Html.div,
-         _L.fromArray([]),
-         _L.fromArray([A2($Html.pre,
-         _L.fromArray([]),
-         _L.fromArray([$Html.text(A2($Grid.toAscii,
-         cellToAscii,
-         dgrid))]))]));
+         var breadcrumbs = A3($Distances.add,
+         $Distances.init(root),
+         current,
+         A2($Distances.lookup,
+         dgrid.dists,
+         current));
+         var walkPath = F2(function (breadcrumbs$,
+         current$) {
+            return _U.eq(current$.id,
+            root.id) ? breadcrumbs$ : function () {
+               var currentDistance = A2($Distances.lookup,
+               dgrid.dists,
+               current$);
+               var links = A2($Grid.linkedCells,
+               grid,
+               current$);
+               var res = A2($List.filter,
+               function (neighbor) {
+                  return _U.cmp(A2($Distances.lookup,
+                  dgrid.dists,
+                  neighbor),
+                  currentDistance) < 0;
+               },
+               links);
+               return $List.isEmpty(res) ? breadcrumbs$ : function () {
+                  var neighbor = $Grid.toValidCell($List.head(res));
+                  var breadcrumbs$$ = A3($Distances.add,
+                  breadcrumbs$,
+                  neighbor,
+                  A2($Distances.lookup,
+                  dgrid.dists,
+                  neighbor));
+                  return A2(walkPath,
+                  breadcrumbs$$,
+                  neighbor);
+               }();
+            }();
+         });
+         return A2(walkPath,
+         breadcrumbs,
+         current);
       }();
    });
    var CellDistances = F2(function (a,
@@ -2128,7 +2164,8 @@ Elm.DistanceGrid.make = function (_elm) {
                               ,createDistanceGrid: createDistanceGrid
                               ,distances: distances
                               ,cellToAscii: cellToAscii
-                              ,viewDistances: viewDistances};
+                              ,viewDistances: viewDistances
+                              ,pathTo: pathTo};
    return _elm.DistanceGrid.values;
 };
 Elm.Distances = Elm.Distances || {};
@@ -5319,7 +5356,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 69 and 71");
+         "between lines 77 and 79");
       }();
    };
    var getAlgFn = function (algType) {
@@ -5330,18 +5367,38 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 63 and 65");
+         "between lines 71 and 73");
       }();
    };
    var viewDistances = function (maze) {
       return function () {
-         var root = $Grid.toValidCell(A3($Grid.getCell,
+         var goal = $Grid.toValidCell(A3($Grid.getCell,
          maze.grid,
          maze.grid.rows,
          1));
-         return A2($DistanceGrid.viewDistances,
+         var root = $Grid.toValidCell(A3($Grid.getCell,
+         maze.grid,
+         1,
+         1));
+         var dgrid = A2($DistanceGrid.createDistanceGrid,
          maze.grid,
          root);
+         var pathDistances = A3($DistanceGrid.pathTo,
+         maze.grid,
+         root,
+         goal);
+         var pathGrid = _U.replace([["dists"
+                                    ,pathDistances]],
+         dgrid);
+         return A2($Html.div,
+         _L.fromArray([]),
+         _L.fromArray([A2($Html.pre,
+                      _L.fromArray([]),
+                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(dgrid))]))
+                      ,$Html.text("path from NW corner to SW corner:")
+                      ,A2($Html.pre,
+                      _L.fromArray([]),
+                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(pathGrid))]))]));
       }();
    };
    var view = function (maze) {
