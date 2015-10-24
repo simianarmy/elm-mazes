@@ -9,6 +9,8 @@ import Rnd exposing (..)
 import Random exposing (..)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (Element)
+import Color exposing (..)
+import Text exposing (..)
 
 -- made extensible to contain additional data (ie. distances)
 type alias Grid a =
@@ -67,8 +69,8 @@ view grid cellSize =
                then [traced style seg]
                else []
 
-        cellWalls : Cell -> LineStyle -> List Form
-        cellWalls cell style =
+        cellWalls : LineStyle -> Cell -> List Form
+        cellWalls style cell =
             let x1 = toFloat ((cell.col - 1) * cellSize)
                 y1 = toFloat (negate (cell.row - 1) * cellSize)
                 x2 = toFloat (cell.col * cellSize)
@@ -82,15 +84,29 @@ view grid cellSize =
                    ((not <| Cell.isLinked cell (toValidCell (south grid cell))), (segment (x1, y2) (x2, y2)))
                ]
 
+        cellBackground : LineStyle -> Cell -> Form
+        cellBackground style cell =
+            let bgRect = filled (cellBackgroundColor grid cell) (cellToRect cell)
+                --dbg = outlinedText style (Text.fromString " C ")
+                halfSize = (toFloat cellSize) / 2.0
+                cx = toFloat ((cell.col - 1) * cellSize) + halfSize
+                cy = toFloat (negate (cell.row - 1) * cellSize) - halfSize
+            in
+               move (cx, cy) bgRect
+
+        cellToRect : Cell -> Shape
+        cellToRect cell =
+            square <| toFloat cellSize - 1
+
         paintCell : Cell -> Form
         paintCell cell =
             let style = { defaultLine | width <- 2 }
             in
-               group (cellWalls cell style)
+               group <| ((cellBackground style cell) :: (cellWalls style cell))
 
-        walls = List.map paintCell grid.cells
+        drawables = List.map paintCell grid.cells
     in
-       collage imgWidth imgHeight [group walls |> move (ox, oy)]
+       collage imgWidth imgHeight [group drawables |> move (ox, oy)]
 
 getCell : Grid a -> Int -> Int -> Maybe Cell
 getCell grid row col =
@@ -209,6 +225,10 @@ toTitle grid =
 
 cellToAscii : Grid a -> Cell -> String
 cellToAscii grid cell = " "
+
+cellBackgroundColor : Grid a -> Cell -> Color
+cellBackgroundColor grid cell =
+    Color.white
 
 -- Returns ASCII representation of a grid
 type alias RowAscii = {

@@ -3174,6 +3174,7 @@ Elm.Grid.make = function (_elm) {
    $moduleName = "Grid",
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
+   $Color = Elm.Color.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
@@ -3189,6 +3190,10 @@ Elm.Grid.make = function (_elm) {
       return {_: {}
              ,bottom: b
              ,top: a};
+   });
+   var cellBackgroundColor = F2(function (grid,
+   cell) {
+      return $Color.white;
    });
    var cellToAscii = F2(function (grid,
    cell) {
@@ -3211,7 +3216,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 202 and 204");
+         "between lines 218 and 220");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -3292,7 +3297,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 110 and 112");
+         "between lines 126 and 128");
       }();
    };
    var toValidCell = function (cell) {
@@ -3304,7 +3309,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 104 and 106");
+         "between lines 120 and 122");
       }();
    };
    var getCell = F3(function (grid,
@@ -3448,6 +3453,25 @@ Elm.Grid.make = function (_elm) {
    var view = F2(function (grid,
    cellSize) {
       return function () {
+         var cellToRect = function (cell) {
+            return $Graphics$Collage.square($Basics.toFloat(cellSize) - 1);
+         };
+         var cellBackground = F2(function (style,
+         cell) {
+            return function () {
+               var halfSize = $Basics.toFloat(cellSize) / 2.0;
+               var cx = $Basics.toFloat((cell.col - 1) * cellSize) + halfSize;
+               var cy = $Basics.toFloat($Basics.negate(cell.row - 1) * cellSize) - halfSize;
+               var bgRect = A2($Graphics$Collage.filled,
+               A2(cellBackgroundColor,
+               grid,
+               cell),
+               cellToRect(cell));
+               return A2($Graphics$Collage.move,
+               {ctor: "_Tuple2",_0: cx,_1: cy},
+               bgRect);
+            }();
+         });
          var maybeVisibleLine = F2(function (style,
          _v6) {
             return function () {
@@ -3457,11 +3481,11 @@ Elm.Grid.make = function (_elm) {
                     style,
                     _v6._1)]) : _L.fromArray([]);}
                _U.badCase($moduleName,
-               "between lines 66 and 68");
+               "between lines 68 and 70");
             }();
          });
-         var cellWalls = F2(function (cell,
-         style) {
+         var cellWalls = F2(function (style,
+         cell) {
             return function () {
                var y2 = $Basics.toFloat($Basics.negate(cell.row) * cellSize);
                var x2 = $Basics.toFloat(cell.col * cellSize);
@@ -3516,12 +3540,12 @@ Elm.Grid.make = function (_elm) {
                var style = _U.replace([["width"
                                        ,2]],
                $Graphics$Collage.defaultLine);
-               return $Graphics$Collage.group(A2(cellWalls,
-               cell,
-               style));
+               return $Graphics$Collage.group(A2($List._op["::"],
+               A2(cellBackground,style,cell),
+               A2(cellWalls,style,cell)));
             }();
          };
-         var walls = A2($List.map,
+         var drawables = A2($List.map,
          paintCell,
          grid.cells);
          var imgHeight = cellSize * grid.rows;
@@ -3533,7 +3557,7 @@ Elm.Grid.make = function (_elm) {
          imgHeight,
          _L.fromArray([$Graphics$Collage.move({ctor: "_Tuple2"
                                               ,_0: ox
-                                              ,_1: oy})($Graphics$Collage.group(walls))]));
+                                              ,_1: oy})($Graphics$Collage.group(drawables))]));
       }();
    });
    var updateRnd = function (grid) {
@@ -3609,6 +3633,7 @@ Elm.Grid.make = function (_elm) {
                       ,cellToList: cellToList
                       ,toTitle: toTitle
                       ,cellToAscii: cellToAscii
+                      ,cellBackgroundColor: cellBackgroundColor
                       ,RowAscii: RowAscii
                       ,toAscii: toAscii};
    return _elm.Grid.values;
