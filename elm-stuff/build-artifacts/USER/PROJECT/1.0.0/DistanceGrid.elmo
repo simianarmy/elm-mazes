@@ -109,7 +109,7 @@ Elm.DistanceGrid.make = function (_elm) {
          root);
          var $ = $Distances.max(dgrid.dists),
          cellId = $._0,
-         distance = $._1;
+         foo = $._1;
          var newStartCell = A2($Grid.cellIdToCell,
          grid,
          cellId);
@@ -118,7 +118,7 @@ Elm.DistanceGrid.make = function (_elm) {
          newStartCell);
          var $ = $Distances.max(dgrid$.dists),
          goalId = $._0,
-         distance$ = $._1;
+         foo$ = $._1;
          var goal = A2($Grid.cellIdToCell,
          grid,
          goalId);
