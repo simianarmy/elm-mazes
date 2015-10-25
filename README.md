@@ -6,6 +6,8 @@ Using deadfoxygrandpa/Elm-Test for TDD
 
 ## Preview
 
-Run elm-reactor to load the local web server
+cd to project directory
 
-And then open [http://localhost:8000/Main.elm?debug](http://localhost:8000/Main.elm?debug) to see it in action!
+    > open index.html
+
+to see it in action!
