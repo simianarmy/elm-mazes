@@ -56,8 +56,8 @@ update grid =
     createGrid grid.rows grid.cols <| nextSeed grid
 
 -- generates collage view of the grid
-view : Grid a -> Int -> Element
-view grid cellSize =
+view : (Grid a -> Cell -> Color) -> Grid a -> Int -> Element
+view cellPainter grid cellSize =
     let imgWidth = cellSize * grid.cols
         imgHeight = cellSize * grid.rows
         ox = toFloat (negate imgWidth) / 2.0
@@ -86,7 +86,7 @@ view grid cellSize =
 
         cellBackground : LineStyle -> Cell -> Form
         cellBackground style cell =
-            let bgRect = filled (cellBackgroundColor grid cell) (cellToRect cell)
+            let bgRect = filled (cellPainter grid cell) (cellToRect cell)
                 --dbg = outlinedText style (Text.fromString " C ")
                 halfSize = (toFloat cellSize) / 2.0
                 cx = toFloat ((cell.col - 1) * cellSize) + halfSize
@@ -96,7 +96,7 @@ view grid cellSize =
 
         cellToRect : Cell -> Shape
         cellToRect cell =
-            square <| toFloat cellSize - 1
+            square <| toFloat cellSize
 
         paintCell : Cell -> Form
         paintCell cell =
@@ -142,6 +142,10 @@ west grid cell =
 east : Grid a -> Cell -> Maybe Cell
 east grid cell =
     getCell grid cell.row (cell.col + 1)
+
+center : Grid a -> Cell
+center grid =
+    toValidCell <| getCell grid (grid.rows // 2) (grid.cols // 2)
 
 neighbors : Grid a -> Cell -> List Cell
 neighbors grid cell =

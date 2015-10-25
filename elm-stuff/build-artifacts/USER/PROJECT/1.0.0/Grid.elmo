@@ -53,7 +53,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 218 and 220");
+         "between lines 222 and 224");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -270,6 +270,12 @@ Elm.Grid.make = function (_elm) {
          _L.range(1,grid.rows))))));
       }();
    });
+   var center = function (grid) {
+      return toValidCell(A3(getCell,
+      grid,
+      grid.rows / 2 | 0,
+      grid.cols / 2 | 0));
+   };
    var cellIdToCell = F2(function (grid,
    cellid) {
       return function () {
@@ -287,11 +293,12 @@ Elm.Grid.make = function (_elm) {
       cellIdToCell(grid),
       $Set.toList(cell.links));
    });
-   var view = F2(function (grid,
+   var view = F3(function (cellPainter,
+   grid,
    cellSize) {
       return function () {
          var cellToRect = function (cell) {
-            return $Graphics$Collage.square($Basics.toFloat(cellSize) - 1);
+            return $Graphics$Collage.square($Basics.toFloat(cellSize));
          };
          var cellBackground = F2(function (style,
          cell) {
@@ -300,9 +307,7 @@ Elm.Grid.make = function (_elm) {
                var cx = $Basics.toFloat((cell.col - 1) * cellSize) + halfSize;
                var cy = $Basics.toFloat($Basics.negate(cell.row - 1) * cellSize) - halfSize;
                var bgRect = A2($Graphics$Collage.filled,
-               A2(cellBackgroundColor,
-               grid,
-               cell),
+               A2(cellPainter,grid,cell),
                cellToRect(cell));
                return A2($Graphics$Collage.move,
                {ctor: "_Tuple2",_0: cx,_1: cy},
@@ -459,6 +464,7 @@ Elm.Grid.make = function (_elm) {
                       ,south: south
                       ,west: west
                       ,east: east
+                      ,center: center
                       ,neighbors: neighbors
                       ,linkCells: linkCells
                       ,unlinkCells: unlinkCells

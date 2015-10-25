@@ -2,6 +2,8 @@ module Maze where
 
 import Grid exposing (..)
 import DistanceGrid exposing (..)
+import ColoredGrid exposing (..)
+
 import Cell exposing (Cell)
 import BinaryTree
 import Sidewinder
@@ -42,29 +44,34 @@ updateSize maze width height =
 
 view : Maze -> Html
 view maze =
-    div [] [
-        text <| (algToString maze.alg) ++ " algorithm"
-        , fromElement <| Grid.view maze.grid 30
-        ]
+    let root = center maze.grid
+        coloredGrid = createColoredGrid maze.grid root
+    in
+       div [] [
+           text <| (algToString maze.alg) ++ " algorithm"
+              , fromElement <| ColoredGrid.view coloredGrid 30
+              ]
 
 viewDistances : Maze -> Html
 viewDistances maze =
-    let root = toValidCell <| getCell maze.grid 1 1
+    let --root = toValidCell <| getCell maze.grid 1 1
+        root = center maze.grid
         goal = toValidCell <| getCell maze.grid maze.grid.rows 1
         dgrid = DistanceGrid.createDistanceGrid maze.grid root
         pathDistances = DistanceGrid.pathTo maze.grid root goal
         pathGrid = {dgrid | dists <- pathDistances}
         longDistances = DistanceGrid.longestPath maze.grid root
         longGrid = {dgrid | dists <- longDistances}
+        rootStr = Cell.cellToString root
     in
        div [] [
           br [] [] 
-           , text "Cell distances from NW corner:"
-           , pre [] [text <| DistanceGrid.viewDistances dgrid]
-           , text "Shortest path from NW corner to SW corner:"
+           --, text <| "Cell distances from " ++ rootStr ++ ":"
+           --, pre [] [text <| DistanceGrid.viewDistances dgrid]
+           , text <| "Shortest path from " ++ rootStr ++ " to SW corner:"
            , pre [] [text <| DistanceGrid.viewDistances pathGrid]
-           , text "Longest path:"
-           , pre [] [text <| DistanceGrid.viewDistances longGrid]
+--           , text "Longest path:"
+--           , pre [] [text <| DistanceGrid.viewDistances longGrid]
            ]
 
 algorithms : List AlgAttr

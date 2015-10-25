@@ -1,0 +1,71 @@
+Elm.ColoredGrid = Elm.ColoredGrid || {};
+Elm.ColoredGrid.make = function (_elm) {
+   "use strict";
+   _elm.ColoredGrid = _elm.ColoredGrid || {};
+   if (_elm.ColoredGrid.values)
+   return _elm.ColoredGrid.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "ColoredGrid",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $DistanceGrid = Elm.DistanceGrid.make(_elm),
+   $Distances = Elm.Distances.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var cellBackgroundColor = F2(function (grid,
+   cell) {
+      return function () {
+         var distance = A2($Distances.lookup,
+         grid.dists,
+         cell);
+         var intensity = $Basics.toFloat(grid.maximum - distance) / $Basics.toFloat(grid.maximum);
+         var dark = $Basics.round(255 * intensity);
+         var bright = $Basics.round(128 + 127 * intensity);
+         return A3($Color.rgb,
+         dark,
+         bright,
+         dark);
+      }();
+   });
+   var view = F2(function (grid,
+   cellSize) {
+      return A3($Grid.view,
+      cellBackgroundColor,
+      grid,
+      cellSize);
+   });
+   var createColoredGrid = F2(function (grid,
+   root) {
+      return function () {
+         var grid$ = A2($DistanceGrid.createDistanceGrid,
+         grid,
+         root);
+         var $ = $Distances.max(grid$.dists),
+         farthest = $._0,
+         max = $._1;
+         return _U.insert("maximum",
+         max,
+         grid$);
+      }();
+   });
+   var Colored = F2(function (a,
+   b) {
+      return _U.insert("maximum",
+      a,
+      b);
+   });
+   _elm.ColoredGrid.values = {_op: _op
+                             ,Colored: Colored
+                             ,createColoredGrid: createColoredGrid
+                             ,view: view
+                             ,cellBackgroundColor: cellBackgroundColor};
+   return _elm.ColoredGrid.values;
+};

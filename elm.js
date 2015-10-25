@@ -939,6 +939,77 @@ Elm.Color.make = function (_elm) {
                        ,darkGray: darkGray};
    return _elm.Color.values;
 };
+Elm.ColoredGrid = Elm.ColoredGrid || {};
+Elm.ColoredGrid.make = function (_elm) {
+   "use strict";
+   _elm.ColoredGrid = _elm.ColoredGrid || {};
+   if (_elm.ColoredGrid.values)
+   return _elm.ColoredGrid.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "ColoredGrid",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $DistanceGrid = Elm.DistanceGrid.make(_elm),
+   $Distances = Elm.Distances.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var cellBackgroundColor = F2(function (grid,
+   cell) {
+      return function () {
+         var distance = A2($Distances.lookup,
+         grid.dists,
+         cell);
+         var intensity = $Basics.toFloat(grid.maximum - distance) / $Basics.toFloat(grid.maximum);
+         var dark = $Basics.round(255 * intensity);
+         var bright = $Basics.round(128 + 127 * intensity);
+         return A3($Color.rgb,
+         dark,
+         bright,
+         dark);
+      }();
+   });
+   var view = F2(function (grid,
+   cellSize) {
+      return A3($Grid.view,
+      cellBackgroundColor,
+      grid,
+      cellSize);
+   });
+   var createColoredGrid = F2(function (grid,
+   root) {
+      return function () {
+         var grid$ = A2($DistanceGrid.createDistanceGrid,
+         grid,
+         root);
+         var $ = $Distances.max(grid$.dists),
+         farthest = $._0,
+         max = $._1;
+         return _U.insert("maximum",
+         max,
+         grid$);
+      }();
+   });
+   var Colored = F2(function (a,
+   b) {
+      return _U.insert("maximum",
+      a,
+      b);
+   });
+   _elm.ColoredGrid.values = {_op: _op
+                             ,Colored: Colored
+                             ,createColoredGrid: createColoredGrid
+                             ,view: view
+                             ,cellBackgroundColor: cellBackgroundColor};
+   return _elm.ColoredGrid.values;
+};
 Elm.Debug = Elm.Debug || {};
 Elm.Debug.make = function (_elm) {
    "use strict";
@@ -3216,7 +3287,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 218 and 220");
+         "between lines 222 and 224");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -3433,6 +3504,12 @@ Elm.Grid.make = function (_elm) {
          _L.range(1,grid.rows))))));
       }();
    });
+   var center = function (grid) {
+      return toValidCell(A3(getCell,
+      grid,
+      grid.rows / 2 | 0,
+      grid.cols / 2 | 0));
+   };
    var cellIdToCell = F2(function (grid,
    cellid) {
       return function () {
@@ -3450,11 +3527,12 @@ Elm.Grid.make = function (_elm) {
       cellIdToCell(grid),
       $Set.toList(cell.links));
    });
-   var view = F2(function (grid,
+   var view = F3(function (cellPainter,
+   grid,
    cellSize) {
       return function () {
          var cellToRect = function (cell) {
-            return $Graphics$Collage.square($Basics.toFloat(cellSize) - 1);
+            return $Graphics$Collage.square($Basics.toFloat(cellSize));
          };
          var cellBackground = F2(function (style,
          cell) {
@@ -3463,9 +3541,7 @@ Elm.Grid.make = function (_elm) {
                var cx = $Basics.toFloat((cell.col - 1) * cellSize) + halfSize;
                var cy = $Basics.toFloat($Basics.negate(cell.row - 1) * cellSize) - halfSize;
                var bgRect = A2($Graphics$Collage.filled,
-               A2(cellBackgroundColor,
-               grid,
-               cell),
+               A2(cellPainter,grid,cell),
                cellToRect(cell));
                return A2($Graphics$Collage.move,
                {ctor: "_Tuple2",_0: cx,_1: cy},
@@ -3622,6 +3698,7 @@ Elm.Grid.make = function (_elm) {
                       ,south: south
                       ,west: west
                       ,east: east
+                      ,center: center
                       ,neighbors: neighbors
                       ,linkCells: linkCells
                       ,unlinkCells: unlinkCells
@@ -5409,6 +5486,8 @@ Elm.Maze.make = function (_elm) {
    $moduleName = "Maze",
    $Basics = Elm.Basics.make(_elm),
    $BinaryTree = Elm.BinaryTree.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $ColoredGrid = Elm.ColoredGrid.make(_elm),
    $DistanceGrid = Elm.DistanceGrid.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $Html = Elm.Html.make(_elm),
@@ -5426,7 +5505,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 82 and 84");
+         "between lines 89 and 91");
       }();
    };
    var getAlgFn = function (algType) {
@@ -5437,7 +5516,7 @@ Elm.Maze.make = function (_elm) {
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 76 and 78");
+         "between lines 83 and 85");
       }();
    };
    var viewDistances = function (maze) {
@@ -5446,10 +5525,7 @@ Elm.Maze.make = function (_elm) {
          maze.grid,
          maze.grid.rows,
          1));
-         var root = $Grid.toValidCell(A3($Grid.getCell,
-         maze.grid,
-         1,
-         1));
+         var root = $Grid.center(maze.grid);
          var dgrid = A2($DistanceGrid.createDistanceGrid,
          maze.grid,
          root);
@@ -5466,34 +5542,37 @@ Elm.Maze.make = function (_elm) {
          var longGrid = _U.replace([["dists"
                                     ,longDistances]],
          dgrid);
+         var rootStr = $Cell.cellToString(root);
          return A2($Html.div,
          _L.fromArray([]),
          _L.fromArray([A2($Html.br,
                       _L.fromArray([]),
                       _L.fromArray([]))
-                      ,$Html.text("Cell distances from NW corner:")
+                      ,$Html.text(A2($Basics._op["++"],
+                      "Shortest path from ",
+                      A2($Basics._op["++"],
+                      rootStr,
+                      " to SW corner:")))
                       ,A2($Html.pre,
                       _L.fromArray([]),
-                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(dgrid))]))
-                      ,$Html.text("Shortest path from NW corner to SW corner:")
-                      ,A2($Html.pre,
-                      _L.fromArray([]),
-                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(pathGrid))]))
-                      ,$Html.text("Longest path:")
-                      ,A2($Html.pre,
-                      _L.fromArray([]),
-                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(longGrid))]))]));
+                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(pathGrid))]))]));
       }();
    };
    var view = function (maze) {
-      return A2($Html.div,
-      _L.fromArray([]),
-      _L.fromArray([$Html.text(A2($Basics._op["++"],
-                   algToString(maze.alg),
-                   " algorithm"))
-                   ,$Html.fromElement(A2($Grid.view,
-                   maze.grid,
-                   30))]));
+      return function () {
+         var root = $Grid.center(maze.grid);
+         var coloredGrid = A2($ColoredGrid.createColoredGrid,
+         maze.grid,
+         root);
+         return A2($Html.div,
+         _L.fromArray([]),
+         _L.fromArray([$Html.text(A2($Basics._op["++"],
+                      algToString(maze.alg),
+                      " algorithm"))
+                      ,$Html.fromElement(A2($ColoredGrid.view,
+                      coloredGrid,
+                      30))]));
+      }();
    };
    var updateSize = F3(function (maze,
    width,
