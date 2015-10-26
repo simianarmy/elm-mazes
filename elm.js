@@ -1,4 +1,72 @@
 var Elm = Elm || { Native: {} };
+Elm.AldousBroder = Elm.AldousBroder || {};
+Elm.AldousBroder.make = function (_elm) {
+   "use strict";
+   _elm.AldousBroder = _elm.AldousBroder || {};
+   if (_elm.AldousBroder.values)
+   return _elm.AldousBroder.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "AldousBroder",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var on = function (grid) {
+      return function () {
+         var walkRandomly = F3(function (grid$$,
+         cell,
+         unvisited) {
+            return _U.eq(unvisited,
+            0) ? grid$$ : function () {
+               var sample = A2($Grid.neighbors,
+               grid$$,
+               cell);
+               var $ = A2($Random.generate,
+               A2($Random.$int,
+               1,
+               $List.length(sample)),
+               grid$$.rnd.seed),
+               rand = $._0,
+               seed = $._1;
+               var neighbor = $Grid.toValidCell($List.head($List.reverse(A2($List.take,
+               rand,
+               sample))));
+               return $Basics.not($Cell.hasLinks(neighbor)) ? function () {
+                  var grid$$$ = $Grid.updateRnd(A4($Grid.linkCells,
+                  grid$$,
+                  cell,
+                  neighbor,
+                  true));
+                  return A3(walkRandomly,
+                  grid$$$,
+                  neighbor,
+                  unvisited - 1);
+               }() : A3(walkRandomly,
+               $Grid.updateRnd(grid$$),
+               neighbor,
+               unvisited);
+            }();
+         });
+         var $ = $Grid.randomCell(grid),
+         grid$ = $._0,
+         startCell = $._1;
+         return A3(walkRandomly,
+         grid$,
+         startCell,
+         $Grid.size(grid) - 1);
+      }();
+   };
+   _elm.AldousBroder.values = {_op: _op
+                              ,on: on};
+   return _elm.AldousBroder.values;
+};
 Elm.Array = Elm.Array || {};
 Elm.Array.make = function (_elm) {
    "use strict";
@@ -382,6 +450,9 @@ Elm.Cell.make = function (_elm) {
       $Basics.toString(cell.col),
       ")"))));
    };
+   var hasLinks = function (cell) {
+      return $Basics.not($Set.isEmpty(cell.links));
+   };
    var isLinked = F2(function (cell1,
    cell2) {
       return A2($Set.member,
@@ -421,6 +492,7 @@ Elm.Cell.make = function (_elm) {
                       ,createCellID: createCellID
                       ,linked: linked
                       ,isLinked: isLinked
+                      ,hasLinks: hasLinks
                       ,cellToString: cellToString};
    return _elm.Cell.values;
 };
@@ -3287,7 +3359,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 222 and 224");
+         "between lines 231 and 233");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -3641,6 +3713,20 @@ Elm.Grid.make = function (_elm) {
                          ,$Rnd.refresh(grid.rnd)]],
       grid);
    };
+   var randomCell = function (grid) {
+      return function () {
+         var grid$ = updateRnd(grid);
+         var randRow = grid$.rnd.row;
+         var randCol = grid$.rnd.col;
+         var cell = toValidCell(A3(getCell,
+         grid$,
+         randRow,
+         randCol));
+         return {ctor: "_Tuple2"
+                ,_0: grid$
+                ,_1: cell};
+      }();
+   };
    var nextSeed = function (grid) {
       return $Rnd.refresh(grid.rnd).seed;
    };
@@ -3699,6 +3785,7 @@ Elm.Grid.make = function (_elm) {
                       ,west: west
                       ,east: east
                       ,center: center
+                      ,randomCell: randomCell
                       ,neighbors: neighbors
                       ,linkCells: linkCells
                       ,unlinkCells: unlinkCells
@@ -5484,6 +5571,7 @@ Elm.Maze.make = function (_elm) {
    _U = _N.Utils.make(_elm),
    _L = _N.List.make(_elm),
    $moduleName = "Maze",
+   $AldousBroder = Elm.AldousBroder.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $BinaryTree = Elm.BinaryTree.make(_elm),
    $Cell = Elm.Cell.make(_elm),
@@ -5500,23 +5588,27 @@ Elm.Maze.make = function (_elm) {
    var algToString = function (algType) {
       return function () {
          switch (algType.ctor)
-         {case "BinaryTree":
+         {case "AldousBroder":
+            return "Aldous-Broder";
+            case "BinaryTree":
             return "Binary Tree";
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 89 and 91");
+         "between lines 98 and 101");
       }();
    };
    var getAlgFn = function (algType) {
       return function () {
          switch (algType.ctor)
-         {case "BinaryTree":
+         {case "AldousBroder":
+            return $AldousBroder.on;
+            case "BinaryTree":
             return $BinaryTree.on;
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 83 and 85");
+         "between lines 91 and 94");
       }();
    };
    var viewDistances = function (maze) {
@@ -5615,6 +5707,7 @@ Elm.Maze.make = function (_elm) {
              ,alg: a
              ,name: b};
    });
+   var AldousBroder = {ctor: "AldousBroder"};
    var Sidewinder = {ctor: "Sidewinder"};
    var sidewinder = Sidewinder;
    var defaultAlgorithm = sidewinder;
@@ -5622,10 +5715,13 @@ Elm.Maze.make = function (_elm) {
    var binaryTree = BinaryTree;
    var algorithms = _L.fromArray([{_: {}
                                   ,alg: BinaryTree
-                                  ,name: "Binary Tree"}
+                                  ,name: algToString(BinaryTree)}
                                  ,{_: {}
                                   ,alg: Sidewinder
-                                  ,name: "Sidewinder"}]);
+                                  ,name: algToString(Sidewinder)}
+                                 ,{_: {}
+                                  ,alg: AldousBroder
+                                  ,name: algToString(AldousBroder)}]);
    var algByName = function (str) {
       return function () {
          var res = $List.head(A2($List.filter,
@@ -5644,6 +5740,7 @@ Elm.Maze.make = function (_elm) {
    _elm.Maze.values = {_op: _op
                       ,BinaryTree: BinaryTree
                       ,Sidewinder: Sidewinder
+                      ,AldousBroder: AldousBroder
                       ,AlgAttr: AlgAttr
                       ,Maze: Maze
                       ,binaryTree: binaryTree

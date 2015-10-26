@@ -53,7 +53,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 222 and 224");
+         "between lines 231 and 233");
       }();
    };
    var cellIndex = F2(function (grid,
@@ -407,6 +407,20 @@ Elm.Grid.make = function (_elm) {
                          ,$Rnd.refresh(grid.rnd)]],
       grid);
    };
+   var randomCell = function (grid) {
+      return function () {
+         var grid$ = updateRnd(grid);
+         var randRow = grid$.rnd.row;
+         var randCol = grid$.rnd.col;
+         var cell = toValidCell(A3(getCell,
+         grid$,
+         randRow,
+         randCol));
+         return {ctor: "_Tuple2"
+                ,_0: grid$
+                ,_1: cell};
+      }();
+   };
    var nextSeed = function (grid) {
       return $Rnd.refresh(grid.rnd).seed;
    };
@@ -465,6 +479,7 @@ Elm.Grid.make = function (_elm) {
                       ,west: west
                       ,east: east
                       ,center: center
+                      ,randomCell: randomCell
                       ,neighbors: neighbors
                       ,linkCells: linkCells
                       ,unlinkCells: unlinkCells

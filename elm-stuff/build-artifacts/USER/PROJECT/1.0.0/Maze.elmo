@@ -9,6 +9,7 @@ Elm.Maze.make = function (_elm) {
    _U = _N.Utils.make(_elm),
    _L = _N.List.make(_elm),
    $moduleName = "Maze",
+   $AldousBroder = Elm.AldousBroder.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $BinaryTree = Elm.BinaryTree.make(_elm),
    $Cell = Elm.Cell.make(_elm),
@@ -25,23 +26,27 @@ Elm.Maze.make = function (_elm) {
    var algToString = function (algType) {
       return function () {
          switch (algType.ctor)
-         {case "BinaryTree":
+         {case "AldousBroder":
+            return "Aldous-Broder";
+            case "BinaryTree":
             return "Binary Tree";
             case "Sidewinder":
             return "Sidewinder";}
          _U.badCase($moduleName,
-         "between lines 89 and 91");
+         "between lines 98 and 101");
       }();
    };
    var getAlgFn = function (algType) {
       return function () {
          switch (algType.ctor)
-         {case "BinaryTree":
+         {case "AldousBroder":
+            return $AldousBroder.on;
+            case "BinaryTree":
             return $BinaryTree.on;
             case "Sidewinder":
             return $Sidewinder.on;}
          _U.badCase($moduleName,
-         "between lines 83 and 85");
+         "between lines 91 and 94");
       }();
    };
    var viewDistances = function (maze) {
@@ -140,6 +145,7 @@ Elm.Maze.make = function (_elm) {
              ,alg: a
              ,name: b};
    });
+   var AldousBroder = {ctor: "AldousBroder"};
    var Sidewinder = {ctor: "Sidewinder"};
    var sidewinder = Sidewinder;
    var defaultAlgorithm = sidewinder;
@@ -147,10 +153,13 @@ Elm.Maze.make = function (_elm) {
    var binaryTree = BinaryTree;
    var algorithms = _L.fromArray([{_: {}
                                   ,alg: BinaryTree
-                                  ,name: "Binary Tree"}
+                                  ,name: algToString(BinaryTree)}
                                  ,{_: {}
                                   ,alg: Sidewinder
-                                  ,name: "Sidewinder"}]);
+                                  ,name: algToString(Sidewinder)}
+                                 ,{_: {}
+                                  ,alg: AldousBroder
+                                  ,name: algToString(AldousBroder)}]);
    var algByName = function (str) {
       return function () {
          var res = $List.head(A2($List.filter,
@@ -169,6 +178,7 @@ Elm.Maze.make = function (_elm) {
    _elm.Maze.values = {_op: _op
                       ,BinaryTree: BinaryTree
                       ,Sidewinder: Sidewinder
+                      ,AldousBroder: AldousBroder
                       ,AlgAttr: AlgAttr
                       ,Maze: Maze
                       ,binaryTree: binaryTree

@@ -7,12 +7,16 @@ import ColoredGrid exposing (..)
 import Cell exposing (Cell)
 import BinaryTree
 import Sidewinder
+import AldousBroder
 
 import Random exposing (Seed)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 
-type Algorithm = BinaryTree | Sidewinder
+type Algorithm = BinaryTree
+               | Sidewinder
+               | AldousBroder
+
 type alias AlgAttr = {
     alg : Algorithm,
     name : String
@@ -74,21 +78,27 @@ viewDistances maze =
 --           , pre [] [text <| DistanceGrid.viewDistances longGrid]
            ]
 
+--TODO: Be smarter about this
 algorithms : List AlgAttr
 algorithms =
-    [{alg = BinaryTree, name = "Binary Tree"}, {alg = Sidewinder, name = "Sidewinder"}]
+    [{alg = BinaryTree, name = algToString BinaryTree},
+    {alg = Sidewinder, name = algToString Sidewinder},
+    {alg = AldousBroder, name = algToString AldousBroder}
+    ]
 
 getAlgFn : Algorithm -> Grid {} -> Grid {}
 getAlgFn algType =
     case algType of
         BinaryTree -> BinaryTree.on
         Sidewinder -> Sidewinder.on
+        AldousBroder -> AldousBroder.on
 
 algToString : Algorithm -> String
 algToString algType =
     case algType of
         BinaryTree -> "Binary Tree"
         Sidewinder -> "Sidewinder"
+        AldousBroder -> "Aldous-Broder"
 
 algByName : String -> Algorithm
 algByName str =

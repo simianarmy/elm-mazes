@@ -10,21 +10,62 @@ Elm.Repl.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Repl",
    $Basics = Elm.Basics.make(_elm),
-   $IntToBaseX = Elm.IntToBaseX.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var val = 10 / 2 | 0;
    var tsol = {ctor: "_Tuple0"};
-   var digits = $IntToBaseX.digitMap;
-   var deltron3030 = A2($IntToBaseX.toBaseX,
-   35,
-   36);
+   var grid = A2($Grid.createGrid,
+   5,
+   5)($Random.initialSeed(123));
+   var grid$ = A4($Grid.linkCells,
+   grid,
+   $Grid.toValidCell(A3($Grid.getCell,
+   grid,
+   1,
+   1)),
+   $Grid.toValidCell(A3($Grid.getCell,
+   grid,
+   1,
+   2)),
+   true);
+   var grid$$ = $Grid.updateRnd(grid$);
+   var grid$$$ = $Grid.updateRnd(grid$$);
+   var res = $Grid.randomCell(grid$$$);
+   var res2 = $Grid.randomCell($Basics.fst(res));
+   var res3 = $Grid.randomCell($Basics.fst(res2));
+   var res4 = $Grid.randomCell($Basics.fst(res3));
+   var res5 = $Grid.randomCell($Basics.fst(res4));
+   var foo = $Grid.randomCell(grid);
+   var cell = $Grid.toValidCell(A3($Grid.getCell,
+   grid$,
+   1,
+   1));
+   var neighs = A2($Grid.neighbors,
+   grid$,
+   cell);
+   var neigh = $Grid.toValidCell($List.head($List.reverse(A2($List.take,
+   2,
+   neighs))));
+   var deltron3030 = $Cell.hasLinks(neigh);
    _elm.Repl.values = {_op: _op
+                      ,cell: cell
                       ,deltron3030: deltron3030
-                      ,digits: digits
-                      ,tsol: tsol
-                      ,val: val};
+                      ,foo: foo
+                      ,grid: grid
+                      ,grid$: grid$
+                      ,grid$$: grid$$
+                      ,grid$$$: grid$$$
+                      ,neigh: neigh
+                      ,neighs: neighs
+                      ,res: res
+                      ,res2: res2
+                      ,res3: res3
+                      ,res4: res4
+                      ,res5: res5
+                      ,tsol: tsol};
    return _elm.Repl.values;
 };

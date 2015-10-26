@@ -38,6 +38,10 @@ isLinked : Cell -> Cell -> Bool
 isLinked cell1 cell2 =
     Set.member cell2.id cell1.links
 
+hasLinks : Cell -> Bool
+hasLinks cell =
+    not <| Set.isEmpty cell.links
+
 cellToString : Cell -> String
 cellToString cell =
     "(" ++ (toString cell.row) ++ ", " ++ (toString cell.col) ++ ")"
