@@ -17,54 +17,72 @@ Elm.AldousBroder.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var on = function (grid) {
-      return function () {
-         var walkRandomly = F3(function (grid$$,
-         cell,
-         unvisited) {
-            return _U.eq(unvisited,
-            0) ? grid$$ : function () {
-               var sample = A2($Grid.neighbors,
-               grid$$,
-               cell);
-               var $ = A2($Random.generate,
-               A2($Random.$int,
-               1,
-               $List.length(sample)),
-               grid$$.rnd.seed),
-               rand = $._0,
-               seed = $._1;
-               var neighbor = $Grid.toValidCell($List.head($List.reverse(A2($List.take,
-               rand,
-               sample))));
-               return $Basics.not($Cell.hasLinks(neighbor)) ? function () {
-                  var grid$$$ = $Grid.updateRnd(A4($Grid.linkCells,
-                  grid$$,
-                  cell,
-                  neighbor,
-                  true));
+   $Signal = Elm.Signal.make(_elm),
+   $Trampoline = Elm.Trampoline.make(_elm);
+   var walkRandomly = F3(function (grid$$,
+   cell,
+   unvisited) {
+      return _U.eq(unvisited,
+      0) ? $Trampoline.Done(grid$$) : function () {
+         var sample = A2($Grid.neighbors,
+         grid$$,
+         cell);
+         var $ = A2($Random.generate,
+         A2($Random.$int,
+         1,
+         $List.length(sample)),
+         grid$$.rnd.seed),
+         rand = $._0,
+         seed = $._1;
+         var neighbor = $Grid.toValidCell($List.head($List.reverse(A2($List.take,
+         rand,
+         sample))));
+         return $Basics.not($Cell.hasLinks(neighbor)) ? function () {
+            var grid$$$ = $Grid.updateRnd(A4($Grid.linkCells,
+            grid$$,
+            cell,
+            neighbor,
+            true));
+            return $Trampoline.Continue(function (_v0) {
+               return function () {
+                  switch (_v0.ctor)
+                  {case "_Tuple0":
+                     return A3(walkRandomly,
+                       grid$$$,
+                       neighbor,
+                       unvisited - 1);}
+                  _U.badCase($moduleName,
+                  "on line 37, column 34 to 78");
+               }();
+            });
+         }() : $Trampoline.Continue(function (_v2) {
+            return function () {
+               switch (_v2.ctor)
+               {case "_Tuple0":
                   return A3(walkRandomly,
-                  grid$$$,
-                  neighbor,
-                  unvisited - 1);
-               }() : A3(walkRandomly,
-               $Grid.updateRnd(grid$$),
-               neighbor,
-               unvisited);
+                    $Grid.updateRnd(grid$$),
+                    neighbor,
+                    unvisited);}
+               _U.badCase($moduleName,
+               "on line 40, column 31 to 81");
             }();
          });
+      }();
+   });
+   var on = function (grid) {
+      return function () {
          var $ = $Grid.randomCell(grid),
          grid$ = $._0,
          startCell = $._1;
-         return A3(walkRandomly,
+         return $Trampoline.trampoline(A3(walkRandomly,
          grid$,
          startCell,
-         $Grid.size(grid) - 1);
+         $Grid.size(grid) - 1));
       }();
    };
    _elm.AldousBroder.values = {_op: _op
-                              ,on: on};
+                              ,on: on
+                              ,walkRandomly: walkRandomly};
    return _elm.AldousBroder.values;
 };
 Elm.Array = Elm.Array || {};
@@ -11389,6 +11407,38 @@ Elm.Native.Text.make = function(localRuntime) {
 	};
 };
 
+Elm.Native.Trampoline = {};
+Elm.Native.Trampoline.make = function(localRuntime) {
+
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Trampoline = localRuntime.Native.Trampoline || {};
+	if (localRuntime.Native.Trampoline.values)
+	{
+		return localRuntime.Native.Trampoline.values;
+	}
+
+	// trampoline : Trampoline a -> a
+	function trampoline(t)
+	{
+		var tramp = t;
+		while(true)
+		{
+			switch(tramp.ctor)
+			{
+				case "Done":
+					return tramp._0;
+				case "Continue":
+					tramp = tramp._0({ ctor: "_Tuple0" });
+					continue;
+			}
+		}
+	}
+
+	return localRuntime.Native.Trampoline.values = {
+		trampoline: trampoline
+	};
+};
+
 Elm.Native.Transform2D = {};
 Elm.Native.Transform2D.make = function(localRuntime) {
 
@@ -14921,6 +14971,32 @@ Elm.Text.make = function (_elm) {
                       ,Over: Over
                       ,Through: Through};
    return _elm.Text.values;
+};
+Elm.Trampoline = Elm.Trampoline || {};
+Elm.Trampoline.make = function (_elm) {
+   "use strict";
+   _elm.Trampoline = _elm.Trampoline || {};
+   if (_elm.Trampoline.values)
+   return _elm.Trampoline.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Trampoline",
+   $Native$Trampoline = Elm.Native.Trampoline.make(_elm);
+   var trampoline = $Native$Trampoline.trampoline;
+   var Continue = function (a) {
+      return {ctor: "Continue"
+             ,_0: a};
+   };
+   var Done = function (a) {
+      return {ctor: "Done",_0: a};
+   };
+   _elm.Trampoline.values = {_op: _op
+                            ,trampoline: trampoline
+                            ,Done: Done
+                            ,Continue: Continue};
+   return _elm.Trampoline.values;
 };
 Elm.Transform2D = Elm.Transform2D || {};
 Elm.Transform2D.make = function (_elm) {

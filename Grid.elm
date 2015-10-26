@@ -48,7 +48,7 @@ updateRnd : Grid a -> Grid a
 updateRnd grid =
     {
         grid |
-        rnd <- refresh grid.rnd
+        rnd <- Rnd.refresh grid.rnd
     }
 
 update : Grid a -> Grid {}
