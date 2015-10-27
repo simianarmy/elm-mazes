@@ -3,6 +3,7 @@ module Grid where
 import Cell exposing (..)
 import Set
 import List
+import Array
 import String
 import Color
 import Rnd exposing (..)
@@ -112,8 +113,7 @@ getCell : Grid a -> Int -> Int -> Maybe Cell
 getCell grid row col =
     if (row > grid.rows || col > grid.cols || row <= 0 || col <= 0)
        then Nothing
-   else
-        List.head (List.reverse (List.take ((grid.cols * (row - 1)) + col) grid.cells))
+       else Array.get ((gridIndex grid row col) - 1) <| Array.fromList grid.cells
 
 toValidCell : Maybe Cell -> Cell
 toValidCell cell =
@@ -216,6 +216,11 @@ size grid =
 cellIndex : Grid a -> Cell -> Int
 cellIndex grid cell =
     (grid.cols * (cell.row - 1)) + cell.col
+
+-- cardinal index of row col in a grid (1,1) = 1, etc
+gridIndex : Grid a -> Int -> Int -> Int
+gridIndex grid row col =
+    grid.cols * (row - 1) + col
 
 -- returns cell by its id
 cellIdToCell : Grid a -> CellID -> Cell

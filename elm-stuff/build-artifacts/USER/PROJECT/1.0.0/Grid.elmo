@@ -9,6 +9,7 @@ Elm.Grid.make = function (_elm) {
    _U = _N.Utils.make(_elm),
    _L = _N.List.make(_elm),
    $moduleName = "Grid",
+   $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
    $Color = Elm.Color.make(_elm),
@@ -53,9 +54,14 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 231 and 233");
+         "between lines 236 and 238");
       }();
    };
+   var gridIndex = F3(function (grid,
+   row,
+   col) {
+      return grid.cols * (row - 1) + col;
+   });
    var cellIndex = F2(function (grid,
    cell) {
       return grid.cols * (cell.row - 1) + cell.col;
@@ -156,9 +162,10 @@ Elm.Grid.make = function (_elm) {
       grid.rows) > 0 || (_U.cmp(col,
       grid.cols) > 0 || (_U.cmp(row,
       0) < 1 || _U.cmp(col,
-      0) < 1)) ? $Maybe.Nothing : $List.head($List.reverse(A2($List.take,
-      grid.cols * (row - 1) + col,
-      grid.cells)));
+      0) < 1)) ? $Maybe.Nothing : $Array.get(A3(gridIndex,
+      grid,
+      row,
+      col) - 1)($Array.fromList(grid.cells));
    });
    var north = F2(function (grid,
    cell) {
@@ -323,7 +330,7 @@ Elm.Grid.make = function (_elm) {
                     style,
                     _v6._1)]) : _L.fromArray([]);}
                _U.badCase($moduleName,
-               "between lines 68 and 70");
+               "between lines 69 and 71");
             }();
          });
          var cellWalls = F2(function (style,
@@ -487,6 +494,7 @@ Elm.Grid.make = function (_elm) {
                       ,rowCells: rowCells
                       ,size: size
                       ,cellIndex: cellIndex
+                      ,gridIndex: gridIndex
                       ,cellIdToCell: cellIdToCell
                       ,cellToList: cellToList
                       ,toTitle: toTitle

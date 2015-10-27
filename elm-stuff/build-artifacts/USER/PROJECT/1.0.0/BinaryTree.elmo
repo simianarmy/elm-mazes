@@ -12,70 +12,52 @@ Elm.BinaryTree.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
    $Grid = Elm.Grid.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var on = function (grid) {
       return function () {
-         var getRandomNeighbor = F2(function (cell,
-         randInt) {
+         var getRandomNeighbor = F2(function (grid$,
+         cell) {
             return function () {
                var northandeast = $List.concat(_L.fromArray([$Grid.cellToList(A2($Grid.north,
-                                                            grid,
+                                                            grid$,
                                                             cell))
                                                             ,$Grid.cellToList(A2($Grid.east,
-                                                            grid,
+                                                            grid$,
                                                             cell))]));
-               return $List.isEmpty(northandeast) ? $Maybe.Nothing : _U.eq($List.length(northandeast),
-               1) ? $List.head(northandeast) : $List.head($List.reverse(A2($List.take,
-               randInt,
-               northandeast)));
+               return $List.isEmpty(northandeast) ? $Maybe.Nothing : A2($GridUtils.sampleCell,
+               northandeast,
+               grid$.rnd);
             }();
          });
-         var processCell = F2(function (_v0,
+         var processCell = F2(function (cell,
          grid) {
             return function () {
-               switch (_v0.ctor)
-               {case "_Tuple2":
-                  return function () {
-                       var neighbor = A2(getRandomNeighbor,
-                       _v0._0,
-                       _v0._1);
-                       return function () {
-                          switch (neighbor.ctor)
-                          {case "Just":
-                             return A4($Grid.linkCells,
-                               grid,
-                               _v0._0,
-                               neighbor._0,
-                               true);
-                             case "Nothing": return grid;}
-                          _U.badCase($moduleName,
-                          "between lines 35 and 38");
-                       }();
-                    }();}
-               _U.badCase($moduleName,
-               "between lines 33 and 38");
+               var grid$ = $Grid.updateRnd(grid);
+               var neighbor = A2(getRandomNeighbor,
+               grid,
+               cell);
+               return function () {
+                  switch (neighbor.ctor)
+                  {case "Just":
+                     return A4($Grid.linkCells,
+                       grid$,
+                       cell,
+                       neighbor._0,
+                       true);
+                     case "Nothing": return grid$;}
+                  _U.badCase($moduleName,
+                  "between lines 31 and 34");
+               }();
             }();
          });
-         var randomInts = $Basics.fst(A2($Random.generate,
-         A2($Random.list,
-         $List.length(grid.cells),
-         A2($Random.$int,1,2)),
-         grid.rnd.seed));
          return A3($List.foldl,
          processCell,
          grid,
-         A3($List.map2,
-         F2(function (v0,v1) {
-            return {ctor: "_Tuple2"
-                   ,_0: v0
-                   ,_1: v1};
-         }),
-         grid.cells,
-         randomInts));
+         grid.cells);
       }();
    };
    _elm.BinaryTree.values = {_op: _op

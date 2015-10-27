@@ -13,9 +13,9 @@ Elm.AldousBroder.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
    $Grid = Elm.Grid.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Trampoline = Elm.Trampoline.make(_elm);
@@ -27,16 +27,9 @@ Elm.AldousBroder.make = function (_elm) {
          var sample = A2($Grid.neighbors,
          grid$$,
          cell);
-         var $ = A2($Random.generate,
-         A2($Random.$int,
-         1,
-         $List.length(sample)),
-         grid$$.rnd.seed),
-         rand = $._0,
-         seed = $._1;
-         var neighbor = $Grid.toValidCell($List.head($List.reverse(A2($List.take,
-         rand,
-         sample))));
+         var neighbor = $Grid.toValidCell(A2($GridUtils.sampleCell,
+         sample,
+         grid$$.rnd));
          return $Basics.not($Cell.hasLinks(neighbor)) ? function () {
             var grid$$$ = $Grid.updateRnd(A4($Grid.linkCells,
             grid$$,
@@ -52,7 +45,7 @@ Elm.AldousBroder.make = function (_elm) {
                        neighbor,
                        unvisited - 1);}
                   _U.badCase($moduleName,
-                  "on line 37, column 34 to 78");
+                  "on line 39, column 34 to 78");
                }();
             });
          }() : $Trampoline.Continue(function (_v2) {
@@ -64,7 +57,7 @@ Elm.AldousBroder.make = function (_elm) {
                     neighbor,
                     unvisited);}
                _U.badCase($moduleName,
-               "on line 40, column 31 to 81");
+               "on line 42, column 31 to 81");
             }();
          });
       }();
@@ -370,70 +363,52 @@ Elm.BinaryTree.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
    $Grid = Elm.Grid.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var on = function (grid) {
       return function () {
-         var getRandomNeighbor = F2(function (cell,
-         randInt) {
+         var getRandomNeighbor = F2(function (grid$,
+         cell) {
             return function () {
                var northandeast = $List.concat(_L.fromArray([$Grid.cellToList(A2($Grid.north,
-                                                            grid,
+                                                            grid$,
                                                             cell))
                                                             ,$Grid.cellToList(A2($Grid.east,
-                                                            grid,
+                                                            grid$,
                                                             cell))]));
-               return $List.isEmpty(northandeast) ? $Maybe.Nothing : _U.eq($List.length(northandeast),
-               1) ? $List.head(northandeast) : $List.head($List.reverse(A2($List.take,
-               randInt,
-               northandeast)));
+               return $List.isEmpty(northandeast) ? $Maybe.Nothing : A2($GridUtils.sampleCell,
+               northandeast,
+               grid$.rnd);
             }();
          });
-         var processCell = F2(function (_v0,
+         var processCell = F2(function (cell,
          grid) {
             return function () {
-               switch (_v0.ctor)
-               {case "_Tuple2":
-                  return function () {
-                       var neighbor = A2(getRandomNeighbor,
-                       _v0._0,
-                       _v0._1);
-                       return function () {
-                          switch (neighbor.ctor)
-                          {case "Just":
-                             return A4($Grid.linkCells,
-                               grid,
-                               _v0._0,
-                               neighbor._0,
-                               true);
-                             case "Nothing": return grid;}
-                          _U.badCase($moduleName,
-                          "between lines 35 and 38");
-                       }();
-                    }();}
-               _U.badCase($moduleName,
-               "between lines 33 and 38");
+               var grid$ = $Grid.updateRnd(grid);
+               var neighbor = A2(getRandomNeighbor,
+               grid,
+               cell);
+               return function () {
+                  switch (neighbor.ctor)
+                  {case "Just":
+                     return A4($Grid.linkCells,
+                       grid$,
+                       cell,
+                       neighbor._0,
+                       true);
+                     case "Nothing": return grid$;}
+                  _U.badCase($moduleName,
+                  "between lines 31 and 34");
+               }();
             }();
          });
-         var randomInts = $Basics.fst(A2($Random.generate,
-         A2($Random.list,
-         $List.length(grid.cells),
-         A2($Random.$int,1,2)),
-         grid.rnd.seed));
          return A3($List.foldl,
          processCell,
          grid,
-         A3($List.map2,
-         F2(function (v0,v1) {
-            return {ctor: "_Tuple2"
-                   ,_0: v0
-                   ,_1: v1};
-         }),
-         grid.cells,
-         randomInts));
+         grid.cells);
       }();
    };
    _elm.BinaryTree.values = {_op: _op
@@ -3333,6 +3308,7 @@ Elm.Grid.make = function (_elm) {
    _U = _N.Utils.make(_elm),
    _L = _N.List.make(_elm),
    $moduleName = "Grid",
+   $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
    $Color = Elm.Color.make(_elm),
@@ -3377,9 +3353,14 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 231 and 233");
+         "between lines 236 and 238");
       }();
    };
+   var gridIndex = F3(function (grid,
+   row,
+   col) {
+      return grid.cols * (row - 1) + col;
+   });
    var cellIndex = F2(function (grid,
    cell) {
       return grid.cols * (cell.row - 1) + cell.col;
@@ -3480,9 +3461,10 @@ Elm.Grid.make = function (_elm) {
       grid.rows) > 0 || (_U.cmp(col,
       grid.cols) > 0 || (_U.cmp(row,
       0) < 1 || _U.cmp(col,
-      0) < 1)) ? $Maybe.Nothing : $List.head($List.reverse(A2($List.take,
-      grid.cols * (row - 1) + col,
-      grid.cells)));
+      0) < 1)) ? $Maybe.Nothing : $Array.get(A3(gridIndex,
+      grid,
+      row,
+      col) - 1)($Array.fromList(grid.cells));
    });
    var north = F2(function (grid,
    cell) {
@@ -3647,7 +3629,7 @@ Elm.Grid.make = function (_elm) {
                     style,
                     _v6._1)]) : _L.fromArray([]);}
                _U.badCase($moduleName,
-               "between lines 68 and 70");
+               "between lines 69 and 71");
             }();
          });
          var cellWalls = F2(function (style,
@@ -3811,6 +3793,7 @@ Elm.Grid.make = function (_elm) {
                       ,rowCells: rowCells
                       ,size: size
                       ,cellIndex: cellIndex
+                      ,gridIndex: gridIndex
                       ,cellIdToCell: cellIdToCell
                       ,cellToList: cellToList
                       ,toTitle: toTitle
@@ -3819,6 +3802,45 @@ Elm.Grid.make = function (_elm) {
                       ,RowAscii: RowAscii
                       ,toAscii: toAscii};
    return _elm.Grid.values;
+};
+Elm.GridUtils = Elm.GridUtils || {};
+Elm.GridUtils.make = function (_elm) {
+   "use strict";
+   _elm.GridUtils = _elm.GridUtils || {};
+   if (_elm.GridUtils.values)
+   return _elm.GridUtils.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "GridUtils",
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Rnd = Elm.Rnd.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var sampleCell = F2(function (sample,
+   rnd) {
+      return function () {
+         var $ = A2($Random.generate,
+         A2($Random.$int,
+         0,
+         $List.length(sample) - 1),
+         rnd.seed),
+         rand = $._0,
+         seed = $._1;
+         return A2($Array.get,
+         rand,
+         $Array.fromList(sample));
+      }();
+   });
+   _elm.GridUtils.values = {_op: _op
+                           ,sampleCell: sampleCell};
+   return _elm.GridUtils.values;
 };
 Elm.Html = Elm.Html || {};
 Elm.Html.make = function (_elm) {
@@ -14269,9 +14291,9 @@ Elm.Sidewinder.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
    $Grid = Elm.Grid.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var on = function (grid) {
@@ -14292,14 +14314,9 @@ Elm.Sidewinder.make = function (_elm) {
                rowState.run);
                return shouldCloseOut ? function () {
                   var grid$$ = $Grid.updateRnd(grid$);
-                  var rand = $Basics.fst(A2($Random.generate,
-                  A2($Random.$int,
-                  1,
-                  $List.length(run$)),
-                  grid$.rnd.seed));
-                  var member = $Grid.toValidCell($List.head($List.reverse(A2($List.take,
-                  rand,
-                  run$))));
+                  var member = $Grid.toValidCell(A2($GridUtils.sampleCell,
+                  run$,
+                  grid$.rnd));
                   var northern = A2($Grid.north,
                   grid$,
                   member);

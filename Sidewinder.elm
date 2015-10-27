@@ -3,11 +3,12 @@
 --
 module Sidewinder where
 
-import List exposing (..)
-import Random exposing (..)
-
+import GridUtils
 import Grid exposing (..)
 import Cell exposing (Cell)
+
+import List exposing (..)
+import Random exposing (..)
 
 type alias RowState = {run : List Cell, grid : Grid {}}
 
@@ -28,8 +29,7 @@ on grid =
                if shouldCloseOut
                   then 
                   -- get random cell from run
-                  let rand = fst (generate (int 1 (length run')) grid'.rnd.seed)
-                      member = toValidCell (head (reverse (take rand run')))
+                  let member = toValidCell <| GridUtils.sampleCell run' grid'.rnd
                       northern = north grid' member
                       grid'' = updateRnd grid'
                   in

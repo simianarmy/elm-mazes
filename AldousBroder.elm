@@ -3,9 +3,11 @@ module AldousBroder where
 
 import Grid exposing (..)
 import Cell exposing (Cell)
+import GridUtils
 
 import Random
 import List exposing (..)
+import Array
 import Trampoline exposing (..)
 import Debug exposing (log)
 
@@ -24,9 +26,9 @@ walkRandomly grid'' cell unvisited =
        then Done grid''
        else
        -- Pick a random neighbor of cell
+       -- TODO: Make it a utility function
        let sample = neighbors grid'' cell
-           (rand, seed) = Random.generate (Random.int 1 (length sample)) grid''.rnd.seed
-           neighbor = toValidCell <| head (reverse (take rand sample))
+           neighbor = toValidCell <| GridUtils.sampleCell sample grid''.rnd
        in
           -- if neighbor has no links
           if not <| Cell.hasLinks neighbor
