@@ -8,6 +8,7 @@ import Cell exposing (Cell)
 import BinaryTree
 import Sidewinder
 import AldousBroder
+import Wilsons
 
 import Random exposing (Seed)
 import Html exposing (..)
@@ -16,6 +17,7 @@ import Html.Attributes exposing (..)
 type Algorithm = BinaryTree
                | Sidewinder
                | AldousBroder
+               | Wilsons
 
 type alias AlgAttr = {
     alg : Algorithm,
@@ -26,10 +28,7 @@ type alias Maze = {
     alg : Algorithm
 }
 
-binaryTree = BinaryTree
-sidewinder = Sidewinder
-
-defaultAlgorithm = sidewinder
+defaultAlgorithm = Sidewinder
 
 init : Algorithm -> Int -> Int -> Seed -> Maze
 init algType width height seed =
@@ -81,9 +80,10 @@ viewDistances maze =
 --TODO: Be smarter about this
 algorithms : List AlgAttr
 algorithms =
-    [{alg = BinaryTree, name = algToString BinaryTree},
-    {alg = Sidewinder, name = algToString Sidewinder},
-    {alg = AldousBroder, name = algToString AldousBroder}
+    [{alg = BinaryTree, name = algToString BinaryTree}
+    , {alg = Sidewinder, name = algToString Sidewinder}
+    , {alg = AldousBroder, name = algToString AldousBroder}
+    , {alg = Wilsons, name = algToString Wilsons}
     ]
 
 getAlgFn : Algorithm -> Grid {} -> Grid {}
@@ -92,6 +92,7 @@ getAlgFn algType =
         BinaryTree -> BinaryTree.on
         Sidewinder -> Sidewinder.on
         AldousBroder -> AldousBroder.on
+        Wilsons -> Wilsons.on
 
 algToString : Algorithm -> String
 algToString algType =
@@ -99,6 +100,7 @@ algToString algType =
         BinaryTree -> "Binary Tree"
         Sidewinder -> "Sidewinder"
         AldousBroder -> "Aldous-Broder"
+        Wilsons -> "Wilsons"
 
 algByName : String -> Algorithm
 algByName str =

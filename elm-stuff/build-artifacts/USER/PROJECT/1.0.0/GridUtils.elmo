@@ -18,6 +18,32 @@ Elm.GridUtils.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Rnd = Elm.Rnd.make(_elm),
    $Signal = Elm.Signal.make(_elm);
+   var indexOfCell = F2(function (cell,
+   cells) {
+      return function () {
+         var notFound = -1;
+         var indexed = A2($List.indexedMap,
+         F2(function (v0,v1) {
+            return {ctor: "_Tuple2"
+                   ,_0: v0
+                   ,_1: v1};
+         }),
+         cells);
+         var found = A2($List.filter,
+         function (e) {
+            return _U.eq($Basics.snd(e).id,
+            cell.id);
+         },
+         indexed);
+         return function () {
+            var _v0 = $List.head(found);
+            switch (_v0.ctor)
+            {case "Just":
+               return $Basics.fst(_v0._0);}
+            return notFound;
+         }();
+      }();
+   });
    var sampleCell = F2(function (sample,
    rnd) {
       return function () {
@@ -34,6 +60,7 @@ Elm.GridUtils.make = function (_elm) {
       }();
    });
    _elm.GridUtils.values = {_op: _op
-                           ,sampleCell: sampleCell};
+                           ,sampleCell: sampleCell
+                           ,indexOfCell: indexOfCell};
    return _elm.GridUtils.values;
 };

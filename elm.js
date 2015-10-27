@@ -3823,6 +3823,32 @@ Elm.GridUtils.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Rnd = Elm.Rnd.make(_elm),
    $Signal = Elm.Signal.make(_elm);
+   var indexOfCell = F2(function (cell,
+   cells) {
+      return function () {
+         var notFound = -1;
+         var indexed = A2($List.indexedMap,
+         F2(function (v0,v1) {
+            return {ctor: "_Tuple2"
+                   ,_0: v0
+                   ,_1: v1};
+         }),
+         cells);
+         var found = A2($List.filter,
+         function (e) {
+            return _U.eq($Basics.snd(e).id,
+            cell.id);
+         },
+         indexed);
+         return function () {
+            var _v0 = $List.head(found);
+            switch (_v0.ctor)
+            {case "Just":
+               return $Basics.fst(_v0._0);}
+            return notFound;
+         }();
+      }();
+   });
    var sampleCell = F2(function (sample,
    rnd) {
       return function () {
@@ -3839,7 +3865,8 @@ Elm.GridUtils.make = function (_elm) {
       }();
    });
    _elm.GridUtils.values = {_op: _op
-                           ,sampleCell: sampleCell};
+                           ,sampleCell: sampleCell
+                           ,indexOfCell: indexOfCell};
    return _elm.GridUtils.values;
 };
 Elm.Html = Elm.Html || {};
@@ -5624,7 +5651,8 @@ Elm.Maze.make = function (_elm) {
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $Wilsons = Elm.Wilsons.make(_elm);
    var algToString = function (algType) {
       return function () {
          switch (algType.ctor)
@@ -5633,9 +5661,11 @@ Elm.Maze.make = function (_elm) {
             case "BinaryTree":
             return "Binary Tree";
             case "Sidewinder":
-            return "Sidewinder";}
+            return "Sidewinder";
+            case "Wilsons":
+            return "Wilsons";}
          _U.badCase($moduleName,
-         "between lines 98 and 101");
+         "between lines 99 and 103");
       }();
    };
    var getAlgFn = function (algType) {
@@ -5646,9 +5676,11 @@ Elm.Maze.make = function (_elm) {
             case "BinaryTree":
             return $BinaryTree.on;
             case "Sidewinder":
-            return $Sidewinder.on;}
+            return $Sidewinder.on;
+            case "Wilsons":
+            return $Wilsons.on;}
          _U.badCase($moduleName,
-         "between lines 91 and 94");
+         "between lines 91 and 95");
       }();
    };
    var viewDistances = function (maze) {
@@ -5747,12 +5779,11 @@ Elm.Maze.make = function (_elm) {
              ,alg: a
              ,name: b};
    });
+   var Wilsons = {ctor: "Wilsons"};
    var AldousBroder = {ctor: "AldousBroder"};
    var Sidewinder = {ctor: "Sidewinder"};
-   var sidewinder = Sidewinder;
-   var defaultAlgorithm = sidewinder;
+   var defaultAlgorithm = Sidewinder;
    var BinaryTree = {ctor: "BinaryTree"};
-   var binaryTree = BinaryTree;
    var algorithms = _L.fromArray([{_: {}
                                   ,alg: BinaryTree
                                   ,name: algToString(BinaryTree)}
@@ -5761,7 +5792,10 @@ Elm.Maze.make = function (_elm) {
                                   ,name: algToString(Sidewinder)}
                                  ,{_: {}
                                   ,alg: AldousBroder
-                                  ,name: algToString(AldousBroder)}]);
+                                  ,name: algToString(AldousBroder)}
+                                 ,{_: {}
+                                  ,alg: Wilsons
+                                  ,name: algToString(Wilsons)}]);
    var algByName = function (str) {
       return function () {
          var res = $List.head(A2($List.filter,
@@ -5781,10 +5815,9 @@ Elm.Maze.make = function (_elm) {
                       ,BinaryTree: BinaryTree
                       ,Sidewinder: Sidewinder
                       ,AldousBroder: AldousBroder
+                      ,Wilsons: Wilsons
                       ,AlgAttr: AlgAttr
                       ,Maze: Maze
-                      ,binaryTree: binaryTree
-                      ,sidewinder: sidewinder
                       ,defaultAlgorithm: defaultAlgorithm
                       ,init: init
                       ,update: update
@@ -15146,4 +15179,148 @@ Elm.VirtualDom.make = function (_elm) {
                             ,lazy3: lazy3
                             ,Options: Options};
    return _elm.VirtualDom.values;
+};
+Elm.Wilsons = Elm.Wilsons || {};
+Elm.Wilsons.make = function (_elm) {
+   "use strict";
+   _elm.Wilsons = _elm.Wilsons || {};
+   if (_elm.Wilsons.values)
+   return _elm.Wilsons.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Wilsons",
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Trampoline = Elm.Trampoline.make(_elm);
+   var carvePassage = function (rwp) {
+      return function () {
+         var pathArr = $Array.fromList(rwp.path);
+         var carve = F2(function (index,
+         rwp) {
+            return function () {
+               var nextcell = $Grid.toValidCell(A2($Array.get,
+               index + 1,
+               pathArr));
+               var icell = $Grid.toValidCell(A2($Array.get,
+               index,
+               pathArr));
+               var grid$ = A4($Grid.linkCells,
+               rwp.grid,
+               icell,
+               nextcell,
+               true);
+               var unvisited$ = A2($List.filter,
+               function (e) {
+                  return $Basics.not(_U.eq(e.id,
+                  icell.id));
+               },
+               rwp.unvisited);
+               return _U.replace([["grid"
+                                  ,grid$]
+                                 ,["unvisited",unvisited$]],
+               rwp);
+            }();
+         });
+         return A3($List.foldl,
+         carve,
+         rwp,
+         _L.range(0,
+         $List.length(rwp.path) - 2));
+      }();
+   };
+   var loopErasedRandomWalk = function (rwp) {
+      return $Basics.not(A2($List.member,
+      rwp.cell,
+      rwp.unvisited)) ? carvePassage(rwp) : function () {
+         var grid = $Grid.updateRnd(rwp.grid);
+         var cell$ = $Grid.toValidCell(A2($GridUtils.sampleCell,
+         A2($Grid.neighbors,
+         rwp.grid,
+         rwp.cell),
+         rwp.grid.rnd));
+         var position = A2($GridUtils.indexOfCell,
+         cell$,
+         rwp.path);
+         return _U.cmp(position,
+         0) > -1 ? loopErasedRandomWalk(_U.replace([["grid"
+                                                    ,grid]
+                                                   ,["cell",cell$]
+                                                   ,["path"
+                                                    ,A2($List.take,
+                                                    position + 1,
+                                                    rwp.path)]],
+         rwp)) : loopErasedRandomWalk(_U.replace([["grid"
+                                                  ,grid]
+                                                 ,["cell",cell$]
+                                                 ,["path"
+                                                  ,$List.concat(_L.fromArray([rwp.path
+                                                                             ,_L.fromArray([cell$])]))]],
+         rwp));
+      }();
+   };
+   var work = F2(function (grid,
+   unvisited) {
+      return $List.isEmpty(unvisited) ? $Trampoline.Done(grid) : function () {
+         var cell = $Grid.toValidCell(A2($GridUtils.sampleCell,
+         unvisited,
+         grid.rnd));
+         var rwp = loopErasedRandomWalk({_: {}
+                                        ,cell: cell
+                                        ,grid: $Grid.updateRnd(grid)
+                                        ,path: _L.fromArray([cell])
+                                        ,unvisited: unvisited});
+         return $Trampoline.Continue(function (_v0) {
+            return function () {
+               switch (_v0.ctor)
+               {case "_Tuple0": return A2(work,
+                    rwp.grid,
+                    rwp.unvisited);}
+               _U.badCase($moduleName,
+               "on line 42, column 29 to 56");
+            }();
+         });
+      }();
+   });
+   var on = function (grid) {
+      return function () {
+         var $ = $Grid.randomCell(grid),
+         grid$ = $._0,
+         first = $._1;
+         var unvisited = A2($List.filter,
+         function (e) {
+            return $Basics.not(_U.eq(e.id,
+            first.id));
+         },
+         grid.cells);
+         return $Trampoline.trampoline(A2(work,
+         grid$,
+         unvisited));
+      }();
+   };
+   var RandomWalkPath = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,cell: b
+             ,grid: a
+             ,path: c
+             ,unvisited: d};
+   });
+   _elm.Wilsons.values = {_op: _op
+                         ,RandomWalkPath: RandomWalkPath
+                         ,on: on
+                         ,work: work
+                         ,loopErasedRandomWalk: loopErasedRandomWalk
+                         ,carvePassage: carvePassage};
+   return _elm.Wilsons.values;
 };

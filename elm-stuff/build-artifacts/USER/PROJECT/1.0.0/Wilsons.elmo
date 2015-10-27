@@ -1,0 +1,144 @@
+Elm.Wilsons = Elm.Wilsons || {};
+Elm.Wilsons.make = function (_elm) {
+   "use strict";
+   _elm.Wilsons = _elm.Wilsons || {};
+   if (_elm.Wilsons.values)
+   return _elm.Wilsons.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Wilsons",
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Trampoline = Elm.Trampoline.make(_elm);
+   var carvePassage = function (rwp) {
+      return function () {
+         var pathArr = $Array.fromList(rwp.path);
+         var carve = F2(function (index,
+         rwp) {
+            return function () {
+               var nextcell = $Grid.toValidCell(A2($Array.get,
+               index + 1,
+               pathArr));
+               var icell = $Grid.toValidCell(A2($Array.get,
+               index,
+               pathArr));
+               var grid$ = A4($Grid.linkCells,
+               rwp.grid,
+               icell,
+               nextcell,
+               true);
+               var unvisited$ = A2($List.filter,
+               function (e) {
+                  return $Basics.not(_U.eq(e.id,
+                  icell.id));
+               },
+               rwp.unvisited);
+               return _U.replace([["grid"
+                                  ,grid$]
+                                 ,["unvisited",unvisited$]],
+               rwp);
+            }();
+         });
+         return A3($List.foldl,
+         carve,
+         rwp,
+         _L.range(0,
+         $List.length(rwp.path) - 2));
+      }();
+   };
+   var loopErasedRandomWalk = function (rwp) {
+      return $Basics.not(A2($List.member,
+      rwp.cell,
+      rwp.unvisited)) ? carvePassage(rwp) : function () {
+         var grid = $Grid.updateRnd(rwp.grid);
+         var cell$ = $Grid.toValidCell(A2($GridUtils.sampleCell,
+         A2($Grid.neighbors,
+         rwp.grid,
+         rwp.cell),
+         rwp.grid.rnd));
+         var position = A2($GridUtils.indexOfCell,
+         cell$,
+         rwp.path);
+         return _U.cmp(position,
+         0) > -1 ? loopErasedRandomWalk(_U.replace([["grid"
+                                                    ,grid]
+                                                   ,["cell",cell$]
+                                                   ,["path"
+                                                    ,A2($List.take,
+                                                    position + 1,
+                                                    rwp.path)]],
+         rwp)) : loopErasedRandomWalk(_U.replace([["grid"
+                                                  ,grid]
+                                                 ,["cell",cell$]
+                                                 ,["path"
+                                                  ,$List.concat(_L.fromArray([rwp.path
+                                                                             ,_L.fromArray([cell$])]))]],
+         rwp));
+      }();
+   };
+   var work = F2(function (grid,
+   unvisited) {
+      return $List.isEmpty(unvisited) ? $Trampoline.Done(grid) : function () {
+         var cell = $Grid.toValidCell(A2($GridUtils.sampleCell,
+         unvisited,
+         grid.rnd));
+         var rwp = loopErasedRandomWalk({_: {}
+                                        ,cell: cell
+                                        ,grid: $Grid.updateRnd(grid)
+                                        ,path: _L.fromArray([cell])
+                                        ,unvisited: unvisited});
+         return $Trampoline.Continue(function (_v0) {
+            return function () {
+               switch (_v0.ctor)
+               {case "_Tuple0": return A2(work,
+                    rwp.grid,
+                    rwp.unvisited);}
+               _U.badCase($moduleName,
+               "on line 42, column 29 to 56");
+            }();
+         });
+      }();
+   });
+   var on = function (grid) {
+      return function () {
+         var $ = $Grid.randomCell(grid),
+         grid$ = $._0,
+         first = $._1;
+         var unvisited = A2($List.filter,
+         function (e) {
+            return $Basics.not(_U.eq(e.id,
+            first.id));
+         },
+         grid.cells);
+         return $Trampoline.trampoline(A2(work,
+         grid$,
+         unvisited));
+      }();
+   };
+   var RandomWalkPath = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,cell: b
+             ,grid: a
+             ,path: c
+             ,unvisited: d};
+   });
+   _elm.Wilsons.values = {_op: _op
+                         ,RandomWalkPath: RandomWalkPath
+                         ,on: on
+                         ,work: work
+                         ,loopErasedRandomWalk: loopErasedRandomWalk
+                         ,carvePassage: carvePassage};
+   return _elm.Wilsons.values;
+};

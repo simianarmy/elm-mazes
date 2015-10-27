@@ -10,62 +10,49 @@ Elm.Repl.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Repl",
    $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
    $Grid = Elm.Grid.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var tsol = {ctor: "_Tuple0"};
-   var grid = A2($Grid.createGrid,
+   var grid = A3($Grid.createGrid,
    5,
-   5)($Random.initialSeed(123));
-   var grid$ = A4($Grid.linkCells,
-   grid,
-   $Grid.toValidCell(A3($Grid.getCell,
-   grid,
-   1,
-   1)),
-   $Grid.toValidCell(A3($Grid.getCell,
-   grid,
-   1,
-   2)),
-   true);
-   var grid$$ = $Grid.updateRnd(grid$);
-   var grid$$$ = $Grid.updateRnd(grid$$);
-   var res = $Grid.randomCell(grid$$$);
-   var res2 = $Grid.randomCell($Basics.fst(res));
-   var res3 = $Grid.randomCell($Basics.fst(res2));
-   var res4 = $Grid.randomCell($Basics.fst(res3));
-   var res5 = $Grid.randomCell($Basics.fst(res4));
+   5,
+   $Random.initialSeed(123));
    var foo = $Grid.randomCell(grid);
-   var cell = $Grid.toValidCell(A3($Grid.getCell,
-   grid$,
-   1,
-   1));
-   var neighs = A2($Grid.neighbors,
-   grid$,
-   cell);
-   var neigh = $Grid.toValidCell($List.head($List.reverse(A2($List.take,
-   2,
-   neighs))));
-   var deltron3030 = $Cell.hasLinks(neigh);
+   var foo2 = $Grid.randomCell($Basics.fst(foo));
+   var foo3 = $Grid.randomCell($Basics.fst(foo2));
+   var c2 = $Basics.snd(foo2);
+   var c1 = $Basics.snd(foo);
+   var first = c1;
+   var unvisited = A2($List.filter,
+   function (e) {
+      return $Basics.not(_U.eq(e.id,
+      first.id));
+   },
+   grid.cells);
+   var deltron3030 = A2($GridUtils.sampleCell,
+   unvisited,
+   grid.rnd);
+   var rwp = {_: {}
+             ,cell: c1
+             ,grid: grid
+             ,path: _L.fromArray([c1])
+             ,unvisited: unvisited};
    _elm.Repl.values = {_op: _op
-                      ,cell: cell
+                      ,c1: c1
+                      ,c2: c2
                       ,deltron3030: deltron3030
+                      ,first: first
                       ,foo: foo
+                      ,foo2: foo2
+                      ,foo3: foo3
                       ,grid: grid
-                      ,grid$: grid$
-                      ,grid$$: grid$$
-                      ,grid$$$: grid$$$
-                      ,neigh: neigh
-                      ,neighs: neighs
-                      ,res: res
-                      ,res2: res2
-                      ,res3: res3
-                      ,res4: res4
-                      ,res5: res5
-                      ,tsol: tsol};
+                      ,rwp: rwp
+                      ,tsol: tsol
+                      ,unvisited: unvisited};
    return _elm.Repl.values;
 };
