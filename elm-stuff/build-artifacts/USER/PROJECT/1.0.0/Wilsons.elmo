@@ -135,10 +135,6 @@ Elm.Wilsons.make = function (_elm) {
              ,unvisited: d};
    });
    _elm.Wilsons.values = {_op: _op
-                         ,RandomWalkPath: RandomWalkPath
-                         ,on: on
-                         ,work: work
-                         ,loopErasedRandomWalk: loopErasedRandomWalk
-                         ,carvePassage: carvePassage};
+                         ,on: on};
    return _elm.Wilsons.values;
 };

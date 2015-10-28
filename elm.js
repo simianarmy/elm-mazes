@@ -19,20 +19,20 @@ Elm.AldousBroder.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Trampoline = Elm.Trampoline.make(_elm);
-   var walkRandomly = F3(function (grid$$,
+   var walkRandomly = F3(function (grid,
    cell,
    unvisited) {
       return _U.eq(unvisited,
-      0) ? $Trampoline.Done(grid$$) : function () {
+      0) ? $Trampoline.Done(grid) : function () {
          var sample = A2($Grid.neighbors,
-         grid$$,
+         grid,
          cell);
          var neighbor = $Grid.toValidCell(A2($GridUtils.sampleCell,
          sample,
-         grid$$.rnd));
+         grid.rnd));
          return $Basics.not($Cell.hasLinks(neighbor)) ? function () {
-            var grid$$$ = $Grid.updateRnd(A4($Grid.linkCells,
-            grid$$,
+            var grid$ = $Grid.updateRnd(A4($Grid.linkCells,
+            grid,
             cell,
             neighbor,
             true));
@@ -41,11 +41,11 @@ Elm.AldousBroder.make = function (_elm) {
                   switch (_v0.ctor)
                   {case "_Tuple0":
                      return A3(walkRandomly,
-                       grid$$$,
+                       grid$,
                        neighbor,
                        unvisited - 1);}
                   _U.badCase($moduleName,
-                  "on line 39, column 34 to 78");
+                  "on line 39, column 34 to 76");
                }();
             });
          }() : $Trampoline.Continue(function (_v2) {
@@ -53,11 +53,11 @@ Elm.AldousBroder.make = function (_elm) {
                switch (_v2.ctor)
                {case "_Tuple0":
                   return A3(walkRandomly,
-                    $Grid.updateRnd(grid$$),
+                    $Grid.updateRnd(grid),
                     neighbor,
                     unvisited);}
                _U.badCase($moduleName,
-               "on line 42, column 31 to 81");
+               "on line 42, column 31 to 79");
             }();
          });
       }();
@@ -74,8 +74,7 @@ Elm.AldousBroder.make = function (_elm) {
       }();
    };
    _elm.AldousBroder.values = {_op: _op
-                              ,on: on
-                              ,walkRandomly: walkRandomly};
+                              ,on: on};
    return _elm.AldousBroder.values;
 };
 Elm.Array = Elm.Array || {};
@@ -15317,10 +15316,6 @@ Elm.Wilsons.make = function (_elm) {
              ,unvisited: d};
    });
    _elm.Wilsons.values = {_op: _op
-                         ,RandomWalkPath: RandomWalkPath
-                         ,on: on
-                         ,work: work
-                         ,loopErasedRandomWalk: loopErasedRandomWalk
-                         ,carvePassage: carvePassage};
+                         ,on: on};
    return _elm.Wilsons.values;
 };

@@ -1,5 +1,5 @@
 -- Module defining the Aldous-Broder maze creation algorithm
-module AldousBroder where
+module AldousBroder (on) where
 
 import Grid exposing (..)
 import Cell exposing (Cell)
@@ -21,23 +21,23 @@ on grid =
 
 -- Breaking out to try trampoline
 walkRandomly : Grid {} -> Cell -> Int -> Trampoline (Grid {})
-walkRandomly grid'' cell unvisited =
+walkRandomly grid cell unvisited =
     if unvisited == 0
-       then Done grid''
+       then Done grid
        else
        -- Pick a random neighbor of cell
        -- TODO: Make it a utility function
-       let sample = neighbors grid'' cell
-           neighbor = toValidCell <| GridUtils.sampleCell sample grid''.rnd
+       let sample = neighbors grid cell
+           neighbor = toValidCell <| GridUtils.sampleCell sample grid.rnd
        in
           -- if neighbor has no links
           if not <| Cell.hasLinks neighbor
              then
              -- link cell to neighbor and move to the neighbor
-             let grid''' = updateRnd <| linkCells grid'' cell neighbor True
+             let grid' = updateRnd <| linkCells grid cell neighbor True
              in
-                Continue (\() -> walkRandomly grid''' neighbor (unvisited - 1))
+                Continue (\() -> walkRandomly grid' neighbor (unvisited - 1))
              else
              -- move to the neighbor w/out linking
-             Continue (\() -> walkRandomly (updateRnd grid'') neighbor unvisited)
+             Continue (\() -> walkRandomly (updateRnd grid) neighbor unvisited)
 
