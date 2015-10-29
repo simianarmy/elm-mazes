@@ -54,7 +54,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 242 and 244");
+         "between lines 247 and 249");
       }();
    };
    var gridIndex = F3(function (grid,
@@ -134,6 +134,14 @@ Elm.Grid.make = function (_elm) {
          grid);
       }();
    });
+   var deadEnds = function (grid) {
+      return A2($List.filter,
+      function (c) {
+         return _U.eq($List.length($Set.toList(c.links)),
+         1);
+      },
+      grid.cells);
+   };
    var isValidCell = function (cell) {
       return function () {
          switch (cell.ctor)
@@ -495,6 +503,7 @@ Elm.Grid.make = function (_elm) {
                       ,center: center
                       ,randomCell: randomCell
                       ,neighbors: neighbors
+                      ,deadEnds: deadEnds
                       ,filterNeighbors: filterNeighbors
                       ,linkCells: linkCells
                       ,unlinkCells: unlinkCells

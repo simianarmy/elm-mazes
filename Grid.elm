@@ -166,6 +166,11 @@ neighbors grid cell =
     in 
        List.concat [(cellToList n), (cellToList s), (cellToList w), (cellToList e)]
 
+-- returns all cells with only 1 link
+deadEnds : Grid a -> List Cell
+deadEnds grid =
+    List.filter (\c -> (List.length (Set.toList c.links)) == 1) grid.cells
+
 -- sometimes useful to filter the neighbors of a cell by some criteria
 filterNeighbors : (Cell -> Bool) -> Grid a -> Cell -> List Cell
 filterNeighbors pred grid cell =

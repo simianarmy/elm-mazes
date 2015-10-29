@@ -3352,7 +3352,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 242 and 244");
+         "between lines 247 and 249");
       }();
    };
    var gridIndex = F3(function (grid,
@@ -3432,6 +3432,14 @@ Elm.Grid.make = function (_elm) {
          grid);
       }();
    });
+   var deadEnds = function (grid) {
+      return A2($List.filter,
+      function (c) {
+         return _U.eq($List.length($Set.toList(c.links)),
+         1);
+      },
+      grid.cells);
+   };
    var isValidCell = function (cell) {
       return function () {
          switch (cell.ctor)
@@ -3793,6 +3801,7 @@ Elm.Grid.make = function (_elm) {
                       ,center: center
                       ,randomCell: randomCell
                       ,neighbors: neighbors
+                      ,deadEnds: deadEnds
                       ,filterNeighbors: filterNeighbors
                       ,linkCells: linkCells
                       ,unlinkCells: unlinkCells
@@ -6668,7 +6677,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return "Wilsons";}
          _U.badCase($moduleName,
-         "between lines 103 and 108");
+         "between lines 105 and 110");
       }();
    };
    var getAlgFn = function (algType) {
@@ -6685,7 +6694,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return $Wilsons.on;}
          _U.badCase($moduleName,
-         "between lines 94 and 99");
+         "between lines 96 and 101");
       }();
    };
    var viewDistances = function (maze) {
@@ -6715,16 +6724,8 @@ Elm.Maze.make = function (_elm) {
          return A2($Html.div,
          _L.fromArray([]),
          _L.fromArray([A2($Html.br,
-                      _L.fromArray([]),
-                      _L.fromArray([]))
-                      ,$Html.text(A2($Basics._op["++"],
-                      "Shortest path from ",
-                      A2($Basics._op["++"],
-                      rootStr,
-                      " to SW corner:")))
-                      ,A2($Html.pre,
-                      _L.fromArray([]),
-                      _L.fromArray([$Html.text($DistanceGrid.viewDistances(pathGrid))]))]));
+         _L.fromArray([]),
+         _L.fromArray([]))]));
       }();
    };
    var view = function (maze) {
@@ -6738,6 +6739,12 @@ Elm.Maze.make = function (_elm) {
          _L.fromArray([$Html.text(A2($Basics._op["++"],
                       algToString(maze.alg),
                       " algorithm"))
+                      ,A2($Html.br,
+                      _L.fromArray([]),
+                      _L.fromArray([]))
+                      ,$Html.text(A2($Basics._op["++"],
+                      $Basics.toString($List.length($Grid.deadEnds(maze.grid))),
+                      " deadends"))
                       ,$Html.fromElement(A2($ColoredGrid.view,
                       coloredGrid,
                       30))]));

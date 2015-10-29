@@ -54,8 +54,10 @@ view maze =
     in
        div [] [
            text <| (algToString maze.alg) ++ " algorithm"
-              , fromElement <| ColoredGrid.view coloredGrid 30
-              ]
+           , br [] []
+           , text <| (toString <| List.length (Grid.deadEnds maze.grid)) ++ " deadends"
+           , fromElement <| ColoredGrid.view coloredGrid 30
+           ]
 
 viewDistances : Maze -> Html
 viewDistances maze =
@@ -73,8 +75,8 @@ viewDistances maze =
           br [] [] 
            --, text <| "Cell distances from " ++ rootStr ++ ":"
            --, pre [] [text <| DistanceGrid.viewDistances dgrid]
-           , text <| "Shortest path from " ++ rootStr ++ " to SW corner:"
-           , pre [] [text <| DistanceGrid.viewDistances pathGrid]
+           --, text <| "Shortest path from " ++ rootStr ++ " to SW corner:"
+           --, pre [] [text <| DistanceGrid.viewDistances pathGrid]
 --           , text "Longest path:"
 --           , pre [] [text <| DistanceGrid.viewDistances longGrid]
            ]
