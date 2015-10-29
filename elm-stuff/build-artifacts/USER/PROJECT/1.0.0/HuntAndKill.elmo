@@ -1,0 +1,126 @@
+Elm.HuntAndKill = Elm.HuntAndKill || {};
+Elm.HuntAndKill.make = function (_elm) {
+   "use strict";
+   _elm.HuntAndKill = _elm.HuntAndKill || {};
+   if (_elm.HuntAndKill.values)
+   return _elm.HuntAndKill.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "HuntAndKill",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
+   $List = Elm.List.make(_elm),
+   $List$Extra = Elm.List.Extra.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Trampoline = Elm.Trampoline.make(_elm);
+   var hunt = function (grid) {
+      return function () {
+         var visitedNeighbors = function (cell) {
+            return A3($Grid.filterNeighbors,
+            function (c) {
+               return $Cell.hasLinks(c);
+            },
+            grid,
+            cell);
+         };
+         var huntUnvisitedNeighbor = function (cell) {
+            return $Basics.not($List.isEmpty(visitedNeighbors(cell))) && $Basics.not($Cell.hasLinks(cell));
+         };
+         var huntedCell = A2($List$Extra.find,
+         huntUnvisitedNeighbor,
+         grid.cells);
+         return function () {
+            switch (huntedCell.ctor)
+            {case "Just":
+               return function () {
+                    var linked = $Grid.toValidCell(A2($GridUtils.sampleCell,
+                    visitedNeighbors(huntedCell._0),
+                    grid.rnd));
+                    return {ctor: "_Tuple2"
+                           ,_0: A4($Grid.linkCells,
+                           $Grid.updateRnd(grid),
+                           huntedCell._0,
+                           linked,
+                           true)
+                           ,_1: huntedCell._0};
+                 }();
+               case "Nothing":
+               return {ctor: "_Tuple2"
+                      ,_0: grid
+                      ,_1: A2($Cell.createCell,
+                      -1,
+                      -1)};}
+            _U.badCase($moduleName,
+            "between lines 58 and 65");
+         }();
+      }();
+   };
+   var walkRandomly = F2(function (grid,
+   cell) {
+      return _U.eq(cell.row,
+      -1) ? $Trampoline.Done(grid) : function () {
+         var unvisitedNeighbors = A3($Grid.filterNeighbors,
+         function (c) {
+            return $Basics.not($Cell.hasLinks(c));
+         },
+         grid,
+         cell);
+         return $Basics.not($List.isEmpty(unvisitedNeighbors)) ? function () {
+            var neighbor = $Grid.toValidCell(A2($GridUtils.sampleCell,
+            unvisitedNeighbors,
+            grid.rnd));
+            var grid$ = A4($Grid.linkCells,
+            grid,
+            cell,
+            neighbor,
+            true);
+            var grid$$ = $Grid.updateRnd(grid$);
+            return $Trampoline.Continue(function (_v2) {
+               return function () {
+                  switch (_v2.ctor)
+                  {case "_Tuple0":
+                     return A2(walkRandomly,
+                       grid$$,
+                       neighbor);}
+                  _U.badCase($moduleName,
+                  "on line 40, column 34 to 62");
+               }();
+            });
+         }() : function () {
+            var $ = hunt(grid),
+            grid$ = $._0,
+            current = $._1;
+            return $Trampoline.Continue(function (_v4) {
+               return function () {
+                  switch (_v4.ctor)
+                  {case "_Tuple0":
+                     return A2(walkRandomly,
+                       grid$,
+                       current);}
+                  _U.badCase($moduleName,
+                  "on line 45, column 31 to 57");
+               }();
+            });
+         }();
+      }();
+   });
+   var on = function (grid) {
+      return function () {
+         var $ = $Grid.randomCell(grid),
+         grid$ = $._0,
+         startCell = $._1;
+         return $Trampoline.trampoline(A2(walkRandomly,
+         grid$,
+         startCell));
+      }();
+   };
+   _elm.HuntAndKill.values = {_op: _op
+                             ,on: on};
+   return _elm.HuntAndKill.values;
+};

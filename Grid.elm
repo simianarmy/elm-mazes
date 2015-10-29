@@ -115,6 +115,7 @@ getCell grid row col =
        then Nothing
        else Array.get ((gridIndex grid row col) - 1) <| Array.fromList grid.cells
 
+-- commonly used to map a maybe cell to a cell
 toValidCell : Maybe Cell -> Cell
 toValidCell cell =
     case cell of
@@ -164,6 +165,11 @@ neighbors grid cell =
         e = east grid cell
     in 
        List.concat [(cellToList n), (cellToList s), (cellToList w), (cellToList e)]
+
+-- sometimes useful to filter the neighbors of a cell by some criteria
+filterNeighbors : (Cell -> Bool) -> Grid a -> Cell -> List Cell
+filterNeighbors pred grid cell =
+    List.filter pred <| neighbors grid cell
 
 -- link 2 cells
 linkCells : Grid a -> Cell -> Cell -> Bool -> Grid a

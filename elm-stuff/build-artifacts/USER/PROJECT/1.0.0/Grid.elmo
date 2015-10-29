@@ -54,7 +54,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 236 and 238");
+         "between lines 242 and 244");
       }();
    };
    var gridIndex = F3(function (grid,
@@ -140,7 +140,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 126 and 128");
+         "between lines 127 and 129");
       }();
    };
    var toValidCell = function (cell) {
@@ -152,7 +152,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 120 and 122");
+         "between lines 121 and 123");
       }();
    };
    var getCell = F3(function (grid,
@@ -207,6 +207,13 @@ Elm.Grid.make = function (_elm) {
                                           ,cellToList(w)
                                           ,cellToList(e)]));
       }();
+   });
+   var filterNeighbors = F3(function (pred,
+   grid,
+   cell) {
+      return $List.filter(pred)(A2(neighbors,
+      grid,
+      cell));
    });
    var toAscii = F2(function (cellViewer,
    grid) {
@@ -488,6 +495,7 @@ Elm.Grid.make = function (_elm) {
                       ,center: center
                       ,randomCell: randomCell
                       ,neighbors: neighbors
+                      ,filterNeighbors: filterNeighbors
                       ,linkCells: linkCells
                       ,unlinkCells: unlinkCells
                       ,linkedCells: linkedCells

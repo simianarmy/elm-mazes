@@ -17,6 +17,7 @@ Elm.Maze.make = function (_elm) {
    $DistanceGrid = Elm.DistanceGrid.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $Html = Elm.Html.make(_elm),
+   $HuntAndKill = Elm.HuntAndKill.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
@@ -31,12 +32,14 @@ Elm.Maze.make = function (_elm) {
             return "Aldous-Broder";
             case "BinaryTree":
             return "Binary Tree";
+            case "HuntAndKill":
+            return "Hunt - Kill";
             case "Sidewinder":
             return "Sidewinder";
             case "Wilsons":
             return "Wilsons";}
          _U.badCase($moduleName,
-         "between lines 99 and 103");
+         "between lines 103 and 108");
       }();
    };
    var getAlgFn = function (algType) {
@@ -46,12 +49,14 @@ Elm.Maze.make = function (_elm) {
             return $AldousBroder.on;
             case "BinaryTree":
             return $BinaryTree.on;
+            case "HuntAndKill":
+            return $HuntAndKill.on;
             case "Sidewinder":
             return $Sidewinder.on;
             case "Wilsons":
             return $Wilsons.on;}
          _U.badCase($moduleName,
-         "between lines 91 and 95");
+         "between lines 94 and 99");
       }();
    };
    var viewDistances = function (maze) {
@@ -150,6 +155,7 @@ Elm.Maze.make = function (_elm) {
              ,alg: a
              ,name: b};
    });
+   var HuntAndKill = {ctor: "HuntAndKill"};
    var Wilsons = {ctor: "Wilsons"};
    var AldousBroder = {ctor: "AldousBroder"};
    var Sidewinder = {ctor: "Sidewinder"};
@@ -166,7 +172,10 @@ Elm.Maze.make = function (_elm) {
                                   ,name: algToString(AldousBroder)}
                                  ,{_: {}
                                   ,alg: Wilsons
-                                  ,name: algToString(Wilsons)}]);
+                                  ,name: algToString(Wilsons)}
+                                 ,{_: {}
+                                  ,alg: HuntAndKill
+                                  ,name: algToString(HuntAndKill)}]);
    var algByName = function (str) {
       return function () {
          var res = $List.head(A2($List.filter,
@@ -187,6 +196,7 @@ Elm.Maze.make = function (_elm) {
                       ,Sidewinder: Sidewinder
                       ,AldousBroder: AldousBroder
                       ,Wilsons: Wilsons
+                      ,HuntAndKill: HuntAndKill
                       ,AlgAttr: AlgAttr
                       ,Maze: Maze
                       ,defaultAlgorithm: defaultAlgorithm

@@ -9,6 +9,7 @@ import BinaryTree
 import Sidewinder
 import AldousBroder
 import Wilsons
+import HuntAndKill
 
 import Random exposing (Seed)
 import Html exposing (..)
@@ -18,6 +19,7 @@ type Algorithm = BinaryTree
                | Sidewinder
                | AldousBroder
                | Wilsons
+               | HuntAndKill
 
 type alias AlgAttr = {
     alg : Algorithm,
@@ -84,6 +86,7 @@ algorithms =
     , {alg = Sidewinder, name = algToString Sidewinder}
     , {alg = AldousBroder, name = algToString AldousBroder}
     , {alg = Wilsons, name = algToString Wilsons}
+    , {alg = HuntAndKill, name = algToString HuntAndKill}
     ]
 
 getAlgFn : Algorithm -> Grid {} -> Grid {}
@@ -93,6 +96,7 @@ getAlgFn algType =
         Sidewinder -> Sidewinder.on
         AldousBroder -> AldousBroder.on
         Wilsons -> Wilsons.on
+        HuntAndKill -> HuntAndKill.on
 
 algToString : Algorithm -> String
 algToString algType =
@@ -101,6 +105,7 @@ algToString algType =
         Sidewinder -> "Sidewinder"
         AldousBroder -> "Aldous-Broder"
         Wilsons -> "Wilsons"
+        HuntAndKill -> "Hunt - Kill"
 
 algByName : String -> Algorithm
 algByName str =

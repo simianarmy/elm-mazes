@@ -13,6 +13,7 @@ Elm.GridUtils.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
    $List = Elm.List.make(_elm),
+   $List$Extra = Elm.List.Extra.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
@@ -21,27 +22,16 @@ Elm.GridUtils.make = function (_elm) {
    var indexOfCell = F2(function (cell,
    cells) {
       return function () {
-         var notFound = -1;
-         var indexed = A2($List.indexedMap,
-         F2(function (v0,v1) {
-            return {ctor: "_Tuple2"
-                   ,_0: v0
-                   ,_1: v1};
-         }),
-         cells);
-         var found = A2($List.filter,
+         var _v0 = A2($List$Extra.findIndex,
          function (e) {
-            return _U.eq($Basics.snd(e).id,
-            cell.id);
+            return _U.eq(e.id,cell.id);
          },
-         indexed);
-         return function () {
-            var _v0 = $List.head(found);
-            switch (_v0.ctor)
-            {case "Just":
-               return $Basics.fst(_v0._0);}
-            return notFound;
-         }();
+         cells);
+         switch (_v0.ctor)
+         {case "Just": return _v0._0;
+            case "Nothing": return -1;}
+         _U.badCase($moduleName,
+         "between lines 20 and 22");
       }();
    });
    var sampleCell = F2(function (sample,
