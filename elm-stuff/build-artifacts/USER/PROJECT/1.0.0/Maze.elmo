@@ -21,6 +21,7 @@ Elm.Maze.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
+   $RecursiveBacktracker = Elm.RecursiveBacktracker.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm),
@@ -34,12 +35,14 @@ Elm.Maze.make = function (_elm) {
             return "Binary Tree";
             case "HuntAndKill":
             return "Hunt - Kill";
+            case "RecursiveBacktracker":
+            return "Recursive Backtracker";
             case "Sidewinder":
             return "Sidewinder";
             case "Wilsons":
             return "Wilsons";}
          _U.badCase($moduleName,
-         "between lines 105 and 110");
+         "between lines 109 and 115");
       }();
    };
    var getAlgFn = function (algType) {
@@ -51,12 +54,14 @@ Elm.Maze.make = function (_elm) {
             return $BinaryTree.on;
             case "HuntAndKill":
             return $HuntAndKill.on;
+            case "RecursiveBacktracker":
+            return $RecursiveBacktracker.on;
             case "Sidewinder":
             return $Sidewinder.on;
             case "Wilsons":
             return $Wilsons.on;}
          _U.badCase($moduleName,
-         "between lines 96 and 101");
+         "between lines 99 and 105");
       }();
    };
    var viewDistances = function (maze) {
@@ -153,6 +158,7 @@ Elm.Maze.make = function (_elm) {
              ,alg: a
              ,name: b};
    });
+   var RecursiveBacktracker = {ctor: "RecursiveBacktracker"};
    var HuntAndKill = {ctor: "HuntAndKill"};
    var Wilsons = {ctor: "Wilsons"};
    var AldousBroder = {ctor: "AldousBroder"};
@@ -173,7 +179,10 @@ Elm.Maze.make = function (_elm) {
                                   ,name: algToString(Wilsons)}
                                  ,{_: {}
                                   ,alg: HuntAndKill
-                                  ,name: algToString(HuntAndKill)}]);
+                                  ,name: algToString(HuntAndKill)}
+                                 ,{_: {}
+                                  ,alg: RecursiveBacktracker
+                                  ,name: algToString(RecursiveBacktracker)}]);
    var algByName = function (str) {
       return function () {
          var res = $List.head(A2($List.filter,
@@ -195,6 +204,7 @@ Elm.Maze.make = function (_elm) {
                       ,AldousBroder: AldousBroder
                       ,Wilsons: Wilsons
                       ,HuntAndKill: HuntAndKill
+                      ,RecursiveBacktracker: RecursiveBacktracker
                       ,AlgAttr: AlgAttr
                       ,Maze: Maze
                       ,defaultAlgorithm: defaultAlgorithm
