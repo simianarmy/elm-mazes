@@ -11,29 +11,36 @@ Elm.Repl.make = function (_elm) {
    $moduleName = "Repl",
    $Basics = Elm.Basics.make(_elm),
    $List = Elm.List.make(_elm),
-   $List$Extra = Elm.List.Extra.make(_elm),
+   $Mask = Elm.Mask.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var tsol = {ctor: "_Tuple0"};
-   var res = A2($List$Extra.findIndex,
-   function (e) {
-      return _U.eq(A2($Basics._op["%"],
-      e,
-      2),
-      0);
-   },
-   _L.fromArray([1,2,3,4]));
-   var deltron3030 = function () {
-      switch (res.ctor)
-      {case "Just": return res._0;
-         case "Nothing": return -1;}
-      _U.badCase($moduleName,
-      "between lines 4 and 6");
-   }();
+   var m = A2($Mask.createMask,
+   2,
+   3);
+   var m$ = A4($Mask.set,
+   m,
+   0,
+   1,
+   false);
+   var m$$ = A4($Mask.set,
+   m$,
+   1,
+   1,
+   false);
+   var m$$$ = A4($Mask.set,
+   m$$,
+   1,
+   2,
+   false);
+   var deltron3030 = $Mask.randomLocation(m$$$);
    _elm.Repl.values = {_op: _op
                       ,deltron3030: deltron3030
-                      ,res: res
+                      ,m: m
+                      ,m$: m$
+                      ,m$$: m$$
+                      ,m$$$: m$$$
                       ,tsol: tsol};
    return _elm.Repl.values;
 };
