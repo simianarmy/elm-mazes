@@ -3,7 +3,7 @@ module MaskedGrid where
 
 import Mask exposing (Mask)
 import Cell exposing (Cell)
-import Grid exposing (..)
+import Grid exposing (Grid)
 
 import Random exposing (Seed)
 
@@ -39,6 +39,6 @@ randomCell grid =
     in
        Grid.getCell grid row col |> Grid.toValidCell
 
-size : Masked (Grid {}) -> Int
+size : Masked (Grid a) -> Int
 size grid =
     Mask.count grid.mask

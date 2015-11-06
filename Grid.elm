@@ -1,6 +1,7 @@
 module Grid where
 
 import Cell exposing (..)
+
 import Set
 import List
 import Array
@@ -15,7 +16,7 @@ import Text exposing (..)
 
 -- made extensible to contain additional data (ie. distances)
 type alias Grid a =
-    {a | 
+    {a |
         rows: Int,
         cols: Int,
         cells: List Cell,
@@ -24,7 +25,7 @@ type alias Grid a =
 
 createGrid : Int -> Int -> Seed -> Grid {}
 createGrid rows cols initSeed =
-    let 
+    let
         makeRow : Int -> Int -> List Cell
         makeRow cols row =
             List.map
@@ -163,7 +164,7 @@ neighbors grid cell =
         s = south grid cell
         w = west grid cell
         e = east grid cell
-    in 
+    in
        List.concat [(cellToList n), (cellToList s), (cellToList w), (cellToList e)]
 
 -- returns all cells with only 1 link
@@ -261,7 +262,7 @@ cellBackgroundColor grid cell =
 
 -- Returns ASCII representation of a grid
 type alias RowAscii = {
-    top : String, 
+    top : String,
     bottom : String
 }
 

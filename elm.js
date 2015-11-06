@@ -1,4 +1,82 @@
 var Elm = Elm || { Native: {} };
+Elm.AldousBroder = Elm.AldousBroder || {};
+Elm.AldousBroder.make = function (_elm) {
+   "use strict";
+   _elm.AldousBroder = _elm.AldousBroder || {};
+   if (_elm.AldousBroder.values)
+   return _elm.AldousBroder.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "AldousBroder",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Trampoline = Elm.Trampoline.make(_elm);
+   var walkRandomly = F3(function (grid,
+   cell,
+   unvisited) {
+      return _U.eq(unvisited,
+      0) ? $Trampoline.Done(grid) : function () {
+         var sample = A2($Grid.neighbors,
+         grid,
+         cell);
+         var neighbor = $Grid.toValidCell(A2($GridUtils.sampleCell,
+         sample,
+         grid.rnd));
+         return $Basics.not($Cell.hasLinks(neighbor)) ? function () {
+            var grid$ = $Grid.updateRnd(A4($Grid.linkCells,
+            grid,
+            cell,
+            neighbor,
+            true));
+            return $Trampoline.Continue(function (_v0) {
+               return function () {
+                  switch (_v0.ctor)
+                  {case "_Tuple0":
+                     return A3(walkRandomly,
+                       grid$,
+                       neighbor,
+                       unvisited - 1);}
+                  _U.badCase($moduleName,
+                  "on line 39, column 34 to 76");
+               }();
+            });
+         }() : $Trampoline.Continue(function (_v2) {
+            return function () {
+               switch (_v2.ctor)
+               {case "_Tuple0":
+                  return A3(walkRandomly,
+                    $Grid.updateRnd(grid),
+                    neighbor,
+                    unvisited);}
+               _U.badCase($moduleName,
+               "on line 42, column 31 to 79");
+            }();
+         });
+      }();
+   });
+   var on = function (grid) {
+      return function () {
+         var $ = $Grid.randomCell(grid),
+         grid$ = $._0,
+         startCell = $._1;
+         return $Trampoline.trampoline(A3(walkRandomly,
+         grid$,
+         startCell,
+         $Grid.size(grid) - 1));
+      }();
+   };
+   _elm.AldousBroder.values = {_op: _op
+                              ,on: on};
+   return _elm.AldousBroder.values;
+};
 Elm.Array = Elm.Array || {};
 Elm.Array.make = function (_elm) {
    "use strict";
@@ -269,6 +347,72 @@ Elm.Basics.make = function (_elm) {
                         ,EQ: EQ
                         ,GT: GT};
    return _elm.Basics.values;
+};
+Elm.BinaryTree = Elm.BinaryTree || {};
+Elm.BinaryTree.make = function (_elm) {
+   "use strict";
+   _elm.BinaryTree = _elm.BinaryTree || {};
+   if (_elm.BinaryTree.values)
+   return _elm.BinaryTree.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "BinaryTree",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var on = function (grid) {
+      return function () {
+         var getRandomNeighbor = F2(function (grid$,
+         cell) {
+            return function () {
+               var northandeast = $List.concat(_L.fromArray([$Grid.cellToList(A2($Grid.north,
+                                                            grid$,
+                                                            cell))
+                                                            ,$Grid.cellToList(A2($Grid.east,
+                                                            grid$,
+                                                            cell))]));
+               return $List.isEmpty(northandeast) ? $Maybe.Nothing : A2($GridUtils.sampleCell,
+               northandeast,
+               grid$.rnd);
+            }();
+         });
+         var processCell = F2(function (cell,
+         grid) {
+            return function () {
+               var grid$ = $Grid.updateRnd(grid);
+               var neighbor = A2(getRandomNeighbor,
+               grid,
+               cell);
+               return function () {
+                  switch (neighbor.ctor)
+                  {case "Just":
+                     return A4($Grid.linkCells,
+                       grid$,
+                       cell,
+                       neighbor._0,
+                       true);
+                     case "Nothing": return grid$;}
+                  _U.badCase($moduleName,
+                  "between lines 31 and 34");
+               }();
+            }();
+         });
+         return A3($List.foldl,
+         processCell,
+         grid,
+         grid.cells);
+      }();
+   };
+   _elm.BinaryTree.values = {_op: _op
+                            ,on: on};
+   return _elm.BinaryTree.values;
 };
 Elm.Cell = Elm.Cell || {};
 Elm.Cell.make = function (_elm) {
@@ -862,6 +1006,77 @@ Elm.Color.make = function (_elm) {
                        ,gray: gray
                        ,darkGray: darkGray};
    return _elm.Color.values;
+};
+Elm.ColoredGrid = Elm.ColoredGrid || {};
+Elm.ColoredGrid.make = function (_elm) {
+   "use strict";
+   _elm.ColoredGrid = _elm.ColoredGrid || {};
+   if (_elm.ColoredGrid.values)
+   return _elm.ColoredGrid.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "ColoredGrid",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $DistanceGrid = Elm.DistanceGrid.make(_elm),
+   $Distances = Elm.Distances.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var cellBackgroundColor = F2(function (grid,
+   cell) {
+      return function () {
+         var distance = A2($Distances.lookup,
+         grid.dists,
+         cell);
+         var intensity = $Basics.toFloat(grid.maximum - distance) / $Basics.toFloat(grid.maximum);
+         var dark = $Basics.round(255 * intensity);
+         var bright = $Basics.round(128 + 127 * intensity);
+         return A3($Color.rgb,
+         dark,
+         bright,
+         dark);
+      }();
+   });
+   var view = F2(function (grid,
+   cellSize) {
+      return A3($Grid.view,
+      cellBackgroundColor,
+      grid,
+      cellSize);
+   });
+   var createColoredGrid = F2(function (grid,
+   root) {
+      return function () {
+         var grid$ = A2($DistanceGrid.createDistanceGrid,
+         grid,
+         root);
+         var $ = $Distances.max(grid$.dists),
+         farthest = $._0,
+         max = $._1;
+         return _U.insert("maximum",
+         max,
+         grid$);
+      }();
+   });
+   var Colored = F2(function (a,
+   b) {
+      return _U.insert("maximum",
+      a,
+      b);
+   });
+   _elm.ColoredGrid.values = {_op: _op
+                             ,Colored: Colored
+                             ,createColoredGrid: createColoredGrid
+                             ,view: view
+                             ,cellBackgroundColor: cellBackgroundColor};
+   return _elm.ColoredGrid.values;
 };
 Elm.Debug = Elm.Debug || {};
 Elm.Debug.make = function (_elm) {
@@ -1878,704 +2093,324 @@ Elm.Dict.make = function (_elm) {
                       ,fromList: fromList};
    return _elm.Dict.values;
 };
-Elm.ElmTest = Elm.ElmTest || {};
-Elm.ElmTest.Assertion = Elm.ElmTest.Assertion || {};
-Elm.ElmTest.Assertion.make = function (_elm) {
+Elm.Dijkstra = Elm.Dijkstra || {};
+Elm.Dijkstra.make = function (_elm) {
    "use strict";
-   _elm.ElmTest = _elm.ElmTest || {};
-   _elm.ElmTest.Assertion = _elm.ElmTest.Assertion || {};
-   if (_elm.ElmTest.Assertion.values)
-   return _elm.ElmTest.Assertion.values;
+   _elm.Dijkstra = _elm.Dijkstra || {};
+   if (_elm.Dijkstra.values)
+   return _elm.Dijkstra.values;
    var _op = {},
    _N = Elm.Native,
    _U = _N.Utils.make(_elm),
    _L = _N.List.make(_elm),
-   $moduleName = "ElmTest.Assertion",
+   $moduleName = "Dijkstra",
    $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Distances = Elm.Distances.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var AssertNotEqual = F3(function (a,
-   b,
-   c) {
-      return {ctor: "AssertNotEqual"
-             ,_0: a
-             ,_1: b
-             ,_2: c};
-   });
-   var assertNotEqual = F2(function (a,
-   b) {
-      return A3(AssertNotEqual,
-      function (_v0) {
-         return function () {
-            return !_U.eq(a,b);
-         }();
-      },
-      $Basics.toString(a),
-      $Basics.toString(b));
-   });
-   var AssertEqual = F3(function (a,
-   b,
-   c) {
-      return {ctor: "AssertEqual"
-             ,_0: a
-             ,_1: b
-             ,_2: c};
-   });
-   var assertEqual = F2(function (a,
-   b) {
-      return A3(AssertEqual,
-      function (_v2) {
-         return function () {
-            return _U.eq(a,b);
-         }();
-      },
-      $Basics.toString(a),
-      $Basics.toString(b));
-   });
-   var assertionList = F2(function (xs,
-   ys) {
-      return A3($List.map2,
-      assertEqual,
-      xs,
-      ys);
-   });
-   var AssertFalse = function (a) {
-      return {ctor: "AssertFalse"
-             ,_0: a};
-   };
-   var AssertTrue = function (a) {
-      return {ctor: "AssertTrue"
-             ,_0: a};
-   };
-   var assertT = AssertTrue;
-   var assert = function (b) {
-      return AssertTrue(function (_v4) {
-         return function () {
-            return b;
-         }();
-      });
-   };
-   _elm.ElmTest.Assertion.values = {_op: _op
-                                   ,AssertTrue: AssertTrue
-                                   ,AssertFalse: AssertFalse
-                                   ,AssertEqual: AssertEqual
-                                   ,AssertNotEqual: AssertNotEqual
-                                   ,assertT: assertT
-                                   ,assert: assert
-                                   ,assertEqual: assertEqual
-                                   ,assertionList: assertionList
-                                   ,assertNotEqual: assertNotEqual};
-   return _elm.ElmTest.Assertion.values;
-};
-Elm.ElmTest = Elm.ElmTest || {};
-Elm.ElmTest.Run = Elm.ElmTest.Run || {};
-Elm.ElmTest.Run.make = function (_elm) {
-   "use strict";
-   _elm.ElmTest = _elm.ElmTest || {};
-   _elm.ElmTest.Run = _elm.ElmTest.Run || {};
-   if (_elm.ElmTest.Run.values)
-   return _elm.ElmTest.Run.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "ElmTest.Run",
-   $Basics = Elm.Basics.make(_elm),
-   $ElmTest$Assertion = Elm.ElmTest.Assertion.make(_elm),
-   $ElmTest$Test = Elm.ElmTest.Test.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var failedSuites = function (result) {
+   var cellDistances = F2(function (grid,
+   cell) {
       return function () {
-         switch (result.ctor)
-         {case "Report":
+         var acc = {_: {}
+                   ,dists: $Distances.init(cell)
+                   ,frontier: _L.fromArray([cell])
+                   ,grid: grid
+                   ,newFrontier: _L.fromArray([])};
+         var scanCell = F3(function (cell,
+         linked,
+         diter) {
+            return $Basics.not(_U.eq(A2($Distances.lookup,
+            diter.dists,
+            linked),
+            -1)) ? diter : function () {
+               var curDist = A2($Distances.lookup,
+               diter.dists,
+               cell);
+               return _U.replace([["newFrontier"
+                                  ,A2($List.append,
+                                  diter.newFrontier,
+                                  _L.fromArray([linked]))]
+                                 ,["dists"
+                                  ,A3($Distances.add,
+                                  diter.dists,
+                                  linked,
+                                  curDist + 1)]],
+               diter);
+            }();
+         });
+         var scanCellLinks = F2(function (cell,
+         diter) {
+            return A2($List.foldl,
+            scanCell(cell),
+            diter)(A2($Grid.linkedCells,
+            diter.grid,
+            cell));
+         });
+         var scanFrontier = function (diter) {
             return function () {
-                 var failed = _U.cmp($List.length(result._1.failures),
-                 0) > 0 ? 1 : 0;
-                 return failed + $List.sum($List.map(failedSuites)(result._1.results));
-              }();}
-         return 0;
-      }();
-   };
-   var passedSuites = function (result) {
-      return function () {
-         switch (result.ctor)
-         {case "Report":
-            return function () {
-                 var passed = _U.eq($List.length(result._1.failures),
-                 0) ? 1 : 0;
-                 return passed + $List.sum($List.map(passedSuites)(result._1.results));
-              }();}
-         return 0;
-      }();
-   };
-   var failedTests = function (result) {
-      return function () {
-         switch (result.ctor)
-         {case "Fail": return 1;
-            case "Pass": return 0;
-            case "Report":
-            return $List.sum($List.map(failedTests)(result._1.results));}
-         _U.badCase($moduleName,
-         "between lines 59 and 62");
-      }();
-   };
-   var passedTests = function (result) {
-      return function () {
-         switch (result.ctor)
-         {case "Fail": return 0;
-            case "Pass": return 1;
-            case "Report":
-            return $List.sum($List.map(passedTests)(result._1.results));}
-         _U.badCase($moduleName,
-         "between lines 53 and 56");
-      }();
-   };
-   var pass = function (m) {
-      return function () {
-         switch (m.ctor)
-         {case "Fail": return false;
-            case "Pass": return true;
-            case "Report":
-            return _U.cmp($List.length(function (_) {
-                 return _.failures;
-              }(m._1)),
-              0) > 0 ? false : true;}
-         _U.badCase($moduleName,
-         "between lines 43 and 46");
-      }();
-   };
-   var fail = function ($) {
-      return $Basics.not(pass($));
-   };
-   var Report = F2(function (a,b) {
-      return {ctor: "Report"
-             ,_0: a
-             ,_1: b};
-   });
-   var Fail = F2(function (a,b) {
-      return {ctor: "Fail"
-             ,_0: a
-             ,_1: b};
-   });
-   var Pass = function (a) {
-      return {ctor: "Pass",_0: a};
-   };
-   var run = function (test) {
-      return function () {
-         switch (test.ctor)
-         {case "Suite":
-            return function () {
-                 var results = A2($List.map,
-                 run,
-                 test._1);
-                 var $ = A2($List.partition,
-                 pass,
-                 results),
-                 passes = $._0,
-                 fails = $._1;
-                 return A2(Report,
-                 test._0,
-                 {_: {}
-                 ,failures: fails
-                 ,passes: passes
-                 ,results: results});
-              }();
-            case "TestCase":
-            return function () {
-                 var runAssertion = F2(function (t,
-                 m) {
-                    return t({ctor: "_Tuple0"}) ? Pass(test._0) : A2(Fail,
-                    test._0,
-                    m);
-                 });
-                 return function () {
-                    switch (test._1.ctor)
-                    {case "AssertEqual":
-                       return runAssertion(test._1._0)(A2($Basics._op["++"],
-                         "Expected: ",
-                         A2($Basics._op["++"],
-                         test._1._1,
-                         A2($Basics._op["++"],
-                         "; got: ",
-                         test._1._2))));
-                       case "AssertFalse":
-                       return runAssertion(test._1._0)("not False");
-                       case "AssertNotEqual":
-                       return runAssertion(test._1._0)(A2($Basics._op["++"],
-                         test._1._1,
-                         A2($Basics._op["++"],
-                         " equals ",
-                         test._1._2)));
-                       case "AssertTrue":
-                       return runAssertion(test._1._0)("not True");}
-                    _U.badCase($moduleName,
-                    "between lines 29 and 34");
-                 }();
-              }();}
-         _U.badCase($moduleName,
-         "between lines 25 and 39");
-      }();
-   };
-   _elm.ElmTest.Run.values = {_op: _op
-                             ,Pass: Pass
-                             ,Fail: Fail
-                             ,Report: Report
-                             ,run: run
-                             ,pass: pass
-                             ,fail: fail
-                             ,passedTests: passedTests
-                             ,failedTests: failedTests
-                             ,passedSuites: passedSuites
-                             ,failedSuites: failedSuites};
-   return _elm.ElmTest.Run.values;
-};
-Elm.ElmTest = Elm.ElmTest || {};
-Elm.ElmTest.Runner = Elm.ElmTest.Runner || {};
-Elm.ElmTest.Runner.Element = Elm.ElmTest.Runner.Element || {};
-Elm.ElmTest.Runner.Element.make = function (_elm) {
-   "use strict";
-   _elm.ElmTest = _elm.ElmTest || {};
-   _elm.ElmTest.Runner = _elm.ElmTest.Runner || {};
-   _elm.ElmTest.Runner.Element = _elm.ElmTest.Runner.Element || {};
-   if (_elm.ElmTest.Runner.Element.values)
-   return _elm.ElmTest.Runner.Element.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "ElmTest.Runner.Element",
-   $Basics = Elm.Basics.make(_elm),
-   $Color = Elm.Color.make(_elm),
-   $ElmTest$Run = Elm.ElmTest.Run.make(_elm),
-   $ElmTest$Runner$String = Elm.ElmTest.Runner.String.make(_elm),
-   $ElmTest$Test = Elm.ElmTest.Test.make(_elm),
-   $Graphics$Element = Elm.Graphics.Element.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $String = Elm.String.make(_elm),
-   $Text = Elm.Text.make(_elm);
-   var maxOrZero = function (l) {
-      return A3($List.foldl,
-      $Basics.max,
-      0,
-      l);
-   };
-   var indent = function (s) {
-      return function () {
-         var trimmed = $String.trimLeft(s);
-         return $String.length(s) - $String.length(trimmed);
-      }();
-   };
-   var plainText = function (s) {
-      return $Graphics$Element.leftAligned($Text.fromString(s));
-   };
-   var pretty = function (_v0) {
-      return function () {
-         switch (_v0.ctor)
-         {case "_Tuple2":
-            return function () {
-                 var w$ = 5;
-                 var w = indent(_v0._0) * 10;
-                 return function () {
-                    switch (_v0._1.ctor)
-                    {case "Fail":
-                       return $Graphics$Element.color($Color.red)(A2($Graphics$Element.flow,
-                         $Graphics$Element.right,
-                         _L.fromArray([A2($Graphics$Element.spacer,
-                                      w,
-                                      1)
-                                      ,plainText(_v0._0)
-                                      ,A2($Graphics$Element.spacer,
-                                      w$,
-                                      1)])));
-                       case "Pass":
-                       return $Graphics$Element.color($Color.green)(A2($Graphics$Element.flow,
-                         $Graphics$Element.right,
-                         _L.fromArray([A2($Graphics$Element.spacer,
-                                      w,
-                                      1)
-                                      ,plainText(_v0._0)
-                                      ,A2($Graphics$Element.spacer,
-                                      w$,
-                                      1)])));
-                       case "Report":
-                       return function () {
-                            var c = _U.cmp($ElmTest$Run.failedTests(_v0._1),
-                            0) > 0 ? $Color.red : $Color.green;
-                            return $Graphics$Element.color(c)(A2($Graphics$Element.flow,
-                            $Graphics$Element.right,
-                            _L.fromArray([A2($Graphics$Element.spacer,
-                                         w,
-                                         1)
-                                         ,$Graphics$Element.leftAligned($Text.bold($Text.fromString(_v0._0)))
-                                         ,A2($Graphics$Element.spacer,
-                                         w$,
-                                         1)])));
-                         }();}
-                    _U.badCase($moduleName,
-                    "between lines 29 and 33");
-                 }();
-              }();}
-         _U.badCase($moduleName,
-         "between lines 27 and 33");
-      }();
-   };
-   var runDisplay = function (tests) {
-      return function () {
-         var _ = $ElmTest$Runner$String.run(tests);
-         var allPassed = function () {
-            switch (_.ctor)
-            {case "::": switch (_._0.ctor)
-                 {case "_Tuple2":
-                    return _._0._1;}
-                 break;}
-            _U.badCase($moduleName,
-            "on line 45, column 45 to 61");
-         }();
-         var results = function () {
-            switch (_.ctor)
-            {case "::": switch (_._0.ctor)
-                 {case "_Tuple2": return _._1;}
-                 break;}
-            _U.badCase($moduleName,
-            "on line 45, column 45 to 61");
-         }();
-         var summary = function () {
-            switch (_.ctor)
-            {case "::": switch (_._0.ctor)
-                 {case "_Tuple2":
-                    return _._0._0;}
-                 break;}
-            _U.badCase($moduleName,
-            "on line 45, column 45 to 61");
-         }();
-         var results$ = A2($List.map,
-         pretty,
-         results);
-         var maxWidth = maxOrZero($List.map($Graphics$Element.widthOf)(results$));
-         var maxHeight = maxOrZero($List.map($Graphics$Element.heightOf)(results$));
-         var elements = _U.eq(results,
-         _L.fromArray([{ctor: "_Tuple2"
-                       ,_0: ""
-                       ,_1: allPassed}])) ? _L.fromArray([]) : A2($List.map,
-         function ($) {
-            return $Graphics$Element.color($Color.black)(A3($Graphics$Element.container,
-            maxWidth + 2,
-            maxHeight + 2,
-            $Graphics$Element.midLeft)($Graphics$Element.width(maxWidth)($)));
-         },
-         results$);
-         return $Graphics$Element.flow($Graphics$Element.down)(A2($List._op["::"],
-         plainText(summary),
-         A2($List._op["::"],
-         A2($Graphics$Element.spacer,
-         1,
-         10),
-         elements)));
-      }();
-   };
-   _elm.ElmTest.Runner.Element.values = {_op: _op
-                                        ,runDisplay: runDisplay};
-   return _elm.ElmTest.Runner.Element.values;
-};
-Elm.ElmTest = Elm.ElmTest || {};
-Elm.ElmTest.Runner = Elm.ElmTest.Runner || {};
-Elm.ElmTest.Runner.String = Elm.ElmTest.Runner.String || {};
-Elm.ElmTest.Runner.String.make = function (_elm) {
-   "use strict";
-   _elm.ElmTest = _elm.ElmTest || {};
-   _elm.ElmTest.Runner = _elm.ElmTest.Runner || {};
-   _elm.ElmTest.Runner.String = _elm.ElmTest.Runner.String || {};
-   if (_elm.ElmTest.Runner.String.values)
-   return _elm.ElmTest.Runner.String.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "ElmTest.Runner.String",
-   $Basics = Elm.Basics.make(_elm),
-   $ElmTest$Run = Elm.ElmTest.Run.make(_elm),
-   $ElmTest$Test = Elm.ElmTest.Test.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $String = Elm.String.make(_elm);
-   var replicate = F2(function (n,
-   c) {
-      return function () {
-         var go = function (n) {
-            return _U.cmp(n,
-            0) < 1 ? _L.fromArray([]) : A2($List._op["::"],
-            c,
-            go(n - 1));
+               var res = A3($List.foldl,
+               scanCellLinks,
+               diter,
+               diter.frontier);
+               return _U.replace([["frontier"
+                                  ,res.newFrontier]],
+               res);
+            }();
          };
-         return $String.fromList(go(n));
-      }();
-   });
-   var vcat = function ($) {
-      return $String.concat($List.intersperse("\n")($));
-   };
-   var indent = function (n) {
-      return function () {
-         var indents = A2(replicate,
-         n,
-         _U.chr(" "));
-         return function ($) {
-            return vcat($List.map($String.append(indents))($String.lines($)));
+         var frontierAcc = function (diter) {
+            return $List.isEmpty(diter.frontier) ? diter : function () {
+               var acc = _U.replace([["newFrontier"
+                                     ,_L.fromArray([])]],
+               diter);
+               return frontierAcc(scanFrontier(acc));
+            }();
          };
-      }();
-   };
-   var pretty = F2(function (n,
-   result) {
-      return function () {
-         var passed = $ElmTest$Run.pass(result);
-         return function () {
-            switch (result.ctor)
-            {case "Fail":
-               return _L.fromArray([{ctor: "_Tuple2"
-                                    ,_0: indent(n)(A2($Basics._op["++"],
-                                    result._0,
-                                    A2($Basics._op["++"],
-                                    ": FAILED. ",
-                                    result._1)))
-                                    ,_1: result}]);
-               case "Pass":
-               return _L.fromArray([{ctor: "_Tuple2"
-                                    ,_0: indent(n)(A2($Basics._op["++"],
-                                    result._0,
-                                    ": passed."))
-                                    ,_1: result}]);
-               case "Report":
-               return function () {
-                    var allPassed = _U.eq($ElmTest$Run.failedTests(result),
-                    0);
-                    var subResults = allPassed ? _L.fromArray([]) : A2($List.concatMap,
-                    pretty(n + 2),
-                    result._1.results);
-                    var msg = A2($Basics._op["++"],
-                    "Test Suite: ",
-                    A2($Basics._op["++"],
-                    result._0,
-                    A2($Basics._op["++"],
-                    ": ",
-                    passed ? "all tests passed" : "FAILED")));
-                    return A2($List._op["::"],
-                    {ctor: "_Tuple2"
-                    ,_0: A2(indent,n,msg)
-                    ,_1: result},
-                    subResults);
-                 }();}
-            _U.badCase($moduleName,
-            "between lines 34 and 43");
-         }();
+         return function (_) {
+            return _.dists;
+         }(frontierAcc(acc));
       }();
    });
-   var run = function (t) {
-      return function () {
-         var tests = function () {
-            switch (t.ctor)
-            {case "Suite": return t._1;
-               case "TestCase":
-               return _L.fromArray([A2($ElmTest$Test.TestCase,
-                 t._0,
-                 t._1)]);}
-            _U.badCase($moduleName,
-            "between lines 48 and 51");
-         }();
-         var result = $ElmTest$Run.run(t);
-         var passedTests$ = $ElmTest$Run.passedTests(result);
-         var passedSuites$ = $ElmTest$Run.passedSuites(result);
-         var failedTests$ = $ElmTest$Run.failedTests(result);
-         var allPassed = _U.eq(failedTests$,
-         0) ? $ElmTest$Run.Pass("") : A2($ElmTest$Run.Fail,
-         "",
-         "");
-         var failedSuites$ = $ElmTest$Run.failedSuites(result);
-         var summary = vcat($List.map(indent(2))(_L.fromArray([A2($Basics._op["++"],
-                                                              $Basics.toString($ElmTest$Test.numberOfSuites(t)),
-                                                              A2($Basics._op["++"],
-                                                              " suites run, containing ",
-                                                              A2($Basics._op["++"],
-                                                              $Basics.toString($ElmTest$Test.numberOfTests(t)),
-                                                              " tests")))
-                                                              ,_U.eq(failedTests$,
-                                                              0) ? "All tests passed" : A2($Basics._op["++"],
-                                                              $Basics.toString(passedSuites$),
-                                                              A2($Basics._op["++"],
-                                                              " suites and ",
-                                                              A2($Basics._op["++"],
-                                                              $Basics.toString(passedTests$),
-                                                              " tests passed")))
-                                                              ,_U.eq(failedTests$,
-                                                              0) ? "" : A2($Basics._op["++"],
-                                                              $Basics.toString(failedSuites$),
-                                                              A2($Basics._op["++"],
-                                                              " suites and ",
-                                                              A2($Basics._op["++"],
-                                                              $Basics.toString(failedTests$),
-                                                              " tests failed")))])));
-         var results$ = function () {
-            switch (allPassed.ctor)
-            {case "Pass":
-               return _L.fromArray([{ctor: "_Tuple2"
-                                    ,_0: ""
-                                    ,_1: allPassed}]);}
-            return A2(pretty,0,result);
-         }();
-         return A2($List._op["::"],
-         {ctor: "_Tuple2"
-         ,_0: summary
-         ,_1: allPassed},
-         results$);
-      }();
-   };
-   var runDisplay = function (t) {
-      return function () {
-         var _ = run(t);
-         var results = function () {
-            switch (_.ctor)
-            {case "::": switch (_._0.ctor)
-                 {case "_Tuple2": return _._1;}
-                 break;}
-            _U.badCase($moduleName,
-            "on line 74, column 37 to 42");
-         }();
-         var summary = function () {
-            switch (_.ctor)
-            {case "::": switch (_._0.ctor)
-                 {case "_Tuple2":
-                    return _._0._0;}
-                 break;}
-            _U.badCase($moduleName,
-            "on line 74, column 37 to 42");
-         }();
-         return vcat(A2($List._op["::"],
-         A2($Basics._op["++"],
-         summary,
-         "\n"),
-         A2($List.map,
-         $Basics.fst,
-         results)));
-      }();
-   };
-   _elm.ElmTest.Runner.String.values = {_op: _op
-                                       ,runDisplay: runDisplay
-                                       ,run: run};
-   return _elm.ElmTest.Runner.String.values;
+   var DijkstraIter = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,dists: a
+             ,frontier: c
+             ,grid: b
+             ,newFrontier: d};
+   });
+   _elm.Dijkstra.values = {_op: _op
+                          ,DijkstraIter: DijkstraIter
+                          ,cellDistances: cellDistances};
+   return _elm.Dijkstra.values;
 };
-Elm.ElmTest = Elm.ElmTest || {};
-Elm.ElmTest.Test = Elm.ElmTest.Test || {};
-Elm.ElmTest.Test.make = function (_elm) {
+Elm.DistanceGrid = Elm.DistanceGrid || {};
+Elm.DistanceGrid.make = function (_elm) {
    "use strict";
-   _elm.ElmTest = _elm.ElmTest || {};
-   _elm.ElmTest.Test = _elm.ElmTest.Test || {};
-   if (_elm.ElmTest.Test.values)
-   return _elm.ElmTest.Test.values;
+   _elm.DistanceGrid = _elm.DistanceGrid || {};
+   if (_elm.DistanceGrid.values)
+   return _elm.DistanceGrid.values;
    var _op = {},
    _N = Elm.Native,
    _U = _N.Utils.make(_elm),
    _L = _N.List.make(_elm),
-   $moduleName = "ElmTest.Test",
+   $moduleName = "DistanceGrid",
    $Basics = Elm.Basics.make(_elm),
-   $ElmTest$Assertion = Elm.ElmTest.Assertion.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Dijkstra = Elm.Dijkstra.make(_elm),
+   $Distances = Elm.Distances.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $IntToBaseX = Elm.IntToBaseX.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var numberOfSuites = function (test) {
+   var cellToAscii = F2(function (dgrid,
+   cell) {
       return function () {
-         switch (test.ctor)
-         {case "Suite":
-            return 1 + $List.sum($List.map(numberOfSuites)(test._1));
-            case "TestCase": return 0;}
-         _U.badCase($moduleName,
-         "between lines 26 and 28");
+         var dist = A2($Distances.lookup,
+         dgrid.dists,
+         cell);
+         return _U.eq(dist,
+         -1) ? A2($Grid.cellToAscii,
+         dgrid,
+         cell) : A2($IntToBaseX.toBaseX,
+         dist,
+         36);
       }();
-   };
-   var numberOfTests = function (test) {
-      return function () {
-         switch (test.ctor)
-         {case "Suite":
-            return $List.sum($List.map(numberOfTests)(test._1));
-            case "TestCase": return 1;}
-         _U.badCase($moduleName,
-         "between lines 21 and 23");
-      }();
-   };
-   var nameOf = function (test) {
-      return function () {
-         switch (test.ctor)
-         {case "Suite": return test._0;
-            case "TestCase":
-            return test._0;}
-         _U.badCase($moduleName,
-         "between lines 16 and 18");
-      }();
-   };
-   var Suite = F2(function (a,b) {
-      return {ctor: "Suite"
-             ,_0: a
-             ,_1: b};
    });
-   var suite = Suite;
-   var TestCase = F2(function (a,
+   var viewDistances = function (dgrid) {
+      return A2($Grid.toAscii,
+      cellToAscii,
+      dgrid);
+   };
+   var distances = F2(function (grid,
+   root) {
+      return A2($Dijkstra.cellDistances,
+      grid,
+      root);
+   });
+   var createDistanceGrid = F2(function (grid,
+   root) {
+      return _U.insert("dists",
+      A2(distances,grid,root),
+      grid);
+   });
+   var pathTo = F3(function (grid,
+   root,
+   goal) {
+      return function () {
+         var current = goal;
+         var dgrid = A2(createDistanceGrid,
+         grid,
+         root);
+         var breadcrumbs = A3($Distances.add,
+         $Distances.init(root),
+         current,
+         A2($Distances.lookup,
+         dgrid.dists,
+         current));
+         var walkPath = F2(function (breadcrumbs$,
+         current$) {
+            return _U.eq(current$.id,
+            root.id) ? breadcrumbs$ : function () {
+               var currentDistance = A2($Distances.lookup,
+               dgrid.dists,
+               current$);
+               var links = A2($Grid.linkedCells,
+               grid,
+               current$);
+               var res = A2($List.filter,
+               function (neighbor) {
+                  return _U.cmp(A2($Distances.lookup,
+                  dgrid.dists,
+                  neighbor),
+                  currentDistance) < 0;
+               },
+               links);
+               return $List.isEmpty(res) ? breadcrumbs$ : function () {
+                  var neighbor = $Grid.toValidCell($List.head(res));
+                  var breadcrumbs$$ = A3($Distances.add,
+                  breadcrumbs$,
+                  neighbor,
+                  A2($Distances.lookup,
+                  dgrid.dists,
+                  neighbor));
+                  return A2(walkPath,
+                  breadcrumbs$$,
+                  neighbor);
+               }();
+            }();
+         });
+         return A2(walkPath,
+         breadcrumbs,
+         current);
+      }();
+   });
+   var longestPath = F2(function (grid,
+   root) {
+      return function () {
+         var dgrid = A2(createDistanceGrid,
+         grid,
+         root);
+         var $ = $Distances.max(dgrid.dists),
+         cellId = $._0,
+         foo = $._1;
+         var newStartCell = A2($Grid.cellIdToCell,
+         grid,
+         cellId);
+         var dgrid$ = A2(createDistanceGrid,
+         grid,
+         newStartCell);
+         var $ = $Distances.max(dgrid$.dists),
+         goalId = $._0,
+         foo$ = $._1;
+         var goal = A2($Grid.cellIdToCell,
+         grid,
+         goalId);
+         return A3(pathTo,
+         grid,
+         newStartCell,
+         goal);
+      }();
+   });
+   var CellDistances = F2(function (a,
    b) {
-      return {ctor: "TestCase"
-             ,_0: a
-             ,_1: b};
-   });
-   var test = F2(function (name,
-   a) {
-      return A2(TestCase,name,a);
-   });
-   var defaultTest = function (a) {
-      return function () {
-         var name = function () {
-            switch (a.ctor)
-            {case "AssertEqual":
-               return A2($Basics._op["++"],
-                 a._1,
-                 A2($Basics._op["++"],
-                 " == ",
-                 a._2));
-               case "AssertNotEqual":
-               return A2($Basics._op["++"],
-                 a._1,
-                 A2($Basics._op["++"],
-                 " /= ",
-                 a._2));
-               case "AssertTrue":
-               return "True";}
-            _U.badCase($moduleName,
-            "between lines 41 and 46");
-         }();
-         return A2(test,name,a);
-      }();
-   };
-   var equals = F2(function (a,b) {
-      return defaultTest(A2($ElmTest$Assertion.assertEqual,
+      return _U.insert("dists",
       a,
-      b));
+      b);
    });
-   _elm.ElmTest.Test.values = {_op: _op
-                              ,TestCase: TestCase
-                              ,Suite: Suite
-                              ,nameOf: nameOf
-                              ,numberOfTests: numberOfTests
-                              ,numberOfSuites: numberOfSuites
-                              ,equals: equals
-                              ,test: test
-                              ,defaultTest: defaultTest
-                              ,suite: suite};
-   return _elm.ElmTest.Test.values;
+   _elm.DistanceGrid.values = {_op: _op
+                              ,CellDistances: CellDistances
+                              ,createDistanceGrid: createDistanceGrid
+                              ,distances: distances
+                              ,cellToAscii: cellToAscii
+                              ,viewDistances: viewDistances
+                              ,pathTo: pathTo
+                              ,longestPath: longestPath};
+   return _elm.DistanceGrid.values;
+};
+Elm.Distances = Elm.Distances || {};
+Elm.Distances.make = function (_elm) {
+   "use strict";
+   _elm.Distances = _elm.Distances || {};
+   if (_elm.Distances.values)
+   return _elm.Distances.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Distances",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var cells = function (dists) {
+      return $Dict.keys(dists.cells);
+   };
+   var max = function (dists) {
+      return function () {
+         var maxDist = $List.reverse($List.sortBy($Basics.snd)($Dict.toList(dists.cells)));
+         return function () {
+            var _v0 = $List.head(maxDist);
+            switch (_v0.ctor)
+            {case "Just": return _v0._0;
+               case "Nothing":
+               return {ctor: "_Tuple2"
+                      ,_0: dists.root.id
+                      ,_1: 0};}
+            _U.badCase($moduleName,
+            "between lines 28 and 30");
+         }();
+      }();
+   };
+   var add = F3(function (dists,
+   cell,
+   dist) {
+      return _U.replace([["cells"
+                         ,A3($Dict.insert,
+                         cell.id,
+                         dist,
+                         dists.cells)]],
+      dists);
+   });
+   var lookup = F2(function (dists,
+   cell) {
+      return A2($Maybe.withDefault,
+      -1,
+      A2($Dict.get,
+      cell.id,
+      dists.cells));
+   });
+   var init = function (cell) {
+      return {_: {}
+             ,cells: A2($Dict.singleton,
+             cell.id,
+             0)
+             ,root: cell};
+   };
+   var Distances = F2(function (a,
+   b) {
+      return {_: {}
+             ,cells: b
+             ,root: a};
+   });
+   _elm.Distances.values = {_op: _op
+                           ,Distances: Distances
+                           ,init: init
+                           ,lookup: lookup
+                           ,add: add
+                           ,max: max
+                           ,cells: cells};
+   return _elm.Distances.values;
 };
 Elm.Graphics = Elm.Graphics || {};
 Elm.Graphics.Collage = Elm.Graphics.Collage || {};
@@ -3521,7 +3356,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 247 and 249");
+         "between lines 248 and 250");
       }();
    };
    var gridIndex = F3(function (grid,
@@ -3615,7 +3450,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 127 and 129");
+         "between lines 128 and 130");
       }();
    };
    var toValidCell = function (cell) {
@@ -3627,7 +3462,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 121 and 123");
+         "between lines 122 and 124");
       }();
    };
    var getCell = F3(function (grid,
@@ -3812,7 +3647,7 @@ Elm.Grid.make = function (_elm) {
                     style,
                     _v6._1)]) : _L.fromArray([]);}
                _U.badCase($moduleName,
-               "between lines 69 and 71");
+               "between lines 70 and 72");
             }();
          });
          var cellWalls = F2(function (style,
@@ -4270,6 +4105,931 @@ Elm.Html.make = function (_elm) {
                       ,menuitem: menuitem
                       ,menu: menu};
    return _elm.Html.values;
+};
+Elm.Html = Elm.Html || {};
+Elm.Html.Attributes = Elm.Html.Attributes || {};
+Elm.Html.Attributes.make = function (_elm) {
+   "use strict";
+   _elm.Html = _elm.Html || {};
+   _elm.Html.Attributes = _elm.Html.Attributes || {};
+   if (_elm.Html.Attributes.values)
+   return _elm.Html.Attributes.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Html.Attributes",
+   $Basics = Elm.Basics.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Json$Encode = Elm.Json.Encode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm),
+   $VirtualDom = Elm.VirtualDom.make(_elm);
+   var attribute = $VirtualDom.attribute;
+   var property = $VirtualDom.property;
+   var stringProperty = F2(function (name,
+   string) {
+      return A2(property,
+      name,
+      $Json$Encode.string(string));
+   });
+   var $class = function (name) {
+      return A2(stringProperty,
+      "className",
+      name);
+   };
+   var id = function (name) {
+      return A2(stringProperty,
+      "id",
+      name);
+   };
+   var title = function (name) {
+      return A2(stringProperty,
+      "title",
+      name);
+   };
+   var accesskey = function ($char) {
+      return A2(stringProperty,
+      "accesskey",
+      $String.fromList(_L.fromArray([$char])));
+   };
+   var contextmenu = function (value) {
+      return A2(stringProperty,
+      "contextmenu",
+      value);
+   };
+   var dir = function (value) {
+      return A2(stringProperty,
+      "dir",
+      value);
+   };
+   var draggable = function (value) {
+      return A2(stringProperty,
+      "draggable",
+      value);
+   };
+   var dropzone = function (value) {
+      return A2(stringProperty,
+      "dropzone",
+      value);
+   };
+   var itemprop = function (value) {
+      return A2(stringProperty,
+      "itemprop",
+      value);
+   };
+   var lang = function (value) {
+      return A2(stringProperty,
+      "lang",
+      value);
+   };
+   var tabindex = function (n) {
+      return A2(stringProperty,
+      "tabIndex",
+      $Basics.toString(n));
+   };
+   var charset = function (value) {
+      return A2(stringProperty,
+      "charset",
+      value);
+   };
+   var content = function (value) {
+      return A2(stringProperty,
+      "content",
+      value);
+   };
+   var httpEquiv = function (value) {
+      return A2(stringProperty,
+      "httpEquiv",
+      value);
+   };
+   var language = function (value) {
+      return A2(stringProperty,
+      "language",
+      value);
+   };
+   var src = function (value) {
+      return A2(stringProperty,
+      "src",
+      value);
+   };
+   var height = function (value) {
+      return A2(stringProperty,
+      "height",
+      $Basics.toString(value));
+   };
+   var width = function (value) {
+      return A2(stringProperty,
+      "width",
+      $Basics.toString(value));
+   };
+   var alt = function (value) {
+      return A2(stringProperty,
+      "alt",
+      value);
+   };
+   var preload = function (value) {
+      return A2(stringProperty,
+      "preload",
+      value);
+   };
+   var poster = function (value) {
+      return A2(stringProperty,
+      "poster",
+      value);
+   };
+   var kind = function (value) {
+      return A2(stringProperty,
+      "kind",
+      value);
+   };
+   var srclang = function (value) {
+      return A2(stringProperty,
+      "srclang",
+      value);
+   };
+   var sandbox = function (value) {
+      return A2(stringProperty,
+      "sandbox",
+      value);
+   };
+   var srcdoc = function (value) {
+      return A2(stringProperty,
+      "srcdoc",
+      value);
+   };
+   var type$ = function (value) {
+      return A2(stringProperty,
+      "type",
+      value);
+   };
+   var value = function (value) {
+      return A2(stringProperty,
+      "value",
+      value);
+   };
+   var placeholder = function (value) {
+      return A2(stringProperty,
+      "placeholder",
+      value);
+   };
+   var accept = function (value) {
+      return A2(stringProperty,
+      "accept",
+      value);
+   };
+   var acceptCharset = function (value) {
+      return A2(stringProperty,
+      "acceptCharset",
+      value);
+   };
+   var action = function (value) {
+      return A2(stringProperty,
+      "action",
+      value);
+   };
+   var autocomplete = function (bool) {
+      return A2(stringProperty,
+      "autocomplete",
+      bool ? "on" : "off");
+   };
+   var autosave = function (value) {
+      return A2(stringProperty,
+      "autosave",
+      value);
+   };
+   var enctype = function (value) {
+      return A2(stringProperty,
+      "enctype",
+      value);
+   };
+   var formaction = function (value) {
+      return A2(stringProperty,
+      "formaction",
+      value);
+   };
+   var list = function (value) {
+      return A2(stringProperty,
+      "list",
+      value);
+   };
+   var minlength = function (n) {
+      return A2(stringProperty,
+      "minLength",
+      $Basics.toString(n));
+   };
+   var maxlength = function (n) {
+      return A2(stringProperty,
+      "maxLength",
+      $Basics.toString(n));
+   };
+   var method = function (value) {
+      return A2(stringProperty,
+      "method",
+      value);
+   };
+   var name = function (value) {
+      return A2(stringProperty,
+      "name",
+      value);
+   };
+   var pattern = function (value) {
+      return A2(stringProperty,
+      "pattern",
+      value);
+   };
+   var size = function (n) {
+      return A2(stringProperty,
+      "size",
+      $Basics.toString(n));
+   };
+   var $for = function (value) {
+      return A2(stringProperty,
+      "htmlFor",
+      value);
+   };
+   var form = function (value) {
+      return A2(stringProperty,
+      "form",
+      value);
+   };
+   var max = function (value) {
+      return A2(stringProperty,
+      "max",
+      value);
+   };
+   var min = function (value) {
+      return A2(stringProperty,
+      "min",
+      value);
+   };
+   var step = function (n) {
+      return A2(stringProperty,
+      "step",
+      n);
+   };
+   var cols = function (n) {
+      return A2(stringProperty,
+      "cols",
+      $Basics.toString(n));
+   };
+   var rows = function (n) {
+      return A2(stringProperty,
+      "rows",
+      $Basics.toString(n));
+   };
+   var wrap = function (value) {
+      return A2(stringProperty,
+      "wrap",
+      value);
+   };
+   var usemap = function (value) {
+      return A2(stringProperty,
+      "useMap",
+      value);
+   };
+   var shape = function (value) {
+      return A2(stringProperty,
+      "shape",
+      value);
+   };
+   var coords = function (value) {
+      return A2(stringProperty,
+      "coords",
+      value);
+   };
+   var challenge = function (value) {
+      return A2(stringProperty,
+      "challenge",
+      value);
+   };
+   var keytype = function (value) {
+      return A2(stringProperty,
+      "keytype",
+      value);
+   };
+   var align = function (value) {
+      return A2(stringProperty,
+      "align",
+      value);
+   };
+   var cite = function (value) {
+      return A2(stringProperty,
+      "cite",
+      value);
+   };
+   var href = function (value) {
+      return A2(stringProperty,
+      "href",
+      value);
+   };
+   var target = function (value) {
+      return A2(stringProperty,
+      "target",
+      value);
+   };
+   var downloadAs = function (value) {
+      return A2(stringProperty,
+      "download",
+      value);
+   };
+   var hreflang = function (value) {
+      return A2(stringProperty,
+      "hreflang",
+      value);
+   };
+   var media = function (value) {
+      return A2(stringProperty,
+      "media",
+      value);
+   };
+   var ping = function (value) {
+      return A2(stringProperty,
+      "ping",
+      value);
+   };
+   var rel = function (value) {
+      return A2(stringProperty,
+      "rel",
+      value);
+   };
+   var datetime = function (value) {
+      return A2(stringProperty,
+      "datetime",
+      value);
+   };
+   var pubdate = function (value) {
+      return A2(stringProperty,
+      "pubdate",
+      value);
+   };
+   var start = function (n) {
+      return A2(stringProperty,
+      "start",
+      $Basics.toString(n));
+   };
+   var colspan = function (n) {
+      return A2(stringProperty,
+      "colSpan",
+      $Basics.toString(n));
+   };
+   var headers = function (value) {
+      return A2(stringProperty,
+      "headers",
+      value);
+   };
+   var rowspan = function (n) {
+      return A2(stringProperty,
+      "rowSpan",
+      $Basics.toString(n));
+   };
+   var scope = function (value) {
+      return A2(stringProperty,
+      "scope",
+      value);
+   };
+   var manifest = function (value) {
+      return A2(stringProperty,
+      "manifest",
+      value);
+   };
+   var boolProperty = F2(function (name,
+   bool) {
+      return A2(property,
+      name,
+      $Json$Encode.bool(bool));
+   });
+   var hidden = function (bool) {
+      return A2(boolProperty,
+      "hidden",
+      bool);
+   };
+   var contenteditable = function (bool) {
+      return A2(boolProperty,
+      "contentEditable",
+      bool);
+   };
+   var spellcheck = function (bool) {
+      return A2(boolProperty,
+      "spellcheck",
+      bool);
+   };
+   var async = function (bool) {
+      return A2(boolProperty,
+      "async",
+      bool);
+   };
+   var defer = function (bool) {
+      return A2(boolProperty,
+      "defer",
+      bool);
+   };
+   var scoped = function (bool) {
+      return A2(boolProperty,
+      "scoped",
+      bool);
+   };
+   var autoplay = function (bool) {
+      return A2(boolProperty,
+      "autoplay",
+      bool);
+   };
+   var controls = function (bool) {
+      return A2(boolProperty,
+      "controls",
+      bool);
+   };
+   var loop = function (bool) {
+      return A2(boolProperty,
+      "loop",
+      bool);
+   };
+   var $default = function (bool) {
+      return A2(boolProperty,
+      "default",
+      bool);
+   };
+   var seamless = function (bool) {
+      return A2(boolProperty,
+      "seamless",
+      bool);
+   };
+   var checked = function (bool) {
+      return A2(boolProperty,
+      "checked",
+      bool);
+   };
+   var selected = function (bool) {
+      return A2(boolProperty,
+      "selected",
+      bool);
+   };
+   var autofocus = function (bool) {
+      return A2(boolProperty,
+      "autofocus",
+      bool);
+   };
+   var disabled = function (bool) {
+      return A2(boolProperty,
+      "disabled",
+      bool);
+   };
+   var multiple = function (bool) {
+      return A2(boolProperty,
+      "multiple",
+      bool);
+   };
+   var novalidate = function (bool) {
+      return A2(boolProperty,
+      "noValidate",
+      bool);
+   };
+   var readonly = function (bool) {
+      return A2(boolProperty,
+      "readOnly",
+      bool);
+   };
+   var required = function (bool) {
+      return A2(boolProperty,
+      "required",
+      bool);
+   };
+   var ismap = function (value) {
+      return A2(boolProperty,
+      "isMap",
+      value);
+   };
+   var download = function (bool) {
+      return A2(boolProperty,
+      "download",
+      bool);
+   };
+   var reversed = function (bool) {
+      return A2(boolProperty,
+      "reversed",
+      bool);
+   };
+   var classList = function (list) {
+      return $class($String.join(" ")($List.map($Basics.fst)($List.filter($Basics.snd)(list))));
+   };
+   var style = function (props) {
+      return property("style")($Json$Encode.object($List.map(function (_v0) {
+         return function () {
+            switch (_v0.ctor)
+            {case "_Tuple2":
+               return {ctor: "_Tuple2"
+                      ,_0: _v0._0
+                      ,_1: $Json$Encode.string(_v0._1)};}
+            _U.badCase($moduleName,
+            "on line 156, column 35 to 57");
+         }();
+      })(props)));
+   };
+   var key = function (k) {
+      return A2(stringProperty,
+      "key",
+      k);
+   };
+   _elm.Html.Attributes.values = {_op: _op
+                                 ,key: key
+                                 ,style: style
+                                 ,$class: $class
+                                 ,classList: classList
+                                 ,id: id
+                                 ,title: title
+                                 ,hidden: hidden
+                                 ,type$: type$
+                                 ,value: value
+                                 ,checked: checked
+                                 ,placeholder: placeholder
+                                 ,selected: selected
+                                 ,accept: accept
+                                 ,acceptCharset: acceptCharset
+                                 ,action: action
+                                 ,autocomplete: autocomplete
+                                 ,autofocus: autofocus
+                                 ,autosave: autosave
+                                 ,disabled: disabled
+                                 ,enctype: enctype
+                                 ,formaction: formaction
+                                 ,list: list
+                                 ,maxlength: maxlength
+                                 ,minlength: minlength
+                                 ,method: method
+                                 ,multiple: multiple
+                                 ,name: name
+                                 ,novalidate: novalidate
+                                 ,pattern: pattern
+                                 ,readonly: readonly
+                                 ,required: required
+                                 ,size: size
+                                 ,$for: $for
+                                 ,form: form
+                                 ,max: max
+                                 ,min: min
+                                 ,step: step
+                                 ,cols: cols
+                                 ,rows: rows
+                                 ,wrap: wrap
+                                 ,href: href
+                                 ,target: target
+                                 ,download: download
+                                 ,downloadAs: downloadAs
+                                 ,hreflang: hreflang
+                                 ,media: media
+                                 ,ping: ping
+                                 ,rel: rel
+                                 ,ismap: ismap
+                                 ,usemap: usemap
+                                 ,shape: shape
+                                 ,coords: coords
+                                 ,src: src
+                                 ,height: height
+                                 ,width: width
+                                 ,alt: alt
+                                 ,autoplay: autoplay
+                                 ,controls: controls
+                                 ,loop: loop
+                                 ,preload: preload
+                                 ,poster: poster
+                                 ,$default: $default
+                                 ,kind: kind
+                                 ,srclang: srclang
+                                 ,sandbox: sandbox
+                                 ,seamless: seamless
+                                 ,srcdoc: srcdoc
+                                 ,reversed: reversed
+                                 ,start: start
+                                 ,align: align
+                                 ,colspan: colspan
+                                 ,rowspan: rowspan
+                                 ,headers: headers
+                                 ,scope: scope
+                                 ,async: async
+                                 ,charset: charset
+                                 ,content: content
+                                 ,defer: defer
+                                 ,httpEquiv: httpEquiv
+                                 ,language: language
+                                 ,scoped: scoped
+                                 ,accesskey: accesskey
+                                 ,contenteditable: contenteditable
+                                 ,contextmenu: contextmenu
+                                 ,dir: dir
+                                 ,draggable: draggable
+                                 ,dropzone: dropzone
+                                 ,itemprop: itemprop
+                                 ,lang: lang
+                                 ,spellcheck: spellcheck
+                                 ,tabindex: tabindex
+                                 ,challenge: challenge
+                                 ,keytype: keytype
+                                 ,cite: cite
+                                 ,datetime: datetime
+                                 ,pubdate: pubdate
+                                 ,manifest: manifest
+                                 ,property: property
+                                 ,attribute: attribute};
+   return _elm.Html.Attributes.values;
+};
+Elm.Html = Elm.Html || {};
+Elm.Html.Events = Elm.Html.Events || {};
+Elm.Html.Events.make = function (_elm) {
+   "use strict";
+   _elm.Html = _elm.Html || {};
+   _elm.Html.Events = _elm.Html.Events || {};
+   if (_elm.Html.Events.values)
+   return _elm.Html.Events.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Html.Events",
+   $Basics = Elm.Basics.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $VirtualDom = Elm.VirtualDom.make(_elm);
+   var keyCode = A2($Json$Decode._op[":="],
+   "keyCode",
+   $Json$Decode.$int);
+   var targetChecked = A2($Json$Decode.at,
+   _L.fromArray(["target"
+                ,"checked"]),
+   $Json$Decode.bool);
+   var targetValue = A2($Json$Decode.at,
+   _L.fromArray(["target"
+                ,"value"]),
+   $Json$Decode.string);
+   var defaultOptions = $VirtualDom.defaultOptions;
+   var Options = F2(function (a,
+   b) {
+      return {_: {}
+             ,preventDefault: b
+             ,stopPropagation: a};
+   });
+   var onWithOptions = $VirtualDom.onWithOptions;
+   var on = $VirtualDom.on;
+   var messageOn = F3(function (name,
+   addr,
+   msg) {
+      return A3(on,
+      name,
+      $Json$Decode.value,
+      function (_v0) {
+         return function () {
+            return A2($Signal.message,
+            addr,
+            msg);
+         }();
+      });
+   });
+   var onClick = messageOn("click");
+   var onDoubleClick = messageOn("dblclick");
+   var onMouseMove = messageOn("mousemove");
+   var onMouseDown = messageOn("mousedown");
+   var onMouseUp = messageOn("mouseup");
+   var onMouseEnter = messageOn("mouseenter");
+   var onMouseLeave = messageOn("mouseleave");
+   var onMouseOver = messageOn("mouseover");
+   var onMouseOut = messageOn("mouseout");
+   var onBlur = messageOn("blur");
+   var onFocus = messageOn("focus");
+   var onSubmit = messageOn("submit");
+   var onKey = F3(function (name,
+   addr,
+   handler) {
+      return A3(on,
+      name,
+      keyCode,
+      function (code) {
+         return A2($Signal.message,
+         addr,
+         handler(code));
+      });
+   });
+   var onKeyUp = onKey("keyup");
+   var onKeyDown = onKey("keydown");
+   var onKeyPress = onKey("keypress");
+   _elm.Html.Events.values = {_op: _op
+                             ,onBlur: onBlur
+                             ,onFocus: onFocus
+                             ,onSubmit: onSubmit
+                             ,onKeyUp: onKeyUp
+                             ,onKeyDown: onKeyDown
+                             ,onKeyPress: onKeyPress
+                             ,onClick: onClick
+                             ,onDoubleClick: onDoubleClick
+                             ,onMouseMove: onMouseMove
+                             ,onMouseDown: onMouseDown
+                             ,onMouseUp: onMouseUp
+                             ,onMouseEnter: onMouseEnter
+                             ,onMouseLeave: onMouseLeave
+                             ,onMouseOver: onMouseOver
+                             ,onMouseOut: onMouseOut
+                             ,on: on
+                             ,onWithOptions: onWithOptions
+                             ,defaultOptions: defaultOptions
+                             ,targetValue: targetValue
+                             ,targetChecked: targetChecked
+                             ,keyCode: keyCode
+                             ,Options: Options};
+   return _elm.Html.Events.values;
+};
+Elm.HuntAndKill = Elm.HuntAndKill || {};
+Elm.HuntAndKill.make = function (_elm) {
+   "use strict";
+   _elm.HuntAndKill = _elm.HuntAndKill || {};
+   if (_elm.HuntAndKill.values)
+   return _elm.HuntAndKill.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "HuntAndKill",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
+   $List = Elm.List.make(_elm),
+   $List$Extra = Elm.List.Extra.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Trampoline = Elm.Trampoline.make(_elm);
+   var hunt = function (grid) {
+      return function () {
+         var visitedNeighbors = function (cell) {
+            return A3($Grid.filterNeighbors,
+            function (c) {
+               return $Cell.hasLinks(c);
+            },
+            grid,
+            cell);
+         };
+         var huntUnvisitedNeighbor = function (cell) {
+            return $Basics.not($List.isEmpty(visitedNeighbors(cell))) && $Basics.not($Cell.hasLinks(cell));
+         };
+         var huntedCell = A2($List$Extra.find,
+         huntUnvisitedNeighbor,
+         grid.cells);
+         return function () {
+            switch (huntedCell.ctor)
+            {case "Just":
+               return function () {
+                    var linked = $Grid.toValidCell(A2($GridUtils.sampleCell,
+                    visitedNeighbors(huntedCell._0),
+                    grid.rnd));
+                    return {ctor: "_Tuple2"
+                           ,_0: A4($Grid.linkCells,
+                           $Grid.updateRnd(grid),
+                           huntedCell._0,
+                           linked,
+                           true)
+                           ,_1: huntedCell._0};
+                 }();
+               case "Nothing":
+               return {ctor: "_Tuple2"
+                      ,_0: grid
+                      ,_1: A2($Cell.createCell,
+                      -1,
+                      -1)};}
+            _U.badCase($moduleName,
+            "between lines 58 and 65");
+         }();
+      }();
+   };
+   var walkRandomly = F2(function (grid,
+   cell) {
+      return _U.eq(cell.row,
+      -1) ? $Trampoline.Done(grid) : function () {
+         var unvisitedNeighbors = A3($Grid.filterNeighbors,
+         function (c) {
+            return $Basics.not($Cell.hasLinks(c));
+         },
+         grid,
+         cell);
+         return $Basics.not($List.isEmpty(unvisitedNeighbors)) ? function () {
+            var neighbor = $Grid.toValidCell(A2($GridUtils.sampleCell,
+            unvisitedNeighbors,
+            grid.rnd));
+            var grid$ = A4($Grid.linkCells,
+            grid,
+            cell,
+            neighbor,
+            true);
+            var grid$$ = $Grid.updateRnd(grid$);
+            return $Trampoline.Continue(function (_v2) {
+               return function () {
+                  switch (_v2.ctor)
+                  {case "_Tuple0":
+                     return A2(walkRandomly,
+                       grid$$,
+                       neighbor);}
+                  _U.badCase($moduleName,
+                  "on line 40, column 34 to 62");
+               }();
+            });
+         }() : function () {
+            var $ = hunt(grid),
+            grid$ = $._0,
+            current = $._1;
+            return $Trampoline.Continue(function (_v4) {
+               return function () {
+                  switch (_v4.ctor)
+                  {case "_Tuple0":
+                     return A2(walkRandomly,
+                       grid$,
+                       current);}
+                  _U.badCase($moduleName,
+                  "on line 45, column 31 to 57");
+               }();
+            });
+         }();
+      }();
+   });
+   var on = function (grid) {
+      return function () {
+         var $ = $Grid.randomCell(grid),
+         grid$ = $._0,
+         startCell = $._1;
+         return $Trampoline.trampoline(A2(walkRandomly,
+         grid$,
+         startCell));
+      }();
+   };
+   _elm.HuntAndKill.values = {_op: _op
+                             ,on: on};
+   return _elm.HuntAndKill.values;
+};
+Elm.IntToBaseX = Elm.IntToBaseX || {};
+Elm.IntToBaseX.make = function (_elm) {
+   "use strict";
+   _elm.IntToBaseX = _elm.IntToBaseX || {};
+   if (_elm.IntToBaseX.values)
+   return _elm.IntToBaseX.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "IntToBaseX",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var digitMap = "0123456789abcdefghijklmnopqrstuvwxyz";
+   var lookupDigitChar = function (n) {
+      return A3($String.slice,
+      n,
+      n + 1,
+      digitMap);
+   };
+   var toBaseX = F2(function (num,
+   base) {
+      return function () {
+         var convert = F2(function (str,
+         v) {
+            return _U.eq(v,
+            0) ? str : function () {
+               var c = A2($Basics._op["++"],
+               lookupDigitChar(A2($Basics._op["%"],
+               v,
+               base)),
+               str);
+               return A2(convert,
+               c,
+               v / base | 0);
+            }();
+         });
+         return _U.cmp(base,
+         2) < 0 || _U.cmp(36,
+         base) < 0 ? A2($Basics._op["++"],
+         "illegal radix ",
+         $Basics.toString(base)) : _U.eq(num,
+         0) ? "0" : function () {
+            var num$ = _U.cmp(num,
+            0) < 0 ? $Basics.negate(num) : num;
+            var res = A2(convert,"",num$);
+            return _U.cmp(num,
+            0) < 0 ? A2($Basics._op["++"],
+            "-",
+            res) : res;
+         }();
+      }();
+   });
+   _elm.IntToBaseX.values = {_op: _op
+                            ,digitMap: digitMap
+                            ,lookupDigitChar: lookupDigitChar
+                            ,toBaseX: toBaseX};
+   return _elm.IntToBaseX.values;
 };
 Elm.Json = Elm.Json || {};
 Elm.Json.Decode = Elm.Json.Decode || {};
@@ -5663,262 +6423,149 @@ Elm.Main.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Main",
    $Basics = Elm.Basics.make(_elm),
-   $ElmTest$Assertion = Elm.ElmTest.Assertion.make(_elm),
-   $ElmTest$Runner$Element = Elm.ElmTest.Runner.Element.make(_elm),
-   $ElmTest$Test = Elm.ElmTest.Test.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
    $List = Elm.List.make(_elm),
-   $Mask = Elm.Mask.make(_elm),
-   $MaskedGrid = Elm.MaskedGrid.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Maze = Elm.Maze.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Sidewinder = Elm.Sidewinder.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var createGrid = F2(function (rows,
-   cols) {
-      return A2($MaskedGrid.createMaskedGrid,
-      A2($Mask.createMask,rows,cols),
-      $Random.initialSeed(123));
+   $Signal = Elm.Signal.make(_elm),
+   $StartApp$Simple = Elm.StartApp.Simple.make(_elm),
+   $String = Elm.String.make(_elm);
+   var startTime = Elm.Native.Port.make(_elm).inbound("startTime",
+   "Float",
+   function (v) {
+      return typeof v === "number" ? v : _U.badPort("a number",
+      v);
    });
-   var gridTests = A2($ElmTest$Test.suite,
-   "Masked grid test suite",
-   _L.fromArray([A2($ElmTest$Test.test,
-                "Masked Grid size equals grid size",
-                function () {
-                   var grid = A2(createGrid,
-                   3,
-                   3);
-                   return A2($ElmTest$Assertion.assertEqual,
-                   $MaskedGrid.size(grid),
-                   9);
-                }())
-                ,A2($ElmTest$Test.test,
-                "Can be used with maze algorithms",
-                function () {
-                   var grid = A2(createGrid,
-                   3,
-                   3);
-                   return $ElmTest$Assertion.assert($Basics.not(_U.eq($Grid.size($Sidewinder.on(grid)),
-                   9)));
-                }())]));
-   var main = $ElmTest$Runner$Element.runDisplay(gridTests);
+   var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
+   var update = F2(function (action,
+   model) {
+      return function () {
+         switch (action.ctor)
+         {case "Refresh":
+            return $Maze.update(model);
+            case "SelectAlg":
+            return $Maze.update(_U.replace([["alg"
+                                            ,$Maze.algByName(action._0)]],
+              model));
+            case "UpdateHeight":
+            return A3($Maze.updateSize,
+              model,
+              model.grid.rows,
+              $Maybe.withDefault(model.grid.cols)($Result.toMaybe($String.toInt(action._0))));
+            case "UpdateWidth":
+            return A3($Maze.updateSize,
+              model,
+              $Maybe.withDefault(model.grid.rows)($Result.toMaybe($String.toInt(action._0))),
+              model.grid.cols);}
+         _U.badCase($moduleName,
+         "between lines 29 and 43");
+      }();
+   });
+   var SelectAlg = function (a) {
+      return {ctor: "SelectAlg"
+             ,_0: a};
+   };
+   var UpdateHeight = function (a) {
+      return {ctor: "UpdateHeight"
+             ,_0: a};
+   };
+   var UpdateWidth = function (a) {
+      return {ctor: "UpdateWidth"
+             ,_0: a};
+   };
+   var Refresh = {ctor: "Refresh"};
+   var view = F2(function (address,
+   model) {
+      return function () {
+         var algToOptions = function (attr) {
+            return A2($Html.option,
+            _L.fromArray([$Html$Attributes.selected(_U.eq(attr.alg,
+            $Maze.defaultAlgorithm))]),
+            _L.fromArray([$Html.text(attr.name)]));
+         };
+         var selectEvent = A3($Html$Events.on,
+         "change",
+         $Html$Events.targetValue,
+         function (val) {
+            return $Signal.message(address)(SelectAlg(val));
+         });
+         return A2($Html.div,
+         _L.fromArray([]),
+         _L.fromArray([A2($Html.header,
+                      _L.fromArray([]),
+                      _L.fromArray([A2($Html.h1,
+                      _L.fromArray([]),
+                      _L.fromArray([$Html.text("Amazeball Mazes")]))]))
+                      ,$Maze.view(model)
+                      ,$Maze.viewDistances(model)
+                      ,A2($Html.br,
+                      _L.fromArray([]),
+                      _L.fromArray([]))
+                      ,A2($Html.input,
+                      _L.fromArray([$Html$Attributes.$class("sizeInput")
+                                   ,$Html$Attributes.value($Basics.toString(model.grid.rows))
+                                   ,A3($Html$Events.on,
+                                   "input",
+                                   $Html$Events.targetValue,
+                                   function ($) {
+                                      return $Signal.message(address)(UpdateWidth($));
+                                   })]),
+                      _L.fromArray([]))
+                      ,$Html.text(" X ")
+                      ,A2($Html.input,
+                      _L.fromArray([$Html$Attributes.$class("sizeInput")
+                                   ,$Html$Attributes.value($Basics.toString(model.grid.cols))
+                                   ,A3($Html$Events.on,
+                                   "input",
+                                   $Html$Events.targetValue,
+                                   function ($) {
+                                      return $Signal.message(address)(UpdateHeight($));
+                                   })]),
+                      _L.fromArray([]))
+                      ,A2($Html.br,
+                      _L.fromArray([]),
+                      _L.fromArray([]))
+                      ,A2($Html.select,
+                      _L.fromArray([selectEvent]),
+                      A2($List.map,
+                      algToOptions,
+                      $Maze.algorithms))
+                      ,A2($Html.button,
+                      _L.fromArray([A2($Html$Events.onClick,
+                      address,
+                      Refresh)]),
+                      _L.fromArray([$Html.text("REFRESH")]))
+                      ,A2($Html.footer,
+                      _L.fromArray([]),
+                      _L.fromArray([]))]));
+      }();
+   });
+   var initHeight = 10;
+   var initWidth = 10;
+   var main = $StartApp$Simple.start({_: {}
+                                     ,model: A4($Maze.init,
+                                     $Maze.defaultAlgorithm,
+                                     initWidth,
+                                     initHeight,
+                                     startTimeSeed)
+                                     ,update: update
+                                     ,view: view});
    _elm.Main.values = {_op: _op
-                      ,createGrid: createGrid
-                      ,gridTests: gridTests
+                      ,initWidth: initWidth
+                      ,initHeight: initHeight
+                      ,Refresh: Refresh
+                      ,UpdateWidth: UpdateWidth
+                      ,UpdateHeight: UpdateHeight
+                      ,SelectAlg: SelectAlg
+                      ,update: update
+                      ,view: view
+                      ,startTimeSeed: startTimeSeed
                       ,main: main};
    return _elm.Main.values;
-};
-Elm.Mask = Elm.Mask || {};
-Elm.Mask.make = function (_elm) {
-   "use strict";
-   _elm.Mask = _elm.Mask || {};
-   if (_elm.Mask.values)
-   return _elm.Mask.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "Mask",
-   $Array = Elm.Array.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Rnd = Elm.Rnd.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var count = function (mask) {
-      return function () {
-         var addCols = function (rowbits) {
-            return A2($Array.foldl,
-            F2(function (x,y) {
-               return x + y;
-            }),
-            0)(A2($Array.map,
-            function (b) {
-               return b ? 1 : 0;
-            },
-            rowbits));
-         };
-         return A2($Array.foldl,
-         F2(function (x,y) {
-            return x + y;
-         }),
-         0)(A2($Array.map,
-         addCols,
-         mask.bits));
-      }();
-   };
-   var set = F4(function (mask,
-   row,
-   col,
-   isOn) {
-      return function () {
-         var _v0 = A2($Array.get,
-         row,
-         mask.bits);
-         switch (_v0.ctor)
-         {case "Just":
-            return _U.replace([["bits"
-                               ,A3($Array.set,
-                               row,
-                               A3($Array.set,col,isOn,_v0._0),
-                               mask.bits)]],
-              mask);
-            case "Nothing": return mask;}
-         _U.badCase($moduleName,
-         "between lines 36 and 41");
-      }();
-   });
-   var get = F3(function (mask,
-   row,
-   col) {
-      return function () {
-         var _v2 = A2($Array.get,
-         row,
-         mask.bits);
-         switch (_v2.ctor)
-         {case "Just":
-            return function () {
-                 var _v4 = A2($Array.get,
-                 col,
-                 _v2._0);
-                 switch (_v4.ctor)
-                 {case "Just": return _v4._0;
-                    case "Nothing": return false;}
-                 _U.badCase($moduleName,
-                 "between lines 29 and 32");
-              }();
-            case "Nothing": return false;}
-         _U.badCase($moduleName,
-         "between lines 27 and 32");
-      }();
-   });
-   var randomLocation = F2(function (mask,
-   rnd) {
-      return A3(get,
-      mask,
-      rnd.row,
-      rnd.col) ? {ctor: "_Tuple2"
-                 ,_0: rnd.row
-                 ,_1: rnd.col} : A2(randomLocation,
-      mask,
-      $Rnd.refresh(rnd));
-   });
-   var createMask = F2(function (rows,
-   cols) {
-      return function () {
-         var bits = A2($Array.initialize,
-         rows,
-         function (n) {
-            return A2($Array.repeat,
-            cols,
-            true);
-         });
-         return {_: {}
-                ,bits: bits
-                ,cols: cols
-                ,rows: rows};
-      }();
-   });
-   var Mask = F3(function (a,b,c) {
-      return {_: {}
-             ,bits: c
-             ,cols: b
-             ,rows: a};
-   });
-   _elm.Mask.values = {_op: _op
-                      ,Mask: Mask
-                      ,createMask: createMask
-                      ,get: get
-                      ,set: set
-                      ,count: count
-                      ,randomLocation: randomLocation};
-   return _elm.Mask.values;
-};
-Elm.MaskedGrid = Elm.MaskedGrid || {};
-Elm.MaskedGrid.make = function (_elm) {
-   "use strict";
-   _elm.MaskedGrid = _elm.MaskedGrid || {};
-   if (_elm.MaskedGrid.values)
-   return _elm.MaskedGrid.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "MaskedGrid",
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Mask = Elm.Mask.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Random = Elm.Random.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var size = function (grid) {
-      return $Mask.count(grid.mask);
-   };
-   var randomCell = function (grid) {
-      return function () {
-         var $ = A2($Mask.randomLocation,
-         grid.mask,
-         grid.rnd),
-         row = $._0,
-         col = $._1;
-         return $Grid.toValidCell(A3($Grid.getCell,
-         grid,
-         row,
-         col));
-      }();
-   };
-   var prepareGrid = function (mask) {
-      return function () {
-         var createMaskedCell = F2(function (row,
-         col) {
-            return A3($Mask.get,
-            mask,
-            row,
-            col) ? A2($Cell.createCell,
-            row,
-            col) : $Cell.createNilCell;
-         });
-         var makeRow = F2(function (cols,
-         row) {
-            return A2($List.map,
-            createMaskedCell(row),
-            _L.range(1,mask.cols));
-         });
-         return A2($List.concatMap,
-         makeRow(mask.cols),
-         _L.range(1,mask.rows));
-      }();
-   };
-   var createMaskedGrid = F2(function (mask,
-   initSeed) {
-      return function () {
-         var grid = A3($Grid.createGrid,
-         mask.rows,
-         mask.cols,
-         initSeed);
-         var grid$ = _U.replace([["cells"
-                                 ,prepareGrid(mask)]],
-         grid);
-         return _U.insert("mask",
-         mask,
-         grid$);
-      }();
-   });
-   var Masked = F2(function (a,b) {
-      return _U.insert("mask",a,b);
-   });
-   _elm.MaskedGrid.values = {_op: _op
-                            ,Masked: Masked
-                            ,createMaskedGrid: createMaskedGrid
-                            ,prepareGrid: prepareGrid
-                            ,randomCell: randomCell
-                            ,size: size};
-   return _elm.MaskedGrid.values;
 };
 Elm.Maybe = Elm.Maybe || {};
 Elm.Maybe.make = function (_elm) {
@@ -5992,6 +6639,227 @@ Elm.Maybe.make = function (_elm) {
                        ,Just: Just
                        ,Nothing: Nothing};
    return _elm.Maybe.values;
+};
+Elm.Maze = Elm.Maze || {};
+Elm.Maze.make = function (_elm) {
+   "use strict";
+   _elm.Maze = _elm.Maze || {};
+   if (_elm.Maze.values)
+   return _elm.Maze.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Maze",
+   $AldousBroder = Elm.AldousBroder.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $BinaryTree = Elm.BinaryTree.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $ColoredGrid = Elm.ColoredGrid.make(_elm),
+   $DistanceGrid = Elm.DistanceGrid.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $HuntAndKill = Elm.HuntAndKill.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
+   $RecursiveBacktracker = Elm.RecursiveBacktracker.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Sidewinder = Elm.Sidewinder.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Wilsons = Elm.Wilsons.make(_elm);
+   var algToString = function (algType) {
+      return function () {
+         switch (algType.ctor)
+         {case "AldousBroder":
+            return "Aldous-Broder";
+            case "BinaryTree":
+            return "Binary Tree";
+            case "HuntAndKill":
+            return "Hunt - Kill";
+            case "RecursiveBacktracker":
+            return "Recursive Backtracker";
+            case "Sidewinder":
+            return "Sidewinder";
+            case "Wilsons":
+            return "Wilsons";}
+         _U.badCase($moduleName,
+         "between lines 109 and 115");
+      }();
+   };
+   var getAlgFn = function (algType) {
+      return function () {
+         switch (algType.ctor)
+         {case "AldousBroder":
+            return $AldousBroder.on;
+            case "BinaryTree":
+            return $BinaryTree.on;
+            case "HuntAndKill":
+            return $HuntAndKill.on;
+            case "RecursiveBacktracker":
+            return $RecursiveBacktracker.on;
+            case "Sidewinder":
+            return $Sidewinder.on;
+            case "Wilsons":
+            return $Wilsons.on;}
+         _U.badCase($moduleName,
+         "between lines 99 and 105");
+      }();
+   };
+   var viewDistances = function (maze) {
+      return function () {
+         var goal = $Grid.toValidCell(A3($Grid.getCell,
+         maze.grid,
+         maze.grid.rows,
+         1));
+         var root = $Grid.center(maze.grid);
+         var dgrid = A2($DistanceGrid.createDistanceGrid,
+         maze.grid,
+         root);
+         var pathDistances = A3($DistanceGrid.pathTo,
+         maze.grid,
+         root,
+         goal);
+         var pathGrid = _U.replace([["dists"
+                                    ,pathDistances]],
+         dgrid);
+         var longDistances = A2($DistanceGrid.longestPath,
+         maze.grid,
+         root);
+         var longGrid = _U.replace([["dists"
+                                    ,longDistances]],
+         dgrid);
+         var rootStr = $Cell.cellToString(root);
+         return A2($Html.div,
+         _L.fromArray([]),
+         _L.fromArray([A2($Html.br,
+         _L.fromArray([]),
+         _L.fromArray([]))]));
+      }();
+   };
+   var view = function (maze) {
+      return function () {
+         var root = $Grid.center(maze.grid);
+         var coloredGrid = A2($ColoredGrid.createColoredGrid,
+         maze.grid,
+         root);
+         return A2($Html.div,
+         _L.fromArray([]),
+         _L.fromArray([$Html.text(A2($Basics._op["++"],
+                      algToString(maze.alg),
+                      " algorithm"))
+                      ,A2($Html.br,
+                      _L.fromArray([]),
+                      _L.fromArray([]))
+                      ,$Html.text(A2($Basics._op["++"],
+                      $Basics.toString($List.length($Grid.deadEnds(maze.grid))),
+                      " deadends"))
+                      ,$Html.fromElement(A2($ColoredGrid.view,
+                      coloredGrid,
+                      30))]));
+      }();
+   };
+   var updateSize = F3(function (maze,
+   width,
+   height) {
+      return _U.replace([["grid"
+                         ,getAlgFn(maze.alg)(A3($Grid.createGrid,
+                         width,
+                         height,
+                         $Grid.nextSeed(maze.grid)))]],
+      maze);
+   });
+   var update = function (maze) {
+      return _U.replace([["grid"
+                         ,getAlgFn(maze.alg)($Grid.update(maze.grid))]],
+      maze);
+   };
+   var init = F4(function (algType,
+   width,
+   height,
+   seed) {
+      return function () {
+         var algfn = getAlgFn(algType);
+         var grid = algfn(A3($Grid.createGrid,
+         width,
+         height,
+         seed));
+         return {_: {}
+                ,alg: algType
+                ,grid: grid};
+      }();
+   });
+   var Maze = F2(function (a,b) {
+      return {_: {}
+             ,alg: b
+             ,grid: a};
+   });
+   var AlgAttr = F2(function (a,
+   b) {
+      return {_: {}
+             ,alg: a
+             ,name: b};
+   });
+   var RecursiveBacktracker = {ctor: "RecursiveBacktracker"};
+   var HuntAndKill = {ctor: "HuntAndKill"};
+   var Wilsons = {ctor: "Wilsons"};
+   var AldousBroder = {ctor: "AldousBroder"};
+   var Sidewinder = {ctor: "Sidewinder"};
+   var defaultAlgorithm = Sidewinder;
+   var BinaryTree = {ctor: "BinaryTree"};
+   var algorithms = _L.fromArray([{_: {}
+                                  ,alg: BinaryTree
+                                  ,name: algToString(BinaryTree)}
+                                 ,{_: {}
+                                  ,alg: Sidewinder
+                                  ,name: algToString(Sidewinder)}
+                                 ,{_: {}
+                                  ,alg: AldousBroder
+                                  ,name: algToString(AldousBroder)}
+                                 ,{_: {}
+                                  ,alg: Wilsons
+                                  ,name: algToString(Wilsons)}
+                                 ,{_: {}
+                                  ,alg: HuntAndKill
+                                  ,name: algToString(HuntAndKill)}
+                                 ,{_: {}
+                                  ,alg: RecursiveBacktracker
+                                  ,name: algToString(RecursiveBacktracker)}]);
+   var algByName = function (str) {
+      return function () {
+         var res = $List.head(A2($List.filter,
+         function (a) {
+            return _U.eq(a.name,str);
+         },
+         algorithms));
+         return function () {
+            switch (res.ctor)
+            {case "Just":
+               return res._0.alg;}
+            return Sidewinder;
+         }();
+      }();
+   };
+   _elm.Maze.values = {_op: _op
+                      ,BinaryTree: BinaryTree
+                      ,Sidewinder: Sidewinder
+                      ,AldousBroder: AldousBroder
+                      ,Wilsons: Wilsons
+                      ,HuntAndKill: HuntAndKill
+                      ,RecursiveBacktracker: RecursiveBacktracker
+                      ,AlgAttr: AlgAttr
+                      ,Maze: Maze
+                      ,defaultAlgorithm: defaultAlgorithm
+                      ,init: init
+                      ,update: update
+                      ,updateSize: updateSize
+                      ,view: view
+                      ,viewDistances: viewDistances
+                      ,algorithms: algorithms
+                      ,getAlgFn: getAlgFn
+                      ,algToString: algToString
+                      ,algByName: algByName};
+   return _elm.Maze.values;
 };
 Elm.Native.Array = {};
 Elm.Native.Array.make = function(localRuntime) {
@@ -11625,6 +12493,38 @@ Elm.Native.Text.make = function(localRuntime) {
 	};
 };
 
+Elm.Native.Trampoline = {};
+Elm.Native.Trampoline.make = function(localRuntime) {
+
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Trampoline = localRuntime.Native.Trampoline || {};
+	if (localRuntime.Native.Trampoline.values)
+	{
+		return localRuntime.Native.Trampoline.values;
+	}
+
+	// trampoline : Trampoline a -> a
+	function trampoline(t)
+	{
+		var tramp = t;
+		while(true)
+		{
+			switch(tramp.ctor)
+			{
+				case "Done":
+					return tramp._0;
+				case "Continue":
+					tramp = tramp._0({ ctor: "_Tuple0" });
+					continue;
+			}
+		}
+	}
+
+	return localRuntime.Native.Trampoline.values = {
+		trampoline: trampoline
+	};
+};
+
 Elm.Native.Transform2D = {};
 Elm.Native.Transform2D.make = function(localRuntime) {
 
@@ -13981,6 +14881,89 @@ Elm.Random.make = function (_elm) {
                         ,Seed: Seed};
    return _elm.Random.values;
 };
+Elm.RecursiveBacktracker = Elm.RecursiveBacktracker || {};
+Elm.RecursiveBacktracker.make = function (_elm) {
+   "use strict";
+   _elm.RecursiveBacktracker = _elm.RecursiveBacktracker || {};
+   if (_elm.RecursiveBacktracker.values)
+   return _elm.RecursiveBacktracker.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "RecursiveBacktracker",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Trampoline = Elm.Trampoline.make(_elm);
+   var walkRandomly = F2(function (grid,
+   stack) {
+      return $List.isEmpty(stack) ? $Trampoline.Done(grid) : function () {
+         var current = $Grid.toValidCell($List.head(stack));
+         var neighbors = A3($Grid.filterNeighbors,
+         function (c) {
+            return $Basics.not($Cell.hasLinks(c));
+         },
+         grid,
+         current);
+         return $List.isEmpty(neighbors) ? $Trampoline.Continue(function (_v0) {
+            return function () {
+               switch (_v0.ctor)
+               {case "_Tuple0":
+                  return A2(walkRandomly,
+                    grid,
+                    A2($Maybe.withDefault,
+                    _L.fromArray([]),
+                    $List.tail(stack)));}
+               _U.badCase($moduleName,
+               "on line 34, column 37 to 88");
+            }();
+         }) : function () {
+            var neighbor = $Grid.toValidCell(A2($GridUtils.sampleCell,
+            neighbors,
+            grid.rnd));
+            var grid$ = A4($Grid.linkCells,
+            grid,
+            current,
+            neighbor,
+            true);
+            var grid$$ = $Grid.updateRnd(grid$);
+            return $Trampoline.Continue(function (_v2) {
+               return function () {
+                  switch (_v2.ctor)
+                  {case "_Tuple0":
+                     return A2(walkRandomly,
+                       grid$$,
+                       A2($List._op["::"],
+                       neighbor,
+                       stack));}
+                  _U.badCase($moduleName,
+                  "on line 41, column 36 to 74");
+               }();
+            });
+         }();
+      }();
+   });
+   var on = function (grid) {
+      return function () {
+         var $ = $Grid.randomCell(grid),
+         grid$ = $._0,
+         startCell = $._1;
+         var stack = _L.fromArray([startCell]);
+         return $Trampoline.trampoline(A2(walkRandomly,
+         grid$,
+         stack));
+      }();
+   };
+   _elm.RecursiveBacktracker.values = {_op: _op
+                                      ,on: on};
+   return _elm.RecursiveBacktracker.values;
+};
 Elm.Result = Elm.Result || {};
 Elm.Result.make = function (_elm) {
    "use strict";
@@ -14684,6 +15667,63 @@ Elm.Signal.make = function (_elm) {
                         ,Mailbox: Mailbox};
    return _elm.Signal.values;
 };
+Elm.StartApp = Elm.StartApp || {};
+Elm.StartApp.Simple = Elm.StartApp.Simple || {};
+Elm.StartApp.Simple.make = function (_elm) {
+   "use strict";
+   _elm.StartApp = _elm.StartApp || {};
+   _elm.StartApp.Simple = _elm.StartApp.Simple || {};
+   if (_elm.StartApp.Simple.values)
+   return _elm.StartApp.Simple.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "StartApp.Simple",
+   $Basics = Elm.Basics.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var start = function (config) {
+      return function () {
+         var actions = $Signal.mailbox($Maybe.Nothing);
+         var address = A2($Signal.forwardTo,
+         actions.address,
+         $Maybe.Just);
+         var model = A3($Signal.foldp,
+         F2(function (_v0,model) {
+            return function () {
+               switch (_v0.ctor)
+               {case "Just":
+                  return A2(config.update,
+                    _v0._0,
+                    model);}
+               _U.badCase($moduleName,
+               "on line 91, column 34 to 60");
+            }();
+         }),
+         config.model,
+         actions.signal);
+         return A2($Signal.map,
+         config.view(address),
+         model);
+      }();
+   };
+   var Config = F3(function (a,
+   b,
+   c) {
+      return {_: {}
+             ,model: a
+             ,update: c
+             ,view: b};
+   });
+   _elm.StartApp.Simple.values = {_op: _op
+                                 ,Config: Config
+                                 ,start: start};
+   return _elm.StartApp.Simple.values;
+};
 Elm.String = Elm.String || {};
 Elm.String.make = function (_elm) {
    "use strict";
@@ -15096,6 +16136,32 @@ Elm.Text.make = function (_elm) {
                       ,Through: Through};
    return _elm.Text.values;
 };
+Elm.Trampoline = Elm.Trampoline || {};
+Elm.Trampoline.make = function (_elm) {
+   "use strict";
+   _elm.Trampoline = _elm.Trampoline || {};
+   if (_elm.Trampoline.values)
+   return _elm.Trampoline.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Trampoline",
+   $Native$Trampoline = Elm.Native.Trampoline.make(_elm);
+   var trampoline = $Native$Trampoline.trampoline;
+   var Continue = function (a) {
+      return {ctor: "Continue"
+             ,_0: a};
+   };
+   var Done = function (a) {
+      return {ctor: "Done",_0: a};
+   };
+   _elm.Trampoline.values = {_op: _op
+                            ,trampoline: trampoline
+                            ,Done: Done
+                            ,Continue: Continue};
+   return _elm.Trampoline.values;
+};
 Elm.Transform2D = Elm.Transform2D || {};
 Elm.Transform2D.make = function (_elm) {
    "use strict";
@@ -15227,4 +16293,144 @@ Elm.VirtualDom.make = function (_elm) {
                             ,lazy3: lazy3
                             ,Options: Options};
    return _elm.VirtualDom.values;
+};
+Elm.Wilsons = Elm.Wilsons || {};
+Elm.Wilsons.make = function (_elm) {
+   "use strict";
+   _elm.Wilsons = _elm.Wilsons || {};
+   if (_elm.Wilsons.values)
+   return _elm.Wilsons.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Wilsons",
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Trampoline = Elm.Trampoline.make(_elm);
+   var carvePassage = function (rwp) {
+      return function () {
+         var pathArr = $Array.fromList(rwp.path);
+         var carve = F2(function (index,
+         rwp) {
+            return function () {
+               var nextcell = $Grid.toValidCell(A2($Array.get,
+               index + 1,
+               pathArr));
+               var icell = $Grid.toValidCell(A2($Array.get,
+               index,
+               pathArr));
+               var grid$ = A4($Grid.linkCells,
+               rwp.grid,
+               icell,
+               nextcell,
+               true);
+               var unvisited$ = A2($List.filter,
+               function (e) {
+                  return $Basics.not(_U.eq(e.id,
+                  icell.id));
+               },
+               rwp.unvisited);
+               return _U.replace([["grid"
+                                  ,grid$]
+                                 ,["unvisited",unvisited$]],
+               rwp);
+            }();
+         });
+         return A3($List.foldl,
+         carve,
+         rwp,
+         _L.range(0,
+         $List.length(rwp.path) - 2));
+      }();
+   };
+   var loopErasedRandomWalk = function (rwp) {
+      return $Basics.not(A2($List.member,
+      rwp.cell,
+      rwp.unvisited)) ? carvePassage(rwp) : function () {
+         var grid = $Grid.updateRnd(rwp.grid);
+         var cell$ = $Grid.toValidCell(A2($GridUtils.sampleCell,
+         A2($Grid.neighbors,
+         rwp.grid,
+         rwp.cell),
+         rwp.grid.rnd));
+         var position = A2($GridUtils.indexOfCell,
+         cell$,
+         rwp.path);
+         return _U.cmp(position,
+         0) > -1 ? loopErasedRandomWalk(_U.replace([["grid"
+                                                    ,grid]
+                                                   ,["cell",cell$]
+                                                   ,["path"
+                                                    ,A2($List.take,
+                                                    position + 1,
+                                                    rwp.path)]],
+         rwp)) : loopErasedRandomWalk(_U.replace([["grid"
+                                                  ,grid]
+                                                 ,["cell",cell$]
+                                                 ,["path"
+                                                  ,$List.concat(_L.fromArray([rwp.path
+                                                                             ,_L.fromArray([cell$])]))]],
+         rwp));
+      }();
+   };
+   var work = F2(function (grid,
+   unvisited) {
+      return $List.isEmpty(unvisited) ? $Trampoline.Done(grid) : function () {
+         var cell = $Grid.toValidCell(A2($GridUtils.sampleCell,
+         unvisited,
+         grid.rnd));
+         var rwp = loopErasedRandomWalk({_: {}
+                                        ,cell: cell
+                                        ,grid: $Grid.updateRnd(grid)
+                                        ,path: _L.fromArray([cell])
+                                        ,unvisited: unvisited});
+         return $Trampoline.Continue(function (_v0) {
+            return function () {
+               switch (_v0.ctor)
+               {case "_Tuple0": return A2(work,
+                    rwp.grid,
+                    rwp.unvisited);}
+               _U.badCase($moduleName,
+               "on line 42, column 29 to 56");
+            }();
+         });
+      }();
+   });
+   var on = function (grid) {
+      return function () {
+         var $ = $Grid.randomCell(grid),
+         grid$ = $._0,
+         first = $._1;
+         var unvisited = A2($List.filter,
+         function (e) {
+            return $Basics.not(_U.eq(e.id,
+            first.id));
+         },
+         grid.cells);
+         return $Trampoline.trampoline(A2(work,
+         grid$,
+         unvisited));
+      }();
+   };
+   var RandomWalkPath = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,cell: b
+             ,grid: a
+             ,path: c
+             ,unvisited: d};
+   });
+   _elm.Wilsons.values = {_op: _op
+                         ,on: on};
+   return _elm.Wilsons.values;
 };

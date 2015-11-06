@@ -54,7 +54,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 247 and 249");
+         "between lines 248 and 250");
       }();
    };
    var gridIndex = F3(function (grid,
@@ -148,7 +148,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 127 and 129");
+         "between lines 128 and 130");
       }();
    };
    var toValidCell = function (cell) {
@@ -160,7 +160,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 121 and 123");
+         "between lines 122 and 124");
       }();
    };
    var getCell = F3(function (grid,
@@ -345,7 +345,7 @@ Elm.Grid.make = function (_elm) {
                     style,
                     _v6._1)]) : _L.fromArray([]);}
                _U.badCase($moduleName,
-               "between lines 69 and 71");
+               "between lines 70 and 72");
             }();
          });
          var cellWalls = F2(function (style,

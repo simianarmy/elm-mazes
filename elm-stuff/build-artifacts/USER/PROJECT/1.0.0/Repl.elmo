@@ -10,49 +10,49 @@ Elm.Repl.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Repl",
    $Basics = Elm.Basics.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
    $List = Elm.List.make(_elm),
    $Mask = Elm.Mask.make(_elm),
    $MaskedGrid = Elm.MaskedGrid.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var tsol = {ctor: "_Tuple0"};
    var mask = A2($Mask.createMask,
-   5,
-   5);
-   var m2 = A4($Mask.set,
+   3,
+   3);
+   var mask$ = A4($Mask.set,
    mask,
    0,
    0,
    false);
-   var m3 = A4($Mask.set,
-   m2,
+   var mask$$ = A4($Mask.set,
+   mask$,
    2,
    2,
    false);
-   var m4 = A4($Mask.set,
-   m3,
+   var mask$$$ = A4($Mask.set,
+   mask$$,
    4,
    4,
    false);
    var grid = A2($MaskedGrid.createMaskedGrid,
-   m4,
+   mask,
    $Random.initialSeed(123));
-   var TT = function (a) {
-      return {_: {},b: a};
-   };
-   var T = function (a) {
-      return {_: {},i: a};
-   };
+   var maze = $Sidewinder.on(grid);
+   var deltron3030 = A2($Grid.toAscii,
+   $Grid.cellToAscii,
+   _U.remove("mask",maze));
    _elm.Repl.values = {_op: _op
-                      ,T: T
-                      ,TT: TT
+                      ,deltron3030: deltron3030
                       ,grid: grid
-                      ,m2: m2
-                      ,m3: m3
-                      ,m4: m4
                       ,mask: mask
+                      ,mask$: mask$
+                      ,mask$$: mask$$
+                      ,mask$$$: mask$$$
+                      ,maze: maze
                       ,tsol: tsol};
    return _elm.Repl.values;
 };
