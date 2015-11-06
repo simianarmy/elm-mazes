@@ -22,6 +22,9 @@ createCell row col =
         links = Set.empty
     }
 
+-- helper to create a nil cell
+createNilCell = createCell -1 -1
+
 -- generate a unique id string
 createCellID : Int -> Int -> CellID
 createCellID a b =

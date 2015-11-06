@@ -12,35 +12,47 @@ Elm.Repl.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $List = Elm.List.make(_elm),
    $Mask = Elm.Mask.make(_elm),
+   $MaskedGrid = Elm.MaskedGrid.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var tsol = {ctor: "_Tuple0"};
-   var m = A2($Mask.createMask,
-   2,
-   3);
-   var m$ = A4($Mask.set,
-   m,
+   var mask = A2($Mask.createMask,
+   5,
+   5);
+   var m2 = A4($Mask.set,
+   mask,
    0,
-   1,
+   0,
    false);
-   var m$$ = A4($Mask.set,
-   m$,
-   1,
-   1,
-   false);
-   var m$$$ = A4($Mask.set,
-   m$$,
-   1,
+   var m3 = A4($Mask.set,
+   m2,
+   2,
    2,
    false);
-   var deltron3030 = $Mask.randomLocation(m$$$);
+   var m4 = A4($Mask.set,
+   m3,
+   4,
+   4,
+   false);
+   var grid = A2($MaskedGrid.createMaskedGrid,
+   m4,
+   $Random.initialSeed(123));
+   var TT = function (a) {
+      return {_: {},b: a};
+   };
+   var T = function (a) {
+      return {_: {},i: a};
+   };
    _elm.Repl.values = {_op: _op
-                      ,deltron3030: deltron3030
-                      ,m: m
-                      ,m$: m$
-                      ,m$$: m$$
-                      ,m$$$: m$$$
+                      ,T: T
+                      ,TT: TT
+                      ,grid: grid
+                      ,m2: m2
+                      ,m3: m3
+                      ,m4: m4
+                      ,mask: mask
                       ,tsol: tsol};
    return _elm.Repl.values;
 };

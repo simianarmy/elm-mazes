@@ -64,7 +64,7 @@ gridTests = suite "Grid test suite"
                 grid'' = linkCells grid' (createCell 1 2) (createCell 1 1) True
                 oneone = toValidCell (getCell grid'' 1 1)
             in
-               assert ((Set.member "2:1" oneone.links) && (Set.member "1:2" oneone.links)))
+               assert ((Set.member (2,1) oneone.links) && (Set.member (1,2) oneone.links)))
         , test "Neighbors returns list of neighboring cells (middle of 3x3 grid)" (
             let grid = createGrid 3 3
             in
@@ -86,7 +86,7 @@ gridTests = suite "Grid test suite"
             in
                 assertEqual (List.length (neighbors grid (createCell 1 1))) 0)
         , test "Grid size" (assertEqual (Grid.size (createGrid 3 5)) 15)
-        , test "Grid to ascii" (assert (not (String.isEmpty ((createGrid 3 3) |> gridToString))))
+        , test "Grid to ascii" (assert (not (String.isEmpty ((createGrid 3 3) |> Grid.toAscii Grid.cellToAscii))))
         ]
 
 main = runDisplay gridTests

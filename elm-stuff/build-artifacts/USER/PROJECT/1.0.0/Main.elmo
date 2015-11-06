@@ -10,147 +10,49 @@ Elm.Main.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Main",
    $Basics = Elm.Basics.make(_elm),
-   $Html = Elm.Html.make(_elm),
-   $Html$Attributes = Elm.Html.Attributes.make(_elm),
-   $Html$Events = Elm.Html.Events.make(_elm),
+   $ElmTest$Assertion = Elm.ElmTest.Assertion.make(_elm),
+   $ElmTest$Runner$Element = Elm.ElmTest.Runner.Element.make(_elm),
+   $ElmTest$Test = Elm.ElmTest.Test.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
    $List = Elm.List.make(_elm),
+   $Mask = Elm.Mask.make(_elm),
+   $MaskedGrid = Elm.MaskedGrid.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Maze = Elm.Maze.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $StartApp$Simple = Elm.StartApp.Simple.make(_elm),
-   $String = Elm.String.make(_elm);
-   var startTime = Elm.Native.Port.make(_elm).inbound("startTime",
-   "Float",
-   function (v) {
-      return typeof v === "number" ? v : _U.badPort("a number",
-      v);
+   $Sidewinder = Elm.Sidewinder.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var createGrid = F2(function (rows,
+   cols) {
+      return A2($MaskedGrid.createMaskedGrid,
+      A2($Mask.createMask,rows,cols),
+      $Random.initialSeed(123));
    });
-   var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
-   var update = F2(function (action,
-   model) {
-      return function () {
-         switch (action.ctor)
-         {case "Refresh":
-            return $Maze.update(model);
-            case "SelectAlg":
-            return $Maze.update(_U.replace([["alg"
-                                            ,$Maze.algByName(action._0)]],
-              model));
-            case "UpdateHeight":
-            return A3($Maze.updateSize,
-              model,
-              model.grid.rows,
-              $Maybe.withDefault(model.grid.cols)($Result.toMaybe($String.toInt(action._0))));
-            case "UpdateWidth":
-            return A3($Maze.updateSize,
-              model,
-              $Maybe.withDefault(model.grid.rows)($Result.toMaybe($String.toInt(action._0))),
-              model.grid.cols);}
-         _U.badCase($moduleName,
-         "between lines 29 and 43");
-      }();
-   });
-   var SelectAlg = function (a) {
-      return {ctor: "SelectAlg"
-             ,_0: a};
-   };
-   var UpdateHeight = function (a) {
-      return {ctor: "UpdateHeight"
-             ,_0: a};
-   };
-   var UpdateWidth = function (a) {
-      return {ctor: "UpdateWidth"
-             ,_0: a};
-   };
-   var Refresh = {ctor: "Refresh"};
-   var view = F2(function (address,
-   model) {
-      return function () {
-         var algToOptions = function (attr) {
-            return A2($Html.option,
-            _L.fromArray([$Html$Attributes.selected(_U.eq(attr.alg,
-            $Maze.defaultAlgorithm))]),
-            _L.fromArray([$Html.text(attr.name)]));
-         };
-         var selectEvent = A3($Html$Events.on,
-         "change",
-         $Html$Events.targetValue,
-         function (val) {
-            return $Signal.message(address)(SelectAlg(val));
-         });
-         return A2($Html.div,
-         _L.fromArray([]),
-         _L.fromArray([A2($Html.header,
-                      _L.fromArray([]),
-                      _L.fromArray([A2($Html.h1,
-                      _L.fromArray([]),
-                      _L.fromArray([$Html.text("Amazeball Mazes")]))]))
-                      ,$Maze.view(model)
-                      ,$Maze.viewDistances(model)
-                      ,A2($Html.br,
-                      _L.fromArray([]),
-                      _L.fromArray([]))
-                      ,A2($Html.input,
-                      _L.fromArray([$Html$Attributes.$class("sizeInput")
-                                   ,$Html$Attributes.value($Basics.toString(model.grid.rows))
-                                   ,A3($Html$Events.on,
-                                   "input",
-                                   $Html$Events.targetValue,
-                                   function ($) {
-                                      return $Signal.message(address)(UpdateWidth($));
-                                   })]),
-                      _L.fromArray([]))
-                      ,$Html.text(" X ")
-                      ,A2($Html.input,
-                      _L.fromArray([$Html$Attributes.$class("sizeInput")
-                                   ,$Html$Attributes.value($Basics.toString(model.grid.cols))
-                                   ,A3($Html$Events.on,
-                                   "input",
-                                   $Html$Events.targetValue,
-                                   function ($) {
-                                      return $Signal.message(address)(UpdateHeight($));
-                                   })]),
-                      _L.fromArray([]))
-                      ,A2($Html.br,
-                      _L.fromArray([]),
-                      _L.fromArray([]))
-                      ,A2($Html.select,
-                      _L.fromArray([selectEvent]),
-                      A2($List.map,
-                      algToOptions,
-                      $Maze.algorithms))
-                      ,A2($Html.button,
-                      _L.fromArray([A2($Html$Events.onClick,
-                      address,
-                      Refresh)]),
-                      _L.fromArray([$Html.text("REFRESH")]))
-                      ,A2($Html.footer,
-                      _L.fromArray([]),
-                      _L.fromArray([]))]));
-      }();
-   });
-   var initHeight = 10;
-   var initWidth = 10;
-   var main = $StartApp$Simple.start({_: {}
-                                     ,model: A4($Maze.init,
-                                     $Maze.defaultAlgorithm,
-                                     initWidth,
-                                     initHeight,
-                                     startTimeSeed)
-                                     ,update: update
-                                     ,view: view});
+   var gridTests = A2($ElmTest$Test.suite,
+   "Masked grid test suite",
+   _L.fromArray([A2($ElmTest$Test.test,
+                "Masked Grid size equals grid size",
+                function () {
+                   var grid = A2(createGrid,
+                   3,
+                   3);
+                   return A2($ElmTest$Assertion.assertEqual,
+                   $MaskedGrid.size(grid),
+                   9);
+                }())
+                ,A2($ElmTest$Test.test,
+                "Can be used with maze algorithms",
+                function () {
+                   var grid = A2(createGrid,
+                   3,
+                   3);
+                   return $ElmTest$Assertion.assert($Basics.not(_U.eq($Grid.size($Sidewinder.on(grid)),
+                   9)));
+                }())]));
+   var main = $ElmTest$Runner$Element.runDisplay(gridTests);
    _elm.Main.values = {_op: _op
-                      ,initWidth: initWidth
-                      ,initHeight: initHeight
-                      ,Refresh: Refresh
-                      ,UpdateWidth: UpdateWidth
-                      ,UpdateHeight: UpdateHeight
-                      ,SelectAlg: SelectAlg
-                      ,update: update
-                      ,view: view
-                      ,startTimeSeed: startTimeSeed
+                      ,createGrid: createGrid
+                      ,gridTests: gridTests
                       ,main: main};
    return _elm.Main.values;
 };
