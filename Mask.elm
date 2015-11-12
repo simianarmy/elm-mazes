@@ -40,6 +40,14 @@ set mask row col isOn =
         }
         Nothing -> mask
 
+-- set multiple values from list
+mset : Mask -> List ((Int, Int), Bool) -> Mask
+mset mask vals =
+    let setone e mask' =
+        set mask' (fst (fst e)) (snd (fst e)) (snd e)
+    in
+        List.foldl setone mask vals
+
 -- counts True bits
 count : Mask -> Int
 count mask =

@@ -48,14 +48,12 @@ nextSeed grid =
 
 updateRnd : Grid a -> Grid a
 updateRnd grid =
-    {
-        grid |
+    {grid |
         rnd <- Rnd.refresh grid.rnd
     }
 
-update : Grid a -> Grid {}
 update grid =
-    createGrid grid.rows grid.cols <| nextSeed grid
+    updateRnd grid
 
 -- generates collage view of the grid
 view : (Grid a -> Cell -> Color) -> Grid a -> Int -> Element

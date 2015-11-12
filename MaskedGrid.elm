@@ -12,8 +12,8 @@ type alias Masked a = {
         mask : Mask
     }
 
-createMaskedGrid : Mask -> Seed -> Masked (Grid {})
-createMaskedGrid mask initSeed =
+createGrid : Mask -> Seed -> Masked (Grid {})
+createGrid mask initSeed =
     let grid = Grid.createGrid mask.rows mask.cols initSeed
         grid' = {grid | cells <- prepareGrid mask}
     in

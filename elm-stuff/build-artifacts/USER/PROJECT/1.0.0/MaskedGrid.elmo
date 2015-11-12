@@ -56,7 +56,7 @@ Elm.MaskedGrid.make = function (_elm) {
          _L.range(1,mask.rows));
       }();
    };
-   var createMaskedGrid = F2(function (mask,
+   var createGrid = F2(function (mask,
    initSeed) {
       return function () {
          var grid = A3($Grid.createGrid,
@@ -76,7 +76,7 @@ Elm.MaskedGrid.make = function (_elm) {
    });
    _elm.MaskedGrid.values = {_op: _op
                             ,Masked: Masked
-                            ,createMaskedGrid: createMaskedGrid
+                            ,createGrid: createGrid
                             ,prepareGrid: prepareGrid
                             ,randomCell: randomCell
                             ,size: size};

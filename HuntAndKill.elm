@@ -1,7 +1,6 @@
 -- Module defining the Hunt & Kill maze creation algorithm
 module HuntAndKill (on) where
 
-
 import Grid exposing (Grid)
 import Cell exposing (Cell)
 import GridUtils
@@ -13,7 +12,7 @@ import List.Extra as LE
 import Trampoline exposing (..)
 import Debug exposing (log)
 
-on : Grid {} -> Grid {}
+on : Grid a -> Grid a
 on grid =
     -- start at a random cell in the grid
     let (grid', startCell) = Grid.randomCell grid
@@ -22,7 +21,7 @@ on grid =
        trampoline (walkRandomly grid' startCell)
 
 -- Breaking out to try trampoline
-walkRandomly : Grid {} -> Cell -> Trampoline (Grid {})
+walkRandomly : Grid a -> Cell -> Trampoline (Grid a)
 walkRandomly grid cell =
     if cell.row == -1
        then Done grid
@@ -45,7 +44,7 @@ walkRandomly grid cell =
              Continue (\() -> walkRandomly grid' current)
 
 
-hunt : Grid {} -> (Grid {}, Cell)
+hunt : Grid a -> (Grid a, Cell)
 hunt grid =
     let visitedNeighbors cell = Grid.filterNeighbors (\c -> Cell.hasLinks c) grid cell
 

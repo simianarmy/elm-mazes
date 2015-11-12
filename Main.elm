@@ -12,7 +12,7 @@ import Maze exposing (..)
 
 -- MODEL
 
-type alias Model = Maze
+type alias Model a = Maze a
 
 initWidth = 10
 initHeight = 10
@@ -24,7 +24,6 @@ type Action = Refresh |
     UpdateHeight String |
     SelectAlg String
 
-update : Action -> Model -> Model
 update action model =
     case action of
         Refresh ->
@@ -43,7 +42,6 @@ update action model =
             Maze.update {model | alg <- Maze.algByName str}
 
 -- VIEW
-view : Signal.Address Action -> Model -> Html
 view address model =
     let
         selectEvent = Html.Events.on "change" targetValue

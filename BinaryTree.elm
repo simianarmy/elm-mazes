@@ -10,7 +10,7 @@ import GridUtils
 import Grid exposing (..)
 import Cell exposing (..)
 
-on : Grid {} -> Grid {}
+on : Grid a -> Grid a
 on grid =
     let getRandomNeighbor : Grid a -> Cell -> Maybe Cell
         getRandomNeighbor grid' cell =
@@ -23,7 +23,6 @@ on grid =
                   else
                   GridUtils.sampleCell northandeast grid'.rnd
 
-        processCell : Cell -> Grid {} -> Grid {}
         processCell cell grid =
             let neighbor = getRandomNeighbor grid cell
                 grid' = updateRnd grid

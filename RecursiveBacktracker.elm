@@ -13,7 +13,7 @@ import List.Extra as LE
 import Trampoline exposing (..)
 import Debug exposing (log)
 
-on : Grid {} -> Grid {}
+on : Grid a -> Grid a
 on grid =
     -- start at a random cell in the grid
     let (grid', startCell) = Grid.randomCell grid
@@ -22,7 +22,7 @@ on grid =
        trampoline (walkRandomly grid' stack)
 
 
-walkRandomly : Grid {} -> List Cell -> Trampoline (Grid {})
+walkRandomly : Grid a -> List Cell -> Trampoline (Grid a)
 walkRandomly grid stack =
     if isEmpty stack
        then Done grid

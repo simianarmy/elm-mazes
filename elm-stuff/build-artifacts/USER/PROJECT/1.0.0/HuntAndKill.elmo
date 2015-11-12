@@ -57,7 +57,7 @@ Elm.HuntAndKill.make = function (_elm) {
                       -1,
                       -1)};}
             _U.badCase($moduleName,
-            "between lines 58 and 65");
+            "between lines 57 and 64");
          }();
       }();
    };
@@ -89,7 +89,7 @@ Elm.HuntAndKill.make = function (_elm) {
                        grid$$,
                        neighbor);}
                   _U.badCase($moduleName,
-                  "on line 40, column 34 to 62");
+                  "on line 39, column 34 to 62");
                }();
             });
          }() : function () {
@@ -104,7 +104,7 @@ Elm.HuntAndKill.make = function (_elm) {
                        grid$,
                        current);}
                   _U.badCase($moduleName,
-                  "on line 45, column 31 to 57");
+                  "on line 44, column 31 to 57");
                }();
             });
          }();

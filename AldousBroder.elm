@@ -11,7 +11,7 @@ import Array
 import Trampoline exposing (..)
 import Debug exposing (log)
 
-on : Grid {} -> Grid {}
+on : Grid a -> Grid a
 on grid =
     -- start at a random cell in the grid
     let (grid', startCell) = Grid.randomCell grid
@@ -20,7 +20,7 @@ on grid =
        trampoline (walkRandomly grid' startCell ((size grid) - 1))
 
 -- Breaking out to try trampoline
-walkRandomly : Grid {} -> Cell -> Int -> Trampoline (Grid {})
+walkRandomly : Grid a -> Cell -> Int -> Trampoline (Grid a)
 walkRandomly grid cell unvisited =
     if unvisited == 0
        then Done grid

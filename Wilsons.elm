@@ -11,14 +11,14 @@ import List exposing (..)
 import Trampoline exposing (..)
 import Debug exposing (log)
 
-type alias RandomWalkPath = {
-    grid : Grid {},
+type alias RandomWalkPath a = {
+    grid : Grid a,
     cell : Cell,
     path : List Cell,
     unvisited : List Cell
 }
 
-on : Grid {} -> Grid {}
+on : Grid a -> Grid a
 on grid =
     let (grid', first) = Grid.randomCell grid
         -- get all cells but the sampled one
@@ -26,7 +26,7 @@ on grid =
     in
        trampoline (work grid' unvisited)
 
-work : Grid {} -> List Cell -> Trampoline (Grid {})
+work : Grid a -> List Cell -> Trampoline (Grid a)
 work grid unvisited =
     if isEmpty unvisited
        then Done grid
@@ -41,7 +41,7 @@ work grid unvisited =
        in
           Continue (\() -> (work rwp.grid rwp.unvisited))
 
-loopErasedRandomWalk : RandomWalkPath -> RandomWalkPath
+loopErasedRandomWalk : RandomWalkPath a -> RandomWalkPath a
 loopErasedRandomWalk rwp =
     -- while cell is in unvisited
     if not <| member rwp.cell rwp.unvisited
@@ -58,12 +58,12 @@ loopErasedRandomWalk rwp =
              else
              loopErasedRandomWalk {rwp | grid <- grid, cell <- cell', path <- List.concat [rwp.path, [cell']]}
 
-carvePassage : RandomWalkPath -> RandomWalkPath
+carvePassage : RandomWalkPath a -> RandomWalkPath a
 carvePassage rwp =
     -- Use an array for easy indexing into the path
     let pathArr = Array.fromList rwp.path
 
-        carve : Int -> RandomWalkPath -> RandomWalkPath
+        carve : Int -> RandomWalkPath a -> RandomWalkPath a
         carve index rwp =
             let icell = Grid.toValidCell <| Array.get index pathArr
                 nextcell = Grid.toValidCell <| Array.get (index + 1) pathArr

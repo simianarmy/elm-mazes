@@ -54,7 +54,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 248 and 250");
+         "between lines 246 and 248");
       }();
    };
    var gridIndex = F3(function (grid,
@@ -148,7 +148,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 128 and 130");
+         "between lines 126 and 128");
       }();
    };
    var toValidCell = function (cell) {
@@ -160,7 +160,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 122 and 124");
+         "between lines 120 and 122");
       }();
    };
    var getCell = F3(function (grid,
@@ -345,7 +345,7 @@ Elm.Grid.make = function (_elm) {
                     style,
                     _v6._1)]) : _L.fromArray([]);}
                _U.badCase($moduleName,
-               "between lines 70 and 72");
+               "between lines 68 and 70");
             }();
          });
          var cellWalls = F2(function (style,
@@ -429,6 +429,9 @@ Elm.Grid.make = function (_elm) {
                          ,$Rnd.refresh(grid.rnd)]],
       grid);
    };
+   var update = function (grid) {
+      return updateRnd(grid);
+   };
    var randomCell = function (grid) {
       return function () {
          var grid$ = updateRnd(grid);
@@ -468,11 +471,6 @@ Elm.Grid.make = function (_elm) {
                 ,rows: rows};
       }();
    });
-   var update = function (grid) {
-      return A2(createGrid,
-      grid.rows,
-      grid.cols)(nextSeed(grid));
-   };
    var Grid = F5(function (a,
    b,
    c,

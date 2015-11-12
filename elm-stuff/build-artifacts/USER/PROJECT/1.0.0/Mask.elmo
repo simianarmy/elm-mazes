@@ -59,6 +59,23 @@ Elm.Mask.make = function (_elm) {
          "between lines 36 and 41");
       }();
    });
+   var mset = F2(function (mask,
+   vals) {
+      return function () {
+         var setone = F2(function (e,
+         mask$) {
+            return A4(set,
+            mask$,
+            $Basics.fst($Basics.fst(e)),
+            $Basics.snd($Basics.fst(e)),
+            $Basics.snd(e));
+         });
+         return A3($List.foldl,
+         setone,
+         mask,
+         vals);
+      }();
+   });
    var get = F3(function (mask,
    row,
    col) {
@@ -121,6 +138,7 @@ Elm.Mask.make = function (_elm) {
                       ,createMask: createMask
                       ,get: get
                       ,set: set
+                      ,mset: mset
                       ,count: count
                       ,randomLocation: randomLocation};
    return _elm.Mask.values;

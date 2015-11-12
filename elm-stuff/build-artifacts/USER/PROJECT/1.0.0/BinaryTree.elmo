@@ -50,7 +50,7 @@ Elm.BinaryTree.make = function (_elm) {
                        true);
                      case "Nothing": return grid$;}
                   _U.badCase($moduleName,
-                  "between lines 31 and 34");
+                  "between lines 30 and 33");
                }();
             }();
          });

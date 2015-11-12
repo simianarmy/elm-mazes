@@ -19,8 +19,8 @@ Elm.Maze.make = function (_elm) {
    $Html = Elm.Html.make(_elm),
    $HuntAndKill = Elm.HuntAndKill.make(_elm),
    $List = Elm.List.make(_elm),
+   $Mask = Elm.Mask.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Random = Elm.Random.make(_elm),
    $RecursiveBacktracker = Elm.RecursiveBacktracker.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
@@ -42,7 +42,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return "Wilsons";}
          _U.badCase($moduleName,
-         "between lines 109 and 115");
+         "between lines 117 and 123");
       }();
    };
    var getAlgFn = function (algType) {
@@ -61,7 +61,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return $Wilsons.on;}
          _U.badCase($moduleName,
-         "between lines 99 and 105");
+         "between lines 107 and 113");
       }();
    };
    var viewDistances = function (maze) {
@@ -112,21 +112,13 @@ Elm.Maze.make = function (_elm) {
                       ,$Html.text(A2($Basics._op["++"],
                       $Basics.toString($List.length($Grid.deadEnds(maze.grid))),
                       " deadends"))
-                      ,$Html.fromElement(A2($ColoredGrid.view,
-                      coloredGrid,
-                      30))]));
+                      ,A2($Html.pre,
+                      _L.fromArray([]),
+                      _L.fromArray([$Html.text(A2($Grid.toAscii,
+                      $Grid.cellToAscii,
+                      maze.grid))]))]));
       }();
    };
-   var updateSize = F3(function (maze,
-   width,
-   height) {
-      return _U.replace([["grid"
-                         ,getAlgFn(maze.alg)(A3($Grid.createGrid,
-                         width,
-                         height,
-                         $Grid.nextSeed(maze.grid)))]],
-      maze);
-   });
    var update = function (maze) {
       return _U.replace([["grid"
                          ,getAlgFn(maze.alg)($Grid.update(maze.grid))]],
@@ -137,6 +129,26 @@ Elm.Maze.make = function (_elm) {
    height,
    seed) {
       return function () {
+         var mask = A2($Mask.createMask,
+         width,
+         height);
+         var mask$ = A2($Mask.mset,
+         mask,
+         _L.fromArray([{ctor: "_Tuple2"
+                       ,_0: {ctor: "_Tuple2"
+                            ,_0: 0
+                            ,_1: 0}
+                       ,_1: false}
+                      ,{ctor: "_Tuple2"
+                       ,_0: {ctor: "_Tuple2"
+                            ,_0: 2
+                            ,_1: 2}
+                       ,_1: false}
+                      ,{ctor: "_Tuple2"
+                       ,_0: {ctor: "_Tuple2"
+                            ,_0: 4
+                            ,_1: 4}
+                       ,_1: false}]));
          var algfn = getAlgFn(algType);
          var grid = algfn(A3($Grid.createGrid,
          width,
@@ -146,6 +158,15 @@ Elm.Maze.make = function (_elm) {
                 ,alg: algType
                 ,grid: grid};
       }();
+   });
+   var updateSize = F3(function (maze,
+   width,
+   height) {
+      return A4(init,
+      maze.alg,
+      width,
+      height,
+      $Grid.nextSeed(maze.grid));
    });
    var Maze = F2(function (a,b) {
       return {_: {}
@@ -159,11 +180,11 @@ Elm.Maze.make = function (_elm) {
              ,name: b};
    });
    var RecursiveBacktracker = {ctor: "RecursiveBacktracker"};
+   var defaultAlgorithm = RecursiveBacktracker;
    var HuntAndKill = {ctor: "HuntAndKill"};
    var Wilsons = {ctor: "Wilsons"};
    var AldousBroder = {ctor: "AldousBroder"};
    var Sidewinder = {ctor: "Sidewinder"};
-   var defaultAlgorithm = Sidewinder;
    var BinaryTree = {ctor: "BinaryTree"};
    var algorithms = _L.fromArray([{_: {}
                                   ,alg: BinaryTree

@@ -15,18 +15,18 @@ type alias Colored a = {
         maximum : Int
     }
 
-createColoredGrid : Grid {} -> Cell -> Colored (CellDistances (Grid {}))
+createColoredGrid : Grid a -> Cell -> Colored (CellDistances (Grid a))
 createColoredGrid grid root =
     let grid' = createDistanceGrid grid root
         (farthest, max) = Distances.max grid'.dists
     in
        {grid' | maximum = max}
 
-view : Colored (CellDistances (Grid {})) -> Int -> Element
+view : Colored (CellDistances (Grid a)) -> Int -> Element
 view grid cellSize =
     Grid.view cellBackgroundColor grid cellSize
 
-cellBackgroundColor : Grid {dists: Distances, maximum: Int} -> Cell -> Color
+--cellBackgroundColor : Grid {dists: Distances, maximum: Int} -> Cell -> Color
 cellBackgroundColor grid cell =
     let distance = Distances.lookup grid.dists cell
         intensity = toFloat (grid.maximum - distance) / (toFloat grid.maximum)

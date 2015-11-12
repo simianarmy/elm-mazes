@@ -1,9 +1,10 @@
 module Maze where
 
 import Grid exposing (..)
-import DistanceGrid exposing (..)
-import ColoredGrid exposing (..)
-
+import DistanceGrid
+import ColoredGrid
+import MaskedGrid
+import Mask
 import Cell exposing (Cell)
 import BinaryTree
 import Sidewinder
@@ -27,41 +28,48 @@ type alias AlgAttr = {
     alg : Algorithm,
     name : String
 }
-type alias Maze = {
-    grid : Grid {},
+type alias Maze a = {
+    grid : Grid a,
     alg : Algorithm
 }
 
-defaultAlgorithm = Sidewinder
+defaultAlgorithm = RecursiveBacktracker
 
-init : Algorithm -> Int -> Int -> Seed -> Maze
+--init : Algorithm -> Int -> Int -> Seed -> Maze a
 init algType width height seed =
     let algfn = getAlgFn algType
-        grid = algfn <| createGrid width height seed
+        mask = Mask.createMask width height
+        mask' = Mask.mset mask [((0, 0), False), ((2, 2), False), ((4, 4), False)]
+        --grid = MaskedGrid.createGrid mask' seed
+        grid = algfn <| Grid.createGrid width height seed
     in
-       {grid = grid, alg = algType}
+       {
+           grid = grid,
+           alg = algType
+       }
 
-update : Maze -> Maze
+--update : Maze a -> Maze a
 update maze =
     {maze | grid <- getAlgFn maze.alg <| Grid.update maze.grid}
 
-updateSize : Maze -> Int -> Int -> Maze
+--updateSize : Maze a -> Int -> Int -> Maze a
 updateSize maze width height =
-    {maze | grid <- getAlgFn maze.alg <| createGrid width height (nextSeed maze.grid)}
+    init maze.alg width height (nextSeed maze.grid)
 
-view : Maze -> Html
+--view : Maze a -> Html
 view maze =
     let root = center maze.grid
-        coloredGrid = createColoredGrid maze.grid root
+        coloredGrid = ColoredGrid.createColoredGrid maze.grid root
     in
        div [] [
            text <| (algToString maze.alg) ++ " algorithm"
            , br [] []
            , text <| (toString <| List.length (Grid.deadEnds maze.grid)) ++ " deadends"
-           , fromElement <| ColoredGrid.view coloredGrid 30
+           --, fromElement <| ColoredGrid.view coloredGrid 30
+           , pre [] [ text <| Grid.toAscii Grid.cellToAscii maze.grid ]
            ]
 
-viewDistances : Maze -> Html
+viewDistances : Maze a -> Html
 viewDistances maze =
     let --root = toValidCell <| getCell maze.grid 1 1
         root = center maze.grid
@@ -94,7 +102,7 @@ algorithms =
     , {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
     ]
 
-getAlgFn : Algorithm -> Grid {} -> Grid {}
+--getAlgFn : Algorithm -> Grid a -> Grid a
 getAlgFn algType =
     case algType of
         BinaryTree -> BinaryTree.on
