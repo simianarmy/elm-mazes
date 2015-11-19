@@ -7,6 +7,8 @@ import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as JD
 import StartApp.Simple as StartApp
+--import StartApp
+
 
 import Maze exposing (..)
 

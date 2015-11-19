@@ -41,11 +41,6 @@ createGrid rows cols initSeed =
            rnd = createGridRnd rows cols initSeed
        }
 
--- random number helpers
-nextSeed : Grid a -> Seed
-nextSeed grid =
-    (refresh grid.rnd).seed
-
 updateRnd : Grid a -> Grid a
 updateRnd grid =
     {grid |
@@ -53,7 +48,7 @@ updateRnd grid =
     }
 
 update grid =
-    updateRnd grid
+    createGrid grid.rows grid.cols <| nextSeed grid.rnd
 
 -- generates collage view of the grid
 view : (Grid a -> Cell -> Color) -> Grid a -> Int -> Element

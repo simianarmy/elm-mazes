@@ -263,7 +263,7 @@ title name =
 {-| Defines a keyboard shortcut to activate or add focus to the element. -}
 accesskey : Char -> Attribute
 accesskey char =
-  stringProperty "accesskey" (String.fromList [char])
+  stringProperty "accessKey" (String.fromChar char)
 
 
 {-| Indicates whether the element's content is editable. -}
@@ -277,7 +277,7 @@ context menu.
 -}
 contextmenu : String -> Attribute
 contextmenu value =
-  stringProperty "contextmenu" value
+  attribute "contextmenu" value
 
 
 {-| Defines the text direction. Allowed values are ltr (Left-To-Right) or rtl
@@ -619,7 +619,7 @@ defined in the surrounding `form`.
 -}
 formaction : String -> Attribute
 formaction value =
-  stringProperty "formaction" value
+  stringProperty "formAction" value
 
 
 {-| Associates an `input` with a `datalist` tag. The datalist gives some

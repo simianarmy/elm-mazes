@@ -3356,7 +3356,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 246 and 248");
+         "between lines 241 and 243");
       }();
    };
    var gridIndex = F3(function (grid,
@@ -3450,7 +3450,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 126 and 128");
+         "between lines 121 and 123");
       }();
    };
    var toValidCell = function (cell) {
@@ -3462,7 +3462,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 120 and 122");
+         "between lines 115 and 117");
       }();
    };
    var getCell = F3(function (grid,
@@ -3647,7 +3647,7 @@ Elm.Grid.make = function (_elm) {
                     style,
                     _v6._1)]) : _L.fromArray([]);}
                _U.badCase($moduleName,
-               "between lines 68 and 70");
+               "between lines 63 and 65");
             }();
          });
          var cellWalls = F2(function (style,
@@ -3731,9 +3731,6 @@ Elm.Grid.make = function (_elm) {
                          ,$Rnd.refresh(grid.rnd)]],
       grid);
    };
-   var update = function (grid) {
-      return updateRnd(grid);
-   };
    var randomCell = function (grid) {
       return function () {
          var grid$ = updateRnd(grid);
@@ -3747,9 +3744,6 @@ Elm.Grid.make = function (_elm) {
                 ,_0: grid$
                 ,_1: cell};
       }();
-   };
-   var nextSeed = function (grid) {
-      return $Rnd.refresh(grid.rnd).seed;
    };
    var createGrid = F3(function (rows,
    cols,
@@ -3773,6 +3767,11 @@ Elm.Grid.make = function (_elm) {
                 ,rows: rows};
       }();
    });
+   var update = function (grid) {
+      return A2(createGrid,
+      grid.rows,
+      grid.cols)($Rnd.nextSeed(grid.rnd));
+   };
    var Grid = F5(function (a,
    b,
    c,
@@ -3789,7 +3788,6 @@ Elm.Grid.make = function (_elm) {
    _elm.Grid.values = {_op: _op
                       ,Grid: Grid
                       ,createGrid: createGrid
-                      ,nextSeed: nextSeed
                       ,updateRnd: updateRnd
                       ,update: update
                       ,view: view
@@ -4127,6 +4125,11 @@ Elm.Html.Attributes.make = function (_elm) {
    $String = Elm.String.make(_elm),
    $VirtualDom = Elm.VirtualDom.make(_elm);
    var attribute = $VirtualDom.attribute;
+   var contextmenu = function (value) {
+      return A2(attribute,
+      "contextmenu",
+      value);
+   };
    var property = $VirtualDom.property;
    var stringProperty = F2(function (name,
    string) {
@@ -4151,13 +4154,8 @@ Elm.Html.Attributes.make = function (_elm) {
    };
    var accesskey = function ($char) {
       return A2(stringProperty,
-      "accesskey",
-      $String.fromList(_L.fromArray([$char])));
-   };
-   var contextmenu = function (value) {
-      return A2(stringProperty,
-      "contextmenu",
-      value);
+      "accessKey",
+      $String.fromChar($char));
    };
    var dir = function (value) {
       return A2(stringProperty,
@@ -4306,7 +4304,7 @@ Elm.Html.Attributes.make = function (_elm) {
    };
    var formaction = function (value) {
       return A2(stringProperty,
-      "formaction",
+      "formAction",
       value);
    };
    var list = function (value) {
@@ -6460,7 +6458,7 @@ Elm.Main.make = function (_elm) {
               $Maybe.withDefault(model.grid.rows)($Result.toMaybe($String.toInt(action._0))),
               model.grid.cols);}
          _U.badCase($moduleName,
-         "between lines 28 and 42");
+         "between lines 30 and 44");
       }();
    });
    var SelectAlg = function (a) {
@@ -6892,6 +6890,7 @@ Elm.Maze.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $RecursiveBacktracker = Elm.RecursiveBacktracker.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Rnd = Elm.Rnd.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Wilsons = Elm.Wilsons.make(_elm);
@@ -6981,13 +6980,21 @@ Elm.Maze.make = function (_elm) {
                       ,$Html.text(A2($Basics._op["++"],
                       $Basics.toString($List.length($Grid.deadEnds(maze.grid))),
                       " deadends"))
-                      ,A2($Html.pre,
-                      _L.fromArray([]),
-                      _L.fromArray([$Html.text(A2($Grid.toAscii,
-                      $Grid.cellToAscii,
-                      maze.grid))]))]));
+                      ,$Html.fromElement(A2($ColoredGrid.view,
+                      coloredGrid,
+                      30))]));
       }();
    };
+   var updateSize = F3(function (maze,
+   width,
+   height) {
+      return _U.replace([["grid"
+                         ,getAlgFn(maze.alg)(A3($Grid.createGrid,
+                         width,
+                         height,
+                         $Rnd.nextSeed(maze.grid.rnd)))]],
+      maze);
+   });
    var update = function (maze) {
       return _U.replace([["grid"
                          ,getAlgFn(maze.alg)($Grid.update(maze.grid))]],
@@ -7027,15 +7034,6 @@ Elm.Maze.make = function (_elm) {
                 ,alg: algType
                 ,grid: grid};
       }();
-   });
-   var updateSize = F3(function (maze,
-   width,
-   height) {
-      return A4(init,
-      maze.alg,
-      width,
-      height,
-      $Grid.nextSeed(maze.grid));
    });
    var Maze = F2(function (a,b) {
       return {_: {}
@@ -15529,6 +15527,9 @@ Elm.Rnd.make = function (_elm) {
          rnd);
       }();
    };
+   var nextSeed = function (rnd) {
+      return refresh(rnd).seed;
+   };
    var createGridRnd = F3(function (rows,
    cols,
    initSeed) {
@@ -15561,6 +15562,7 @@ Elm.Rnd.make = function (_elm) {
    _elm.Rnd.values = {_op: _op
                      ,GridRnd: GridRnd
                      ,createGridRnd: createGridRnd
+                     ,nextSeed: nextSeed
                      ,refresh: refresh
                      ,refreshCoinFlip: refreshCoinFlip
                      ,refreshRow: refreshRow
@@ -15929,6 +15931,7 @@ Elm.StartApp.Simple.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "StartApp.Simple",
    $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
@@ -15936,22 +15939,26 @@ Elm.StartApp.Simple.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm);
    var start = function (config) {
       return function () {
+         var update = F2(function (maybeAction,
+         model) {
+            return function () {
+               switch (maybeAction.ctor)
+               {case "Just":
+                  return A2(config.update,
+                    maybeAction._0,
+                    model);
+                  case "Nothing":
+                  return $Debug.crash("This should never happen.");}
+               _U.badCase($moduleName,
+               "between lines 91 and 98");
+            }();
+         });
          var actions = $Signal.mailbox($Maybe.Nothing);
          var address = A2($Signal.forwardTo,
          actions.address,
          $Maybe.Just);
          var model = A3($Signal.foldp,
-         F2(function (_v0,model) {
-            return function () {
-               switch (_v0.ctor)
-               {case "Just":
-                  return A2(config.update,
-                    _v0._0,
-                    model);}
-               _U.badCase($moduleName,
-               "on line 91, column 34 to 60");
-            }();
-         }),
+         update,
          config.model,
          actions.signal);
          return A2($Signal.map,

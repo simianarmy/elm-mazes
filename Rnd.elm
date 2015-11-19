@@ -22,6 +22,12 @@ createGridRnd rows cols initSeed =
         colRnd = generate (int 1 cols)
     }
 
+
+-- random number helpers
+nextSeed : GridRnd -> Seed
+nextSeed rnd =
+    (refresh rnd).seed
+
 -- refresh all random values
 refresh : GridRnd -> GridRnd
 refresh rnd =

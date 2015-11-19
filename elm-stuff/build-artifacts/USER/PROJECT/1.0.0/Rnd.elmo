@@ -71,6 +71,9 @@ Elm.Rnd.make = function (_elm) {
          rnd);
       }();
    };
+   var nextSeed = function (rnd) {
+      return refresh(rnd).seed;
+   };
    var createGridRnd = F3(function (rows,
    cols,
    initSeed) {
@@ -103,6 +106,7 @@ Elm.Rnd.make = function (_elm) {
    _elm.Rnd.values = {_op: _op
                      ,GridRnd: GridRnd
                      ,createGridRnd: createGridRnd
+                     ,nextSeed: nextSeed
                      ,refresh: refresh
                      ,refreshCoinFlip: refreshCoinFlip
                      ,refreshRow: refreshRow

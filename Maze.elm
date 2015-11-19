@@ -5,6 +5,7 @@ import DistanceGrid
 import ColoredGrid
 import MaskedGrid
 import Mask
+import Rnd
 import Cell exposing (Cell)
 import BinaryTree
 import Sidewinder
@@ -54,7 +55,7 @@ update maze =
 
 --updateSize : Maze a -> Int -> Int -> Maze a
 updateSize maze width height =
-    init maze.alg width height (nextSeed maze.grid)
+    {maze | grid <- getAlgFn maze.alg <| createGrid width height (Rnd.nextSeed maze.grid.rnd)}
 
 --view : Maze a -> Html
 view maze =
@@ -65,8 +66,7 @@ view maze =
            text <| (algToString maze.alg) ++ " algorithm"
            , br [] []
            , text <| (toString <| List.length (Grid.deadEnds maze.grid)) ++ " deadends"
-           --, fromElement <| ColoredGrid.view coloredGrid 30
-           , pre [] [ text <| Grid.toAscii Grid.cellToAscii maze.grid ]
+           , fromElement <| ColoredGrid.view coloredGrid 30
            ]
 
 viewDistances : Maze a -> Html

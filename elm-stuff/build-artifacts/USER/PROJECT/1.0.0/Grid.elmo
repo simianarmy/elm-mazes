@@ -54,7 +54,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 246 and 248");
+         "between lines 241 and 243");
       }();
    };
    var gridIndex = F3(function (grid,
@@ -148,7 +148,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 126 and 128");
+         "between lines 121 and 123");
       }();
    };
    var toValidCell = function (cell) {
@@ -160,7 +160,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 120 and 122");
+         "between lines 115 and 117");
       }();
    };
    var getCell = F3(function (grid,
@@ -345,7 +345,7 @@ Elm.Grid.make = function (_elm) {
                     style,
                     _v6._1)]) : _L.fromArray([]);}
                _U.badCase($moduleName,
-               "between lines 68 and 70");
+               "between lines 63 and 65");
             }();
          });
          var cellWalls = F2(function (style,
@@ -429,9 +429,6 @@ Elm.Grid.make = function (_elm) {
                          ,$Rnd.refresh(grid.rnd)]],
       grid);
    };
-   var update = function (grid) {
-      return updateRnd(grid);
-   };
    var randomCell = function (grid) {
       return function () {
          var grid$ = updateRnd(grid);
@@ -445,9 +442,6 @@ Elm.Grid.make = function (_elm) {
                 ,_0: grid$
                 ,_1: cell};
       }();
-   };
-   var nextSeed = function (grid) {
-      return $Rnd.refresh(grid.rnd).seed;
    };
    var createGrid = F3(function (rows,
    cols,
@@ -471,6 +465,11 @@ Elm.Grid.make = function (_elm) {
                 ,rows: rows};
       }();
    });
+   var update = function (grid) {
+      return A2(createGrid,
+      grid.rows,
+      grid.cols)($Rnd.nextSeed(grid.rnd));
+   };
    var Grid = F5(function (a,
    b,
    c,
@@ -487,7 +486,6 @@ Elm.Grid.make = function (_elm) {
    _elm.Grid.values = {_op: _op
                       ,Grid: Grid
                       ,createGrid: createGrid
-                      ,nextSeed: nextSeed
                       ,updateRnd: updateRnd
                       ,update: update
                       ,view: view
