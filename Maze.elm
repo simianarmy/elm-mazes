@@ -41,8 +41,8 @@ init algType width height seed =
     let algfn = getAlgFn algType
         mask = Mask.createMask width height
         mask' = Mask.mset mask [((0, 0), False), ((2, 2), False), ((4, 4), False)]
-        --grid = MaskedGrid.createGrid mask' seed
-        grid = algfn <| Grid.createGrid width height seed
+        grid = algfn <| MaskedGrid.createGrid mask' seed
+        --grid = algfn <| Grid.createGrid width height seed
     in
        {
            grid = grid,
@@ -55,7 +55,13 @@ update maze =
 
 --updateSize : Maze a -> Int -> Int -> Maze a
 updateSize maze width height =
-    {maze | grid <- getAlgFn maze.alg <| createGrid width height (Rnd.nextSeed maze.grid.rnd)}
+    let grid' = Grid.updateRnd maze.grid
+        grid'' = {grid' | rows <- height, cols <- width}
+    in
+        {maze |
+            grid <- getAlgFn maze.alg <| Grid.update grid''
+        }
+        --{maze | grid <- getAlgFn maze.alg <| createGrid width height (Rnd.nextSeed maze.grid.rnd)}
 
 --view : Maze a -> Html
 view maze =

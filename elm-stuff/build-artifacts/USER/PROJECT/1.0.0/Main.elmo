@@ -41,13 +41,13 @@ Elm.Main.make = function (_elm) {
             case "UpdateHeight":
             return A3($Maze.updateSize,
               model,
-              model.grid.rows,
-              $Maybe.withDefault(model.grid.cols)($Result.toMaybe($String.toInt(action._0))));
+              model.grid.cols,
+              $Maybe.withDefault(model.grid.rows)($Result.toMaybe($String.toInt(action._0))));
             case "UpdateWidth":
             return A3($Maze.updateSize,
               model,
-              $Maybe.withDefault(model.grid.rows)($Result.toMaybe($String.toInt(action._0))),
-              model.grid.cols);}
+              $Maybe.withDefault(model.grid.cols)($Result.toMaybe($String.toInt(action._0))),
+              model.grid.rows);}
          _U.badCase($moduleName,
          "between lines 30 and 44");
       }();
@@ -94,7 +94,7 @@ Elm.Main.make = function (_elm) {
                       _L.fromArray([]))
                       ,A2($Html.input,
                       _L.fromArray([$Html$Attributes.$class("sizeInput")
-                                   ,$Html$Attributes.value($Basics.toString(model.grid.rows))
+                                   ,$Html$Attributes.value($Basics.toString(model.grid.cols))
                                    ,A3($Html$Events.on,
                                    "input",
                                    $Html$Events.targetValue,
@@ -105,7 +105,7 @@ Elm.Main.make = function (_elm) {
                       ,$Html.text(" X ")
                       ,A2($Html.input,
                       _L.fromArray([$Html$Attributes.$class("sizeInput")
-                                   ,$Html$Attributes.value($Basics.toString(model.grid.cols))
+                                   ,$Html$Attributes.value($Basics.toString(model.grid.rows))
                                    ,A3($Html$Events.on,
                                    "input",
                                    $Html$Events.targetValue,

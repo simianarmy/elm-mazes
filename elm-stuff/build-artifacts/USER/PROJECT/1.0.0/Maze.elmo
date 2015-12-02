@@ -20,10 +20,10 @@ Elm.Maze.make = function (_elm) {
    $HuntAndKill = Elm.HuntAndKill.make(_elm),
    $List = Elm.List.make(_elm),
    $Mask = Elm.Mask.make(_elm),
+   $MaskedGrid = Elm.MaskedGrid.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $RecursiveBacktracker = Elm.RecursiveBacktracker.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Rnd = Elm.Rnd.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Wilsons = Elm.Wilsons.make(_elm);
@@ -43,7 +43,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return "Wilsons";}
          _U.badCase($moduleName,
-         "between lines 117 and 123");
+         "between lines 123 and 129");
       }();
    };
    var getAlgFn = function (algType) {
@@ -62,7 +62,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return $Wilsons.on;}
          _U.badCase($moduleName,
-         "between lines 107 and 113");
+         "between lines 113 and 119");
       }();
    };
    var viewDistances = function (maze) {
@@ -121,12 +121,16 @@ Elm.Maze.make = function (_elm) {
    var updateSize = F3(function (maze,
    width,
    height) {
-      return _U.replace([["grid"
-                         ,getAlgFn(maze.alg)(A3($Grid.createGrid,
-                         width,
-                         height,
-                         $Rnd.nextSeed(maze.grid.rnd)))]],
-      maze);
+      return function () {
+         var grid$ = $Grid.updateRnd(maze.grid);
+         var grid$$ = _U.replace([["rows"
+                                  ,height]
+                                 ,["cols",width]],
+         grid$);
+         return _U.replace([["grid"
+                            ,getAlgFn(maze.alg)($Grid.update(grid$$))]],
+         maze);
+      }();
    });
    var update = function (maze) {
       return _U.replace([["grid"
@@ -159,9 +163,8 @@ Elm.Maze.make = function (_elm) {
                             ,_1: 4}
                        ,_1: false}]));
          var algfn = getAlgFn(algType);
-         var grid = algfn(A3($Grid.createGrid,
-         width,
-         height,
+         var grid = algfn(A2($MaskedGrid.createGrid,
+         mask$,
          seed));
          return {_: {}
                 ,alg: algType

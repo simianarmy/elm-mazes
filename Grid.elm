@@ -23,23 +23,24 @@ type alias Grid a =
         rnd: GridRnd
 }
 
+-- helper to make new grid cells
+makeCells : Int -> Int -> List Cell
+makeCells rows cols = 
+    let makeRow cols' row =
+        List.map (Cell.createCell row) [1..cols']
+    in
+        List.concatMap (makeRow cols) [1..rows]
+
+-- constructor
 createGrid : Int -> Int -> Seed -> Grid {}
 createGrid rows cols initSeed =
-    let
-        makeRow : Int -> Int -> List Cell
-        makeRow cols row =
-            List.map
-                (Cell.createCell row)
-                [1..cols]
-
-    in
-       -- loop rows times
-       {
-           rows = rows,
-           cols = cols,
-           cells = List.concatMap (makeRow cols) [1..rows],
-           rnd = createGridRnd rows cols initSeed
-       }
+    {
+        rows = rows,
+        cols = cols,
+        -- loop rows times
+        cells = makeCells rows cols,
+        rnd = createGridRnd rows cols initSeed
+    }
 
 updateRnd : Grid a -> Grid a
 updateRnd grid =
@@ -48,7 +49,9 @@ updateRnd grid =
     }
 
 update grid =
-    createGrid grid.rows grid.cols <| nextSeed grid.rnd
+    {grid |
+        cells <- makeCells grid.rows grid.cols
+    }
 
 -- generates collage view of the grid
 view : (Grid a -> Cell -> Color) -> Grid a -> Int -> Element

@@ -33,12 +33,12 @@ update action model =
 
         UpdateWidth str ->
             Maze.updateSize model
-            (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.grid.rows)
-            model.grid.cols
+            (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.grid.cols)
+            model.grid.rows
 
         UpdateHeight str ->
-            Maze.updateSize model model.grid.rows
-            (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.grid.cols)
+            Maze.updateSize model model.grid.cols
+            (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.grid.rows)
 
         SelectAlg str ->
             Maze.update {model | alg <- Maze.algByName str}
@@ -56,10 +56,10 @@ view address model =
         Maze.view model,
         Maze.viewDistances model,
         br [] [],
-        input [ class "sizeInput", value (toString model.grid.rows)
+        input [ class "sizeInput", value (toString model.grid.cols)
               , on "input" targetValue (Signal.message address << UpdateWidth) ] [],
         text " X ",
-        input [ class "sizeInput", value (toString model.grid.cols)
+        input [ class "sizeInput", value (toString model.grid.rows)
               , on "input" targetValue (Signal.message address << UpdateHeight)] [],
         br [] [],
         select [ selectEvent ] (List.map algToOptions Maze.algorithms),
