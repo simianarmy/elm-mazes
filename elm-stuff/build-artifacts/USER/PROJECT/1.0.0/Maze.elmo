@@ -43,7 +43,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return "Wilsons";}
          _U.badCase($moduleName,
-         "between lines 123 and 129");
+         "between lines 135 and 141");
       }();
    };
    var getAlgFn = function (algType) {
@@ -62,7 +62,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return $Wilsons.on;}
          _U.badCase($moduleName,
-         "between lines 113 and 119");
+         "between lines 125 and 131");
       }();
    };
    var viewDistances = function (maze) {
@@ -99,9 +99,27 @@ Elm.Maze.make = function (_elm) {
    var view = function (maze) {
       return function () {
          var root = $Grid.center(maze.grid);
-         var coloredGrid = A2($ColoredGrid.createColoredGrid,
-         maze.grid,
-         root);
+         var gridHtml = function () {
+            var _v2 = maze.display;
+            switch (_v2.ctor)
+            {case "Ascii":
+               return A2($Html.pre,
+                 _L.fromArray([]),
+                 _L.fromArray([$Html.text(A2($Grid.toAscii,
+                 $Grid.cellToAscii,
+                 maze.grid))]));
+               case "Colored":
+               return function () {
+                    var coloredGrid = A2($ColoredGrid.createColoredGrid,
+                    maze.grid,
+                    root);
+                    return $Html.fromElement(A2($ColoredGrid.view,
+                    coloredGrid,
+                    30));
+                 }();}
+            _U.badCase($moduleName,
+            "between lines 75 and 82");
+         }();
          return A2($Html.div,
          _L.fromArray([]),
          _L.fromArray([$Html.text(A2($Basics._op["++"],
@@ -113,9 +131,7 @@ Elm.Maze.make = function (_elm) {
                       ,$Html.text(A2($Basics._op["++"],
                       $Basics.toString($List.length($Grid.deadEnds(maze.grid))),
                       " deadends"))
-                      ,$Html.fromElement(A2($ColoredGrid.view,
-                      coloredGrid,
-                      30))]));
+                      ,gridHtml]));
       }();
    };
    var updateSize = F3(function (maze,
@@ -137,10 +153,11 @@ Elm.Maze.make = function (_elm) {
                          ,getAlgFn(maze.alg)($Grid.update(maze.grid))]],
       maze);
    };
-   var init = F4(function (algType,
+   var init = F5(function (algType,
    width,
    height,
-   seed) {
+   seed,
+   display) {
       return function () {
          var mask = A2($Mask.createMask,
          width,
@@ -168,14 +185,18 @@ Elm.Maze.make = function (_elm) {
          seed));
          return {_: {}
                 ,alg: algType
+                ,display: display
                 ,grid: grid};
       }();
    });
-   var Maze = F2(function (a,b) {
+   var Maze = F3(function (a,b,c) {
       return {_: {}
              ,alg: b
+             ,display: c
              ,grid: a};
    });
+   var Colored = {ctor: "Colored"};
+   var Ascii = {ctor: "Ascii"};
    var AlgAttr = F2(function (a,
    b) {
       return {_: {}
@@ -230,6 +251,8 @@ Elm.Maze.make = function (_elm) {
                       ,HuntAndKill: HuntAndKill
                       ,RecursiveBacktracker: RecursiveBacktracker
                       ,AlgAttr: AlgAttr
+                      ,Ascii: Ascii
+                      ,Colored: Colored
                       ,Maze: Maze
                       ,defaultAlgorithm: defaultAlgorithm
                       ,init: init

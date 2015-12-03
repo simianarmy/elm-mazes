@@ -24,7 +24,8 @@ initHeight = 10
 type Action = Refresh |
     UpdateWidth String |
     UpdateHeight String |
-    SelectAlg String
+    SelectAlg String |
+    SelectView Maze.Display
 
 update action model =
     case action of
@@ -43,30 +44,50 @@ update action model =
         SelectAlg str ->
             Maze.update {model | alg <- Maze.algByName str}
 
+        SelectView display ->
+            {model |
+                display <- display
+            }
+
 -- VIEW
 view address model =
     let
-        selectEvent = Html.Events.on "change" targetValue
+        selectAlg = Html.Events.on "change" targetValue
             (\val -> Signal.message address <| SelectAlg <| val)
+        selectView = Html.Events.on "change" targetValue
+            (\val -> Signal.message address <| SelectView <| displayFromString val)
         algToOptions attr =
             option [selected (attr.alg == Maze.defaultAlgorithm)] [text attr.name]
+        viewOptions = [
+            option [] [text "Ascii"]
+            , option [selected True] [text "Colored"]
+            ]
     in
     div [] [
-        header [] [ h1 [] [text "Amazeball Mazes" ]],
-        Maze.view model,
-        Maze.viewDistances model,
-        br [] [],
-        input [ class "sizeInput", value (toString model.grid.cols)
-              , on "input" targetValue (Signal.message address << UpdateWidth) ] [],
-        text " X ",
-        input [ class "sizeInput", value (toString model.grid.rows)
-              , on "input" targetValue (Signal.message address << UpdateHeight)] [],
-        br [] [],
-        select [ selectEvent ] (List.map algToOptions Maze.algorithms),
-        button [ onClick address Refresh ] [ text "REFRESH" ]
+        -- title
+        header [] [ h1 [] [text "Amazeball Mazes" ]]
+        -- the maze
+        , Maze.view model
+        -- controls
+        , br [] []
+        , input [ class "sizeInput", value (toString model.grid.cols)
+              , on "input" targetValue (Signal.message address << UpdateWidth) ] []
+        , text " X "
+        , input [ class "sizeInput", value (toString model.grid.rows)
+              , on "input" targetValue (Signal.message address << UpdateHeight)] []
+        , br [] []
+        , select [ selectAlg ] (List.map algToOptions Maze.algorithms)
+        , select [ selectView ] (viewOptions)
+        , button [ onClick address Refresh ] [ text "REFRESH" ]
         --, text ("start time: " ++ (toString startTime)),
         , footer [] []
         ]
+
+displayFromString : String -> Display
+displayFromString str =
+    if str == "Ascii"
+       then Maze.Ascii
+       else Maze.Colored
 
 port startTime : Float
 startTimeSeed : Seed
@@ -76,7 +97,7 @@ startTimeSeed = Random.initialSeed <| round startTime
 
 main =
     StartApp.start {
-        model = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed
+        model = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed Maze.Colored
                    , update = update
                    , view = view
                }

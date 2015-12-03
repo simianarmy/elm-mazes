@@ -6444,6 +6444,10 @@ Elm.Main.make = function (_elm) {
       v);
    });
    var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
+   var displayFromString = function (str) {
+      return _U.eq(str,
+      "Ascii") ? $Maze.Ascii : $Maze.Colored;
+   };
    var update = F2(function (action,
    model) {
       return function () {
@@ -6454,6 +6458,10 @@ Elm.Main.make = function (_elm) {
             return $Maze.update(_U.replace([["alg"
                                             ,$Maze.algByName(action._0)]],
               model));
+            case "SelectView":
+            return _U.replace([["display"
+                               ,action._0]],
+              model);
             case "UpdateHeight":
             return A3($Maze.updateSize,
               model,
@@ -6465,9 +6473,13 @@ Elm.Main.make = function (_elm) {
               $Maybe.withDefault(model.grid.cols)($Result.toMaybe($String.toInt(action._0))),
               model.grid.rows);}
          _U.badCase($moduleName,
-         "between lines 30 and 44");
+         "between lines 31 and 50");
       }();
    });
+   var SelectView = function (a) {
+      return {ctor: "SelectView"
+             ,_0: a};
+   };
    var SelectAlg = function (a) {
       return {ctor: "SelectAlg"
              ,_0: a};
@@ -6484,13 +6496,25 @@ Elm.Main.make = function (_elm) {
    var view = F2(function (address,
    model) {
       return function () {
+         var viewOptions = _L.fromArray([A2($Html.option,
+                                        _L.fromArray([]),
+                                        _L.fromArray([$Html.text("Ascii")]))
+                                        ,A2($Html.option,
+                                        _L.fromArray([$Html$Attributes.selected(true)]),
+                                        _L.fromArray([$Html.text("Colored")]))]);
          var algToOptions = function (attr) {
             return A2($Html.option,
             _L.fromArray([$Html$Attributes.selected(_U.eq(attr.alg,
             $Maze.defaultAlgorithm))]),
             _L.fromArray([$Html.text(attr.name)]));
          };
-         var selectEvent = A3($Html$Events.on,
+         var selectView = A3($Html$Events.on,
+         "change",
+         $Html$Events.targetValue,
+         function (val) {
+            return $Signal.message(address)(SelectView(displayFromString(val)));
+         });
+         var selectAlg = A3($Html$Events.on,
          "change",
          $Html$Events.targetValue,
          function (val) {
@@ -6504,7 +6528,6 @@ Elm.Main.make = function (_elm) {
                       _L.fromArray([]),
                       _L.fromArray([$Html.text("Amazeball Mazes")]))]))
                       ,$Maze.view(model)
-                      ,$Maze.viewDistances(model)
                       ,A2($Html.br,
                       _L.fromArray([]),
                       _L.fromArray([]))
@@ -6533,10 +6556,13 @@ Elm.Main.make = function (_elm) {
                       _L.fromArray([]),
                       _L.fromArray([]))
                       ,A2($Html.select,
-                      _L.fromArray([selectEvent]),
+                      _L.fromArray([selectAlg]),
                       A2($List.map,
                       algToOptions,
                       $Maze.algorithms))
+                      ,A2($Html.select,
+                      _L.fromArray([selectView]),
+                      viewOptions)
                       ,A2($Html.button,
                       _L.fromArray([A2($Html$Events.onClick,
                       address,
@@ -6550,11 +6576,12 @@ Elm.Main.make = function (_elm) {
    var initHeight = 10;
    var initWidth = 10;
    var main = $StartApp$Simple.start({_: {}
-                                     ,model: A4($Maze.init,
+                                     ,model: A5($Maze.init,
                                      $Maze.defaultAlgorithm,
                                      initWidth,
                                      initHeight,
-                                     startTimeSeed)
+                                     startTimeSeed,
+                                     $Maze.Colored)
                                      ,update: update
                                      ,view: view});
    _elm.Main.values = {_op: _op
@@ -6564,8 +6591,10 @@ Elm.Main.make = function (_elm) {
                       ,UpdateWidth: UpdateWidth
                       ,UpdateHeight: UpdateHeight
                       ,SelectAlg: SelectAlg
+                      ,SelectView: SelectView
                       ,update: update
                       ,view: view
+                      ,displayFromString: displayFromString
                       ,startTimeSeed: startTimeSeed
                       ,main: main};
    return _elm.Main.values;
@@ -6916,7 +6945,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return "Wilsons";}
          _U.badCase($moduleName,
-         "between lines 123 and 129");
+         "between lines 135 and 141");
       }();
    };
    var getAlgFn = function (algType) {
@@ -6935,7 +6964,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return $Wilsons.on;}
          _U.badCase($moduleName,
-         "between lines 113 and 119");
+         "between lines 125 and 131");
       }();
    };
    var viewDistances = function (maze) {
@@ -6972,9 +7001,27 @@ Elm.Maze.make = function (_elm) {
    var view = function (maze) {
       return function () {
          var root = $Grid.center(maze.grid);
-         var coloredGrid = A2($ColoredGrid.createColoredGrid,
-         maze.grid,
-         root);
+         var gridHtml = function () {
+            var _v2 = maze.display;
+            switch (_v2.ctor)
+            {case "Ascii":
+               return A2($Html.pre,
+                 _L.fromArray([]),
+                 _L.fromArray([$Html.text(A2($Grid.toAscii,
+                 $Grid.cellToAscii,
+                 maze.grid))]));
+               case "Colored":
+               return function () {
+                    var coloredGrid = A2($ColoredGrid.createColoredGrid,
+                    maze.grid,
+                    root);
+                    return $Html.fromElement(A2($ColoredGrid.view,
+                    coloredGrid,
+                    30));
+                 }();}
+            _U.badCase($moduleName,
+            "between lines 75 and 82");
+         }();
          return A2($Html.div,
          _L.fromArray([]),
          _L.fromArray([$Html.text(A2($Basics._op["++"],
@@ -6986,9 +7033,7 @@ Elm.Maze.make = function (_elm) {
                       ,$Html.text(A2($Basics._op["++"],
                       $Basics.toString($List.length($Grid.deadEnds(maze.grid))),
                       " deadends"))
-                      ,$Html.fromElement(A2($ColoredGrid.view,
-                      coloredGrid,
-                      30))]));
+                      ,gridHtml]));
       }();
    };
    var updateSize = F3(function (maze,
@@ -7010,10 +7055,11 @@ Elm.Maze.make = function (_elm) {
                          ,getAlgFn(maze.alg)($Grid.update(maze.grid))]],
       maze);
    };
-   var init = F4(function (algType,
+   var init = F5(function (algType,
    width,
    height,
-   seed) {
+   seed,
+   display) {
       return function () {
          var mask = A2($Mask.createMask,
          width,
@@ -7041,14 +7087,18 @@ Elm.Maze.make = function (_elm) {
          seed));
          return {_: {}
                 ,alg: algType
+                ,display: display
                 ,grid: grid};
       }();
    });
-   var Maze = F2(function (a,b) {
+   var Maze = F3(function (a,b,c) {
       return {_: {}
              ,alg: b
+             ,display: c
              ,grid: a};
    });
+   var Colored = {ctor: "Colored"};
+   var Ascii = {ctor: "Ascii"};
    var AlgAttr = F2(function (a,
    b) {
       return {_: {}
@@ -7103,6 +7153,8 @@ Elm.Maze.make = function (_elm) {
                       ,HuntAndKill: HuntAndKill
                       ,RecursiveBacktracker: RecursiveBacktracker
                       ,AlgAttr: AlgAttr
+                      ,Ascii: Ascii
+                      ,Colored: Colored
                       ,Maze: Maze
                       ,defaultAlgorithm: defaultAlgorithm
                       ,init: init

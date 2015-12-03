@@ -28,6 +28,10 @@ Elm.Main.make = function (_elm) {
       v);
    });
    var startTimeSeed = $Random.initialSeed($Basics.round(startTime));
+   var displayFromString = function (str) {
+      return _U.eq(str,
+      "Ascii") ? $Maze.Ascii : $Maze.Colored;
+   };
    var update = F2(function (action,
    model) {
       return function () {
@@ -38,6 +42,10 @@ Elm.Main.make = function (_elm) {
             return $Maze.update(_U.replace([["alg"
                                             ,$Maze.algByName(action._0)]],
               model));
+            case "SelectView":
+            return _U.replace([["display"
+                               ,action._0]],
+              model);
             case "UpdateHeight":
             return A3($Maze.updateSize,
               model,
@@ -49,9 +57,13 @@ Elm.Main.make = function (_elm) {
               $Maybe.withDefault(model.grid.cols)($Result.toMaybe($String.toInt(action._0))),
               model.grid.rows);}
          _U.badCase($moduleName,
-         "between lines 30 and 44");
+         "between lines 31 and 50");
       }();
    });
+   var SelectView = function (a) {
+      return {ctor: "SelectView"
+             ,_0: a};
+   };
    var SelectAlg = function (a) {
       return {ctor: "SelectAlg"
              ,_0: a};
@@ -68,13 +80,25 @@ Elm.Main.make = function (_elm) {
    var view = F2(function (address,
    model) {
       return function () {
+         var viewOptions = _L.fromArray([A2($Html.option,
+                                        _L.fromArray([]),
+                                        _L.fromArray([$Html.text("Ascii")]))
+                                        ,A2($Html.option,
+                                        _L.fromArray([$Html$Attributes.selected(true)]),
+                                        _L.fromArray([$Html.text("Colored")]))]);
          var algToOptions = function (attr) {
             return A2($Html.option,
             _L.fromArray([$Html$Attributes.selected(_U.eq(attr.alg,
             $Maze.defaultAlgorithm))]),
             _L.fromArray([$Html.text(attr.name)]));
          };
-         var selectEvent = A3($Html$Events.on,
+         var selectView = A3($Html$Events.on,
+         "change",
+         $Html$Events.targetValue,
+         function (val) {
+            return $Signal.message(address)(SelectView(displayFromString(val)));
+         });
+         var selectAlg = A3($Html$Events.on,
          "change",
          $Html$Events.targetValue,
          function (val) {
@@ -88,7 +112,6 @@ Elm.Main.make = function (_elm) {
                       _L.fromArray([]),
                       _L.fromArray([$Html.text("Amazeball Mazes")]))]))
                       ,$Maze.view(model)
-                      ,$Maze.viewDistances(model)
                       ,A2($Html.br,
                       _L.fromArray([]),
                       _L.fromArray([]))
@@ -117,10 +140,13 @@ Elm.Main.make = function (_elm) {
                       _L.fromArray([]),
                       _L.fromArray([]))
                       ,A2($Html.select,
-                      _L.fromArray([selectEvent]),
+                      _L.fromArray([selectAlg]),
                       A2($List.map,
                       algToOptions,
                       $Maze.algorithms))
+                      ,A2($Html.select,
+                      _L.fromArray([selectView]),
+                      viewOptions)
                       ,A2($Html.button,
                       _L.fromArray([A2($Html$Events.onClick,
                       address,
@@ -134,11 +160,12 @@ Elm.Main.make = function (_elm) {
    var initHeight = 10;
    var initWidth = 10;
    var main = $StartApp$Simple.start({_: {}
-                                     ,model: A4($Maze.init,
+                                     ,model: A5($Maze.init,
                                      $Maze.defaultAlgorithm,
                                      initWidth,
                                      initHeight,
-                                     startTimeSeed)
+                                     startTimeSeed,
+                                     $Maze.Colored)
                                      ,update: update
                                      ,view: view});
    _elm.Main.values = {_op: _op
@@ -148,8 +175,10 @@ Elm.Main.make = function (_elm) {
                       ,UpdateWidth: UpdateWidth
                       ,UpdateHeight: UpdateHeight
                       ,SelectAlg: SelectAlg
+                      ,SelectView: SelectView
                       ,update: update
                       ,view: view
+                      ,displayFromString: displayFromString
                       ,startTimeSeed: startTimeSeed
                       ,main: main};
    return _elm.Main.values;

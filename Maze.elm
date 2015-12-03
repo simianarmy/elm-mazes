@@ -29,15 +29,20 @@ type alias AlgAttr = {
     alg : Algorithm,
     name : String
 }
+
+type Display = Ascii
+             | Colored
+
 type alias Maze a = {
     grid : Grid a,
-    alg : Algorithm
+    alg : Algorithm,
+    display : Display
 }
 
 defaultAlgorithm = RecursiveBacktracker
 
 --init : Algorithm -> Int -> Int -> Seed -> Maze a
-init algType width height seed =
+init algType width height seed display =
     let algfn = getAlgFn algType
         mask = Mask.createMask width height
         mask' = Mask.mset mask [((0, 0), False), ((2, 2), False), ((4, 4), False)]
@@ -46,7 +51,8 @@ init algType width height seed =
     in
        {
            grid = grid,
-           alg = algType
+           alg = algType,
+           display = display
        }
 
 --update : Maze a -> Maze a
@@ -66,13 +72,19 @@ updateSize maze width height =
 --view : Maze a -> Html
 view maze =
     let root = center maze.grid
-        coloredGrid = ColoredGrid.createColoredGrid maze.grid root
+        gridHtml = case maze.display of
+            Ascii ->
+                pre [] [text <| Grid.toAscii Grid.cellToAscii maze.grid]
+            Colored ->
+                let coloredGrid = ColoredGrid.createColoredGrid maze.grid root
+                in
+                fromElement <| ColoredGrid.view coloredGrid 30
     in
        div [] [
            text <| (algToString maze.alg) ++ " algorithm"
            , br [] []
            , text <| (toString <| List.length (Grid.deadEnds maze.grid)) ++ " deadends"
-           , fromElement <| ColoredGrid.view coloredGrid 30
+           , gridHtml
            ]
 
 viewDistances : Maze a -> Html
@@ -135,3 +147,4 @@ algByName str =
        case res of
            Just a -> a.alg
            _ -> Sidewinder
+
