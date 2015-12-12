@@ -16,8 +16,9 @@ import Maze exposing (..)
 
 type alias Model a = Maze a
 
-initWidth = 10
-initHeight = 10
+initWidth = 10 
+initHeight = 10 
+initDisplay = Maze.Ascii
 
 -- UPDATE
 
@@ -59,8 +60,8 @@ view address model =
         algToOptions attr =
             option [selected (attr.alg == Maze.defaultAlgorithm)] [text attr.name]
         viewOptions = [
-            option [] [text "Ascii"]
-            , option [selected True] [text "Colored"]
+            option [selected True] [text "Ascii"]
+            , option [] [text "Colored"]
             ]
     in
     div [] [
@@ -97,7 +98,7 @@ startTimeSeed = Random.initialSeed <| round startTime
 
 main =
     StartApp.start {
-        model = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed Maze.Colored
+        model = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initDisplay
                    , update = update
                    , view = view
                }

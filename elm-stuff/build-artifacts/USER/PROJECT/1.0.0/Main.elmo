@@ -57,7 +57,7 @@ Elm.Main.make = function (_elm) {
               $Maybe.withDefault(model.grid.cols)($Result.toMaybe($String.toInt(action._0))),
               model.grid.rows);}
          _U.badCase($moduleName,
-         "between lines 31 and 50");
+         "between lines 32 and 51");
       }();
    });
    var SelectView = function (a) {
@@ -81,10 +81,10 @@ Elm.Main.make = function (_elm) {
    model) {
       return function () {
          var viewOptions = _L.fromArray([A2($Html.option,
-                                        _L.fromArray([]),
+                                        _L.fromArray([$Html$Attributes.selected(true)]),
                                         _L.fromArray([$Html.text("Ascii")]))
                                         ,A2($Html.option,
-                                        _L.fromArray([$Html$Attributes.selected(true)]),
+                                        _L.fromArray([]),
                                         _L.fromArray([$Html.text("Colored")]))]);
          var algToOptions = function (attr) {
             return A2($Html.option,
@@ -157,6 +157,7 @@ Elm.Main.make = function (_elm) {
                       _L.fromArray([]))]));
       }();
    });
+   var initDisplay = $Maze.Ascii;
    var initHeight = 10;
    var initWidth = 10;
    var main = $StartApp$Simple.start({_: {}
@@ -165,12 +166,13 @@ Elm.Main.make = function (_elm) {
                                      initWidth,
                                      initHeight,
                                      startTimeSeed,
-                                     $Maze.Colored)
+                                     initDisplay)
                                      ,update: update
                                      ,view: view});
    _elm.Main.values = {_op: _op
                       ,initWidth: initWidth
                       ,initHeight: initHeight
+                      ,initDisplay: initDisplay
                       ,Refresh: Refresh
                       ,UpdateWidth: UpdateWidth
                       ,UpdateHeight: UpdateHeight

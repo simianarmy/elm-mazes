@@ -42,7 +42,9 @@ Elm.MaskedGrid.make = function (_elm) {
             row,
             col) ? A2($Cell.createCell,
             row,
-            col) : $Cell.createNilCell;
+            col) : A2($Cell.createMaskedCell,
+            row,
+            col);
          });
          var makeRow = F2(function (cols,
          row) {
@@ -54,6 +56,11 @@ Elm.MaskedGrid.make = function (_elm) {
          makeRow(mask.cols),
          _L.range(1,mask.rows));
       }();
+   };
+   var update = function (grid) {
+      return _U.replace([["cells"
+                         ,prepareGrid(grid.mask)]],
+      grid);
    };
    var createGrid = F2(function (mask,
    initSeed) {
@@ -77,6 +84,7 @@ Elm.MaskedGrid.make = function (_elm) {
                             ,Masked: Masked
                             ,createGrid: createGrid
                             ,prepareGrid: prepareGrid
+                            ,update: update
                             ,randomCell: randomCell
                             ,size: size};
    return _elm.MaskedGrid.values;

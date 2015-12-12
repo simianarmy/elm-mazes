@@ -38,25 +38,33 @@ Elm.Mask.make = function (_elm) {
          mask.bits));
       }();
    };
-   var set = F4(function (mask,
-   row,
-   col,
+   var set = F3(function (mask,
+   _v0,
    isOn) {
       return function () {
-         var _v0 = A2($Array.get,
-         row,
-         mask.bits);
          switch (_v0.ctor)
-         {case "Just":
-            return _U.replace([["bits"
-                               ,A3($Array.set,
-                               row,
-                               A3($Array.set,col,isOn,_v0._0),
-                               mask.bits)]],
-              mask);
-            case "Nothing": return mask;}
+         {case "_Tuple2":
+            return function () {
+                 var _v4 = A2($Array.get,
+                 _v0._0 - 1,
+                 mask.bits);
+                 switch (_v4.ctor)
+                 {case "Just":
+                    return _U.replace([["bits"
+                                       ,A3($Array.set,
+                                       _v0._0 - 1,
+                                       A3($Array.set,
+                                       _v0._1 - 1,
+                                       isOn,
+                                       _v4._0),
+                                       mask.bits)]],
+                      mask);
+                    case "Nothing": return mask;}
+                 _U.badCase($moduleName,
+                 "between lines 38 and 43");
+              }();}
          _U.badCase($moduleName,
-         "between lines 36 and 41");
+         "between lines 38 and 43");
       }();
    });
    var mset = F2(function (mask,
@@ -64,10 +72,9 @@ Elm.Mask.make = function (_elm) {
       return function () {
          var setone = F2(function (e,
          mask$) {
-            return A4(set,
+            return A3(set,
             mask$,
-            $Basics.fst($Basics.fst(e)),
-            $Basics.snd($Basics.fst(e)),
+            $Basics.fst(e),
             $Basics.snd(e));
          });
          return A3($List.foldl,
@@ -80,24 +87,24 @@ Elm.Mask.make = function (_elm) {
    row,
    col) {
       return function () {
-         var _v2 = A2($Array.get,
-         row,
+         var _v6 = A2($Array.get,
+         row - 1,
          mask.bits);
-         switch (_v2.ctor)
+         switch (_v6.ctor)
          {case "Just":
             return function () {
-                 var _v4 = A2($Array.get,
-                 col,
-                 _v2._0);
-                 switch (_v4.ctor)
-                 {case "Just": return _v4._0;
+                 var _v8 = A2($Array.get,
+                 col - 1,
+                 _v6._0);
+                 switch (_v8.ctor)
+                 {case "Just": return _v8._0;
                     case "Nothing": return false;}
                  _U.badCase($moduleName,
-                 "between lines 29 and 32");
+                 "between lines 30 and 33");
               }();
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 27 and 32");
+         "between lines 28 and 33");
       }();
    });
    var randomLocation = F2(function (mask,

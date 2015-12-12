@@ -43,7 +43,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return "Wilsons";}
          _U.badCase($moduleName,
-         "between lines 135 and 141");
+         "between lines 134 and 140");
       }();
    };
    var getAlgFn = function (algType) {
@@ -62,7 +62,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return $Wilsons.on;}
          _U.badCase($moduleName,
-         "between lines 125 and 131");
+         "between lines 124 and 130");
       }();
    };
    var viewDistances = function (maze) {
@@ -118,7 +118,7 @@ Elm.Maze.make = function (_elm) {
                     30));
                  }();}
             _U.badCase($moduleName,
-            "between lines 75 and 82");
+            "between lines 74 and 81");
          }();
          return A2($Html.div,
          _L.fromArray([]),
@@ -150,7 +150,7 @@ Elm.Maze.make = function (_elm) {
    });
    var update = function (maze) {
       return _U.replace([["grid"
-                         ,getAlgFn(maze.alg)($Grid.update(maze.grid))]],
+                         ,getAlgFn(maze.alg)($MaskedGrid.update(maze.grid))]],
       maze);
    };
    var init = F5(function (algType,
@@ -166,18 +166,18 @@ Elm.Maze.make = function (_elm) {
          mask,
          _L.fromArray([{ctor: "_Tuple2"
                        ,_0: {ctor: "_Tuple2"
-                            ,_0: 0
-                            ,_1: 0}
+                            ,_0: 1
+                            ,_1: 1}
                        ,_1: false}
                       ,{ctor: "_Tuple2"
                        ,_0: {ctor: "_Tuple2"
-                            ,_0: 2
-                            ,_1: 2}
+                            ,_0: 3
+                            ,_1: 3}
                        ,_1: false}
                       ,{ctor: "_Tuple2"
                        ,_0: {ctor: "_Tuple2"
-                            ,_0: 4
-                            ,_1: 4}
+                            ,_0: 5
+                            ,_1: 5}
                        ,_1: false}]));
          var algfn = getAlgFn(algType);
          var grid = algfn(A2($MaskedGrid.createGrid,

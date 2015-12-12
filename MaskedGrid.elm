@@ -26,12 +26,17 @@ prepareGrid mask =
     let createMaskedCell row col =
         if Mask.get mask row col
            then Cell.createCell row col
-           else Cell.createNilCell
+           else Cell.createMaskedCell row col
 
         makeRow cols row =
             List.map (createMaskedCell row) [1..(mask.cols)]
     in
        List.concatMap (makeRow mask.cols) [1..(mask.rows)]
+
+update grid =
+    {grid |
+        cells <- prepareGrid grid.mask
+    }
 
 randomCell : Masked (Grid a) -> Cell
 randomCell grid =

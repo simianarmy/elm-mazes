@@ -45,9 +45,8 @@ defaultAlgorithm = RecursiveBacktracker
 init algType width height seed display =
     let algfn = getAlgFn algType
         mask = Mask.createMask width height
-        mask' = Mask.mset mask [((0, 0), False), ((2, 2), False), ((4, 4), False)]
+        mask' = Mask.mset mask [((1, 1), False), ((3, 3), False), ((5, 5), False)]
         grid = algfn <| MaskedGrid.createGrid mask' seed
-        --grid = algfn <| Grid.createGrid width height seed
     in
        {
            grid = grid,
@@ -57,7 +56,7 @@ init algType width height seed display =
 
 --update : Maze a -> Maze a
 update maze =
-    {maze | grid <- getAlgFn maze.alg <| Grid.update maze.grid}
+    {maze | grid <- getAlgFn maze.alg <| MaskedGrid.update maze.grid}
 
 --updateSize : Maze a -> Int -> Int -> Maze a
 updateSize maze width height =

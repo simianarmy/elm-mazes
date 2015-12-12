@@ -9,6 +9,7 @@ type alias Cell = {
     id: CellID,
     row: Int,
     col: Int,
+    masked: Bool,
     links: Set CellID
 }
 
@@ -19,11 +20,15 @@ createCell row col =
         id = createCellID row col,
         row = row,
         col = col,
+        masked = False,
         links = Set.empty
     }
 
 -- helper to create a nil cell
-createNilCell = createCell -1 -1
+createMaskedCell row col =
+    let cell = createCell row col
+    in
+       {cell | masked <- True}
 
 -- generate a unique id string
 createCellID : Int -> Int -> CellID
@@ -35,6 +40,13 @@ createCellID a b =
 linked : Cell -> Set CellID
 linked cell =
     cell.links
+
+-- is cell a nil cell?
+isMasked : Maybe Cell -> Bool
+isMasked cell =
+    case cell of
+        Nothing -> True
+        Just cell -> cell.masked
 
 -- returns if cells are linked
 isLinked : Cell -> Cell -> Bool

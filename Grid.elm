@@ -108,9 +108,16 @@ view cellPainter grid cellSize =
 
 getCell : Grid a -> Int -> Int -> Maybe Cell
 getCell grid row col =
+    -- validate bounds
     if (row > grid.rows || col > grid.cols || row <= 0 || col <= 0)
        then Nothing
-       else Array.get ((gridIndex grid row col) - 1) <| Array.fromList grid.cells
+       else 
+       let cell = Array.get ((gridIndex grid row col) - 1) <| Array.fromList grid.cells
+       in
+          -- Masked cells are considered nil
+          if Cell.isMasked cell
+             then Nothing
+             else cell
 
 -- commonly used to map a maybe cell to a cell
 toValidCell : Maybe Cell -> Cell
@@ -250,7 +257,10 @@ toTitle grid =
     toString grid.rows ++ " X " ++ toString grid.cols ++ " Grid"
 
 cellToAscii : Grid a -> Cell -> String
-cellToAscii grid cell = " "
+cellToAscii grid cell = 
+    if cell.masked
+       then "M"
+       else " "
 
 cellBackgroundColor : Grid a -> Cell -> Color
 cellBackgroundColor grid cell =
@@ -267,8 +277,8 @@ toAscii cellViewer grid =
     let cellToString : Cell -> RowAscii -> RowAscii
         cellToString cell ascii =
             let body = " " ++ (cellViewer grid cell) ++ " "
-                east_boundary = (if isLinked cell (toValidCell (east grid cell)) then " " else "|")
-                south_boundary = (if isLinked cell (toValidCell (south grid cell)) then "   " else "---")
+                east_boundary = (if Cell.isLinked cell (toValidCell (east grid cell)) then " " else "|")
+                south_boundary = (if Cell.isLinked cell (toValidCell (south grid cell)) then "   " else "---")
                 curtop = ascii.top
                 curbottom = ascii.bottom
             in

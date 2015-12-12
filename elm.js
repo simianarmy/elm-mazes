@@ -451,6 +451,16 @@ Elm.Cell.make = function (_elm) {
       cell2.id,
       cell1.links);
    });
+   var isMasked = function (cell) {
+      return function () {
+         switch (cell.ctor)
+         {case "Just":
+            return cell._0.masked;
+            case "Nothing": return true;}
+         _U.badCase($moduleName,
+         "between lines 47 and 49");
+      }();
+   };
    var linked = function (cell) {
       return cell.links;
    };
@@ -466,27 +476,39 @@ Elm.Cell.make = function (_elm) {
              ,col: col
              ,id: A2(createCellID,row,col)
              ,links: $Set.empty
+             ,masked: false
              ,row: row};
    });
-   var createNilCell = A2(createCell,
-   -1,
-   -1);
-   var Cell = F4(function (a,
+   var createMaskedCell = F2(function (row,
+   col) {
+      return function () {
+         var cell = A2(createCell,
+         row,
+         col);
+         return _U.replace([["masked"
+                            ,true]],
+         cell);
+      }();
+   });
+   var Cell = F5(function (a,
    b,
    c,
-   d) {
+   d,
+   e) {
       return {_: {}
              ,col: c
              ,id: a
-             ,links: d
+             ,links: e
+             ,masked: d
              ,row: b};
    });
    _elm.Cell.values = {_op: _op
                       ,Cell: Cell
                       ,createCell: createCell
-                      ,createNilCell: createNilCell
+                      ,createMaskedCell: createMaskedCell
                       ,createCellID: createCellID
                       ,linked: linked
+                      ,isMasked: isMasked
                       ,isLinked: isLinked
                       ,hasLinks: hasLinks
                       ,cellToString: cellToString};
@@ -3337,7 +3359,7 @@ Elm.Grid.make = function (_elm) {
    });
    var cellToAscii = F2(function (grid,
    cell) {
-      return " ";
+      return cell.masked ? "M" : " ";
    });
    var toTitle = function (grid) {
       return A2($Basics._op["++"],
@@ -3356,7 +3378,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 244 and 246");
+         "between lines 251 and 253");
       }();
    };
    var gridIndex = F3(function (grid,
@@ -3450,7 +3472,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 124 and 126");
+         "between lines 131 and 133");
       }();
    };
    var toValidCell = function (cell) {
@@ -3462,7 +3484,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 118 and 120");
+         "between lines 125 and 127");
       }();
    };
    var getCell = F3(function (grid,
@@ -3472,10 +3494,13 @@ Elm.Grid.make = function (_elm) {
       grid.rows) > 0 || (_U.cmp(col,
       grid.cols) > 0 || (_U.cmp(row,
       0) < 1 || _U.cmp(col,
-      0) < 1)) ? $Maybe.Nothing : $Array.get(A3(gridIndex,
-      grid,
-      row,
-      col) - 1)($Array.fromList(grid.cells));
+      0) < 1)) ? $Maybe.Nothing : function () {
+         var cell = $Array.get(A3(gridIndex,
+         grid,
+         row,
+         col) - 1)($Array.fromList(grid.cells));
+         return $Cell.isMasked(cell) ? $Maybe.Nothing : cell;
+      }();
    });
    var north = F2(function (grid,
    cell) {
@@ -6473,7 +6498,7 @@ Elm.Main.make = function (_elm) {
               $Maybe.withDefault(model.grid.cols)($Result.toMaybe($String.toInt(action._0))),
               model.grid.rows);}
          _U.badCase($moduleName,
-         "between lines 31 and 50");
+         "between lines 32 and 51");
       }();
    });
    var SelectView = function (a) {
@@ -6497,10 +6522,10 @@ Elm.Main.make = function (_elm) {
    model) {
       return function () {
          var viewOptions = _L.fromArray([A2($Html.option,
-                                        _L.fromArray([]),
+                                        _L.fromArray([$Html$Attributes.selected(true)]),
                                         _L.fromArray([$Html.text("Ascii")]))
                                         ,A2($Html.option,
-                                        _L.fromArray([$Html$Attributes.selected(true)]),
+                                        _L.fromArray([]),
                                         _L.fromArray([$Html.text("Colored")]))]);
          var algToOptions = function (attr) {
             return A2($Html.option,
@@ -6573,6 +6598,7 @@ Elm.Main.make = function (_elm) {
                       _L.fromArray([]))]));
       }();
    });
+   var initDisplay = $Maze.Ascii;
    var initHeight = 10;
    var initWidth = 10;
    var main = $StartApp$Simple.start({_: {}
@@ -6581,12 +6607,13 @@ Elm.Main.make = function (_elm) {
                                      initWidth,
                                      initHeight,
                                      startTimeSeed,
-                                     $Maze.Colored)
+                                     initDisplay)
                                      ,update: update
                                      ,view: view});
    _elm.Main.values = {_op: _op
                       ,initWidth: initWidth
                       ,initHeight: initHeight
+                      ,initDisplay: initDisplay
                       ,Refresh: Refresh
                       ,UpdateWidth: UpdateWidth
                       ,UpdateHeight: UpdateHeight
@@ -6639,25 +6666,33 @@ Elm.Mask.make = function (_elm) {
          mask.bits));
       }();
    };
-   var set = F4(function (mask,
-   row,
-   col,
+   var set = F3(function (mask,
+   _v0,
    isOn) {
       return function () {
-         var _v0 = A2($Array.get,
-         row,
-         mask.bits);
          switch (_v0.ctor)
-         {case "Just":
-            return _U.replace([["bits"
-                               ,A3($Array.set,
-                               row,
-                               A3($Array.set,col,isOn,_v0._0),
-                               mask.bits)]],
-              mask);
-            case "Nothing": return mask;}
+         {case "_Tuple2":
+            return function () {
+                 var _v4 = A2($Array.get,
+                 _v0._0 - 1,
+                 mask.bits);
+                 switch (_v4.ctor)
+                 {case "Just":
+                    return _U.replace([["bits"
+                                       ,A3($Array.set,
+                                       _v0._0 - 1,
+                                       A3($Array.set,
+                                       _v0._1 - 1,
+                                       isOn,
+                                       _v4._0),
+                                       mask.bits)]],
+                      mask);
+                    case "Nothing": return mask;}
+                 _U.badCase($moduleName,
+                 "between lines 38 and 43");
+              }();}
          _U.badCase($moduleName,
-         "between lines 36 and 41");
+         "between lines 38 and 43");
       }();
    });
    var mset = F2(function (mask,
@@ -6665,10 +6700,9 @@ Elm.Mask.make = function (_elm) {
       return function () {
          var setone = F2(function (e,
          mask$) {
-            return A4(set,
+            return A3(set,
             mask$,
-            $Basics.fst($Basics.fst(e)),
-            $Basics.snd($Basics.fst(e)),
+            $Basics.fst(e),
             $Basics.snd(e));
          });
          return A3($List.foldl,
@@ -6681,24 +6715,24 @@ Elm.Mask.make = function (_elm) {
    row,
    col) {
       return function () {
-         var _v2 = A2($Array.get,
-         row,
+         var _v6 = A2($Array.get,
+         row - 1,
          mask.bits);
-         switch (_v2.ctor)
+         switch (_v6.ctor)
          {case "Just":
             return function () {
-                 var _v4 = A2($Array.get,
-                 col,
-                 _v2._0);
-                 switch (_v4.ctor)
-                 {case "Just": return _v4._0;
+                 var _v8 = A2($Array.get,
+                 col - 1,
+                 _v6._0);
+                 switch (_v8.ctor)
+                 {case "Just": return _v8._0;
                     case "Nothing": return false;}
                  _U.badCase($moduleName,
-                 "between lines 29 and 32");
+                 "between lines 30 and 33");
               }();
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 27 and 32");
+         "between lines 28 and 33");
       }();
    });
    var randomLocation = F2(function (mask,
@@ -6788,7 +6822,9 @@ Elm.MaskedGrid.make = function (_elm) {
             row,
             col) ? A2($Cell.createCell,
             row,
-            col) : $Cell.createNilCell;
+            col) : A2($Cell.createMaskedCell,
+            row,
+            col);
          });
          var makeRow = F2(function (cols,
          row) {
@@ -6800,6 +6836,11 @@ Elm.MaskedGrid.make = function (_elm) {
          makeRow(mask.cols),
          _L.range(1,mask.rows));
       }();
+   };
+   var update = function (grid) {
+      return _U.replace([["cells"
+                         ,prepareGrid(grid.mask)]],
+      grid);
    };
    var createGrid = F2(function (mask,
    initSeed) {
@@ -6823,6 +6864,7 @@ Elm.MaskedGrid.make = function (_elm) {
                             ,Masked: Masked
                             ,createGrid: createGrid
                             ,prepareGrid: prepareGrid
+                            ,update: update
                             ,randomCell: randomCell
                             ,size: size};
    return _elm.MaskedGrid.values;
@@ -6945,7 +6987,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return "Wilsons";}
          _U.badCase($moduleName,
-         "between lines 135 and 141");
+         "between lines 134 and 140");
       }();
    };
    var getAlgFn = function (algType) {
@@ -6964,7 +7006,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return $Wilsons.on;}
          _U.badCase($moduleName,
-         "between lines 125 and 131");
+         "between lines 124 and 130");
       }();
    };
    var viewDistances = function (maze) {
@@ -7020,7 +7062,7 @@ Elm.Maze.make = function (_elm) {
                     30));
                  }();}
             _U.badCase($moduleName,
-            "between lines 75 and 82");
+            "between lines 74 and 81");
          }();
          return A2($Html.div,
          _L.fromArray([]),
@@ -7052,7 +7094,7 @@ Elm.Maze.make = function (_elm) {
    });
    var update = function (maze) {
       return _U.replace([["grid"
-                         ,getAlgFn(maze.alg)($Grid.update(maze.grid))]],
+                         ,getAlgFn(maze.alg)($MaskedGrid.update(maze.grid))]],
       maze);
    };
    var init = F5(function (algType,
@@ -7068,18 +7110,18 @@ Elm.Maze.make = function (_elm) {
          mask,
          _L.fromArray([{ctor: "_Tuple2"
                        ,_0: {ctor: "_Tuple2"
-                            ,_0: 0
-                            ,_1: 0}
+                            ,_0: 1
+                            ,_1: 1}
                        ,_1: false}
                       ,{ctor: "_Tuple2"
                        ,_0: {ctor: "_Tuple2"
-                            ,_0: 2
-                            ,_1: 2}
+                            ,_0: 3
+                            ,_1: 3}
                        ,_1: false}
                       ,{ctor: "_Tuple2"
                        ,_0: {ctor: "_Tuple2"
-                            ,_0: 4
-                            ,_1: 4}
+                            ,_0: 5
+                            ,_1: 5}
                        ,_1: false}]));
          var algfn = getAlgFn(algType);
          var grid = algfn(A2($MaskedGrid.createGrid,

@@ -35,7 +35,7 @@ Elm.Grid.make = function (_elm) {
    });
    var cellToAscii = F2(function (grid,
    cell) {
-      return " ";
+      return cell.masked ? "M" : " ";
    });
    var toTitle = function (grid) {
       return A2($Basics._op["++"],
@@ -54,7 +54,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 244 and 246");
+         "between lines 251 and 253");
       }();
    };
    var gridIndex = F3(function (grid,
@@ -148,7 +148,7 @@ Elm.Grid.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 124 and 126");
+         "between lines 131 and 133");
       }();
    };
    var toValidCell = function (cell) {
@@ -160,7 +160,7 @@ Elm.Grid.make = function (_elm) {
               -1,
               -1);}
          _U.badCase($moduleName,
-         "between lines 118 and 120");
+         "between lines 125 and 127");
       }();
    };
    var getCell = F3(function (grid,
@@ -170,10 +170,13 @@ Elm.Grid.make = function (_elm) {
       grid.rows) > 0 || (_U.cmp(col,
       grid.cols) > 0 || (_U.cmp(row,
       0) < 1 || _U.cmp(col,
-      0) < 1)) ? $Maybe.Nothing : $Array.get(A3(gridIndex,
-      grid,
-      row,
-      col) - 1)($Array.fromList(grid.cells));
+      0) < 1)) ? $Maybe.Nothing : function () {
+         var cell = $Array.get(A3(gridIndex,
+         grid,
+         row,
+         col) - 1)($Array.fromList(grid.cells));
+         return $Cell.isMasked(cell) ? $Maybe.Nothing : cell;
+      }();
    });
    var north = F2(function (grid,
    cell) {

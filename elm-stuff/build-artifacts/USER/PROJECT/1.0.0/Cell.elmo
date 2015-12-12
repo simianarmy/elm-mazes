@@ -35,6 +35,16 @@ Elm.Cell.make = function (_elm) {
       cell2.id,
       cell1.links);
    });
+   var isMasked = function (cell) {
+      return function () {
+         switch (cell.ctor)
+         {case "Just":
+            return cell._0.masked;
+            case "Nothing": return true;}
+         _U.badCase($moduleName,
+         "between lines 47 and 49");
+      }();
+   };
    var linked = function (cell) {
       return cell.links;
    };
@@ -50,27 +60,39 @@ Elm.Cell.make = function (_elm) {
              ,col: col
              ,id: A2(createCellID,row,col)
              ,links: $Set.empty
+             ,masked: false
              ,row: row};
    });
-   var createNilCell = A2(createCell,
-   -1,
-   -1);
-   var Cell = F4(function (a,
+   var createMaskedCell = F2(function (row,
+   col) {
+      return function () {
+         var cell = A2(createCell,
+         row,
+         col);
+         return _U.replace([["masked"
+                            ,true]],
+         cell);
+      }();
+   });
+   var Cell = F5(function (a,
    b,
    c,
-   d) {
+   d,
+   e) {
       return {_: {}
              ,col: c
              ,id: a
-             ,links: d
+             ,links: e
+             ,masked: d
              ,row: b};
    });
    _elm.Cell.values = {_op: _op
                       ,Cell: Cell
                       ,createCell: createCell
-                      ,createNilCell: createNilCell
+                      ,createMaskedCell: createMaskedCell
                       ,createCellID: createCellID
                       ,linked: linked
+                      ,isMasked: isMasked
                       ,isLinked: isLinked
                       ,hasLinks: hasLinks
                       ,cellToString: cellToString};
