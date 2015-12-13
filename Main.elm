@@ -4,29 +4,31 @@ import Random exposing (Seed)
 import Maze exposing (..)
 
 import String
-import Signal
+import Signal exposing (Signal, Address)
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as JD
-import StartApp.Simple as StartApp
---import StartApp
-
--- MODEL
-
-type alias AppState a = {
-    maze: Maze a,
-    maskFile: Maybe (List String)
-}
-
---type alias Model a = AppState a
 
 initWidth = 10 
 initHeight = 10 
 initDisplay = Maze.Ascii
 
--- UPDATE
+--- MODEL ---
 
+-- The full application state
+type alias AppState a = 
+    { maze : Maze a
+    , maskFile : Maybe (List String)
+    }
+
+type alias Model a = AppState a
+
+--- UPDATE ---
+
+-- A description of the kinds of actions that can be performed on the model of
+-- our application. See the following for more info on this pattern and
+-- some alternatives: https://github.com/evancz/elm-architecture-tutorial/
 type Action = 
     NoOp
     | Refresh
@@ -36,7 +38,8 @@ type Action =
     | SelectView Maze.Display
     | UploadMask (List String)
 
-
+-- How we update our Model on a given Action?
+--update : Action -> Model a -> Model a
 update action model =
     case action of
         Refresh ->
@@ -65,7 +68,8 @@ update action model =
                {model | maze <- maze''}
 
 
--- VIEW
+--- VIEW ---
+view : Address Action -> Model a -> Html
 view address model =
     let
         selectAlg = Html.Events.on "change" targetValue
@@ -107,29 +111,42 @@ displayFromString str =
        then Maze.Ascii
        else Maze.Colored
 
--- PORTS --
+---- INPUTS ----
 
-port startTime : Float
+-- wire the entire application together
+main : Signal Html
+main =
+    Signal.map (view actions.address) model
+
+-- manage the model of our application over time
+--model : Signal (Model a)
+model =
+  Signal.foldp update initialModel actions.signal
+
+--initialModel : Model a
+initialModel =
+    {
+        maze = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initDisplay,
+        maskFile = Nothing
+    }
+
+-- actions from user input
+actions : Signal.Mailbox Action
+actions =
+  Signal.mailbox NoOp
+
 startTimeSeed : Seed
-startTimeSeed = Random.initialSeed <| round startTime
 -- uncomment to debug with consistent seed
 --startTimeSeed = Random.initialSeed 123
+startTimeSeed = Random.initialSeed <| round startTime
 
+-- port to get current time for seeds
+port startTime : Float
+
+-- ports for file uploads
 port output : Signal (List String)
 port output = 
     Signal.map String.lines openFromFile
 
 port openFromFile : Signal String
-    
 
-main =
-    StartApp.start {
-        model = {
-            maze = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initDisplay,
-            maskFile = Nothing
-        }
-        , update = update
-        , view = view
-    }
-
---};</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main, {startTime: Date.now()})</script></body></html>

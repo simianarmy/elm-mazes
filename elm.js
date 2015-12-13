@@ -6460,7 +6460,6 @@ Elm.Main.make = function (_elm) {
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $StartApp$Simple = Elm.StartApp.Simple.make(_elm),
    $String = Elm.String.make(_elm);
    var openFromFile = Elm.Native.Port.make(_elm).inboundSignal("openFromFile",
    "String",
@@ -6537,7 +6536,7 @@ Elm.Main.make = function (_elm) {
                  model);
               }();}
          _U.badCase($moduleName,
-         "between lines 41 and 65");
+         "between lines 44 and 68");
       }();
    });
    var UploadMask = function (a) {
@@ -6643,31 +6642,36 @@ Elm.Main.make = function (_elm) {
       }();
    });
    var NoOp = {ctor: "NoOp"};
-   var initDisplay = $Maze.Ascii;
-   var initHeight = 10;
-   var initWidth = 10;
-   var main = $StartApp$Simple.start({_: {}
-                                     ,model: {_: {}
-                                             ,maskFile: $Maybe.Nothing
-                                             ,maze: A5($Maze.init,
-                                             $Maze.defaultAlgorithm,
-                                             initWidth,
-                                             initHeight,
-                                             startTimeSeed,
-                                             initDisplay)}
-                                     ,update: update
-                                     ,view: view});
+   var actions = $Signal.mailbox(NoOp);
    var AppState = F2(function (a,
    b) {
       return {_: {}
              ,maskFile: b
              ,maze: a};
    });
+   var initDisplay = $Maze.Ascii;
+   var initHeight = 10;
+   var initWidth = 10;
+   var initialModel = {_: {}
+                      ,maskFile: $Maybe.Nothing
+                      ,maze: A5($Maze.init,
+                      $Maze.defaultAlgorithm,
+                      initWidth,
+                      initHeight,
+                      startTimeSeed,
+                      initDisplay)};
+   var model = A3($Signal.foldp,
+   update,
+   initialModel,
+   actions.signal);
+   var main = A2($Signal.map,
+   view(actions.address),
+   model);
    _elm.Main.values = {_op: _op
-                      ,AppState: AppState
                       ,initWidth: initWidth
                       ,initHeight: initHeight
                       ,initDisplay: initDisplay
+                      ,AppState: AppState
                       ,NoOp: NoOp
                       ,Refresh: Refresh
                       ,UpdateWidth: UpdateWidth
@@ -6678,8 +6682,11 @@ Elm.Main.make = function (_elm) {
                       ,update: update
                       ,view: view
                       ,displayFromString: displayFromString
-                      ,startTimeSeed: startTimeSeed
-                      ,main: main};
+                      ,main: main
+                      ,model: model
+                      ,initialModel: initialModel
+                      ,actions: actions
+                      ,startTimeSeed: startTimeSeed};
    return _elm.Main.values;
 };
 Elm.Mask = Elm.Mask || {};
@@ -16075,68 +16082,6 @@ Elm.Signal.make = function (_elm) {
                         ,forwardTo: forwardTo
                         ,Mailbox: Mailbox};
    return _elm.Signal.values;
-};
-Elm.StartApp = Elm.StartApp || {};
-Elm.StartApp.Simple = Elm.StartApp.Simple || {};
-Elm.StartApp.Simple.make = function (_elm) {
-   "use strict";
-   _elm.StartApp = _elm.StartApp || {};
-   _elm.StartApp.Simple = _elm.StartApp.Simple || {};
-   if (_elm.StartApp.Simple.values)
-   return _elm.StartApp.Simple.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "StartApp.Simple",
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Html = Elm.Html.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var start = function (config) {
-      return function () {
-         var update = F2(function (maybeAction,
-         model) {
-            return function () {
-               switch (maybeAction.ctor)
-               {case "Just":
-                  return A2(config.update,
-                    maybeAction._0,
-                    model);
-                  case "Nothing":
-                  return $Debug.crash("This should never happen.");}
-               _U.badCase($moduleName,
-               "between lines 91 and 98");
-            }();
-         });
-         var actions = $Signal.mailbox($Maybe.Nothing);
-         var address = A2($Signal.forwardTo,
-         actions.address,
-         $Maybe.Just);
-         var model = A3($Signal.foldp,
-         update,
-         config.model,
-         actions.signal);
-         return A2($Signal.map,
-         config.view(address),
-         model);
-      }();
-   };
-   var Config = F3(function (a,
-   b,
-   c) {
-      return {_: {}
-             ,model: a
-             ,update: c
-             ,view: b};
-   });
-   _elm.StartApp.Simple.values = {_op: _op
-                                 ,Config: Config
-                                 ,start: start};
-   return _elm.StartApp.Simple.values;
 };
 Elm.String = Elm.String || {};
 Elm.String.make = function (_elm) {
