@@ -68,6 +68,14 @@ updateSize maze width height =
         }
         --{maze | grid <- getAlgFn maze.alg <| createGrid width height (Rnd.nextSeed maze.grid.rnd)}
 
+-- setMask : Maze a -> Mask -> Maze a
+setMask maze mask =
+    let grid = MaskedGrid.createGrid mask maze.grid.rnd.seed
+    in
+       {maze |
+           grid <- getAlgFn maze.alg <| grid
+       }
+
 --view : Maze a -> Html
 view maze =
     let root = center maze.grid

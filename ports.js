@@ -20,5 +20,5 @@ upload.onchange = function (e) {
 function logger(x) { console.log(x); }
 
 //data from 'output' port is sent to logger function
-fileupload.ports.output.subscribe(logger);
+//fileupload.ports.output.subscribe(logger);
 

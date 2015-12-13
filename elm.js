@@ -6451,10 +6451,12 @@ Elm.Main.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Main",
    $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
    $List = Elm.List.make(_elm),
+   $Mask = Elm.Mask.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Maze = Elm.Maze.make(_elm),
    $Random = Elm.Random.make(_elm),
@@ -6467,7 +6469,7 @@ Elm.Main.make = function (_elm) {
       return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",
       v);
    });
-   var output = Elm.Native.Port.make(_elm).outboundSignal("output",
+   var outputFromFile = Elm.Native.Port.make(_elm).outboundSignal("outputFromFile",
    function (v) {
       return Elm.Native.List.make(_elm).toArray(v).map(function (v) {
          return v;
@@ -6491,7 +6493,19 @@ Elm.Main.make = function (_elm) {
    model) {
       return function () {
          switch (action.ctor)
-         {case "Refresh":
+         {case "LoadAsCurrentMask":
+            return function () {
+                 var mask = $Mask.fromTxt(A2($Debug.log,
+                 "lines from input file: ",
+                 action._0));
+                 return _U.replace([["maze"
+                                    ,A2($Maze.setMask,
+                                    model.maze,
+                                    mask)]],
+                 model);
+              }();
+            case "NoOp": return model;
+            case "Refresh":
             return _U.replace([["maze"
                                ,$Maze.update(model.maze)]],
               model);
@@ -6536,11 +6550,12 @@ Elm.Main.make = function (_elm) {
                  model);
               }();}
          _U.badCase($moduleName,
-         "between lines 44 and 68");
+         "between lines 46 and 77");
       }();
    });
-   var UploadMask = function (a) {
-      return {ctor: "UploadMask"
+   var UploadMask = {ctor: "UploadMask"};
+   var LoadAsCurrentMask = function (a) {
+      return {ctor: "LoadAsCurrentMask"
              ,_0: a};
    };
    var SelectView = function (a) {
@@ -6643,17 +6658,17 @@ Elm.Main.make = function (_elm) {
    });
    var NoOp = {ctor: "NoOp"};
    var actions = $Signal.mailbox(NoOp);
-   var AppState = F2(function (a,
-   b) {
-      return {_: {}
-             ,maskFile: b
-             ,maze: a};
-   });
+   var userInput = $Signal.mergeMany(_L.fromArray([A2($Signal.map,
+                                                  LoadAsCurrentMask,
+                                                  outputFromFile)
+                                                  ,actions.signal]));
+   var AppState = function (a) {
+      return {_: {},maze: a};
+   };
    var initDisplay = $Maze.Ascii;
    var initHeight = 10;
    var initWidth = 10;
    var initialModel = {_: {}
-                      ,maskFile: $Maybe.Nothing
                       ,maze: A5($Maze.init,
                       $Maze.defaultAlgorithm,
                       initWidth,
@@ -6663,7 +6678,7 @@ Elm.Main.make = function (_elm) {
    var model = A3($Signal.foldp,
    update,
    initialModel,
-   actions.signal);
+   userInput);
    var main = A2($Signal.map,
    view(actions.address),
    model);
@@ -6678,11 +6693,13 @@ Elm.Main.make = function (_elm) {
                       ,UpdateHeight: UpdateHeight
                       ,SelectAlg: SelectAlg
                       ,SelectView: SelectView
+                      ,LoadAsCurrentMask: LoadAsCurrentMask
                       ,UploadMask: UploadMask
                       ,update: update
                       ,view: view
                       ,displayFromString: displayFromString
                       ,main: main
+                      ,userInput: userInput
                       ,model: model
                       ,initialModel: initialModel
                       ,actions: actions
@@ -6706,7 +6723,43 @@ Elm.Mask.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Rnd = Elm.Rnd.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var fromTxt = function (lines) {
+      return function () {
+         var validLines = $List.map($String.trim)(A2($List.filter,
+         function (l) {
+            return $Basics.not($String.isEmpty(l));
+         },
+         lines));
+         var rows = $List.length(validLines);
+         var cols = $String.length(A2($Maybe.withDefault,
+         "",
+         $List.head(validLines)));
+         var linesArr = $Array.fromList(validLines);
+         var rowBools = function (row) {
+            return function () {
+               var rowStr = A2($Array.get,
+               row,
+               linesArr);
+               var cols = $String.toList(A2($Maybe.withDefault,
+               "",
+               rowStr));
+               return $Array.fromList(A2($List.map,
+               function (c) {
+                  return _U.eq(c,_U.chr("."));
+               },
+               cols));
+            }();
+         };
+         return {_: {}
+                ,bits: A2($Array.initialize,
+                rows,
+                rowBools)
+                ,cols: cols
+                ,rows: rows};
+      }();
+   };
    var count = function (mask) {
       return function () {
          var addCols = function (rowbits) {
@@ -6752,10 +6805,10 @@ Elm.Mask.make = function (_elm) {
                       mask);
                     case "Nothing": return mask;}
                  _U.badCase($moduleName,
-                 "between lines 38 and 43");
+                 "between lines 39 and 44");
               }();}
          _U.badCase($moduleName,
-         "between lines 38 and 43");
+         "between lines 39 and 44");
       }();
    });
    var mset = F2(function (mask,
@@ -6791,11 +6844,11 @@ Elm.Mask.make = function (_elm) {
                  {case "Just": return _v8._0;
                     case "Nothing": return false;}
                  _U.badCase($moduleName,
-                 "between lines 30 and 33");
+                 "between lines 31 and 34");
               }();
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 28 and 33");
+         "between lines 29 and 34");
       }();
    });
    var randomLocation = F2(function (mask,
@@ -6838,7 +6891,8 @@ Elm.Mask.make = function (_elm) {
                       ,set: set
                       ,mset: mset
                       ,count: count
-                      ,randomLocation: randomLocation};
+                      ,randomLocation: randomLocation
+                      ,fromTxt: fromTxt};
    return _elm.Mask.values;
 };
 Elm.MaskedGrid = Elm.MaskedGrid || {};
@@ -7050,7 +7104,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return "Wilsons";}
          _U.badCase($moduleName,
-         "between lines 134 and 140");
+         "between lines 142 and 148");
       }();
    };
    var getAlgFn = function (algType) {
@@ -7069,7 +7123,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return $Wilsons.on;}
          _U.badCase($moduleName,
-         "between lines 124 and 130");
+         "between lines 132 and 138");
       }();
    };
    var viewDistances = function (maze) {
@@ -7125,7 +7179,7 @@ Elm.Maze.make = function (_elm) {
                     30));
                  }();}
             _U.badCase($moduleName,
-            "between lines 74 and 81");
+            "between lines 82 and 89");
          }();
          return A2($Html.div,
          _L.fromArray([]),
@@ -7141,6 +7195,17 @@ Elm.Maze.make = function (_elm) {
                       ,gridHtml]));
       }();
    };
+   var setMask = F2(function (maze,
+   mask) {
+      return function () {
+         var grid = A2($MaskedGrid.createGrid,
+         mask,
+         maze.grid.rnd.seed);
+         return _U.replace([["grid"
+                            ,getAlgFn(maze.alg)(grid)]],
+         maze);
+      }();
+   });
    var updateSize = F3(function (maze,
    width,
    height) {
@@ -7265,6 +7330,7 @@ Elm.Maze.make = function (_elm) {
                       ,init: init
                       ,update: update
                       ,updateSize: updateSize
+                      ,setMask: setMask
                       ,view: view
                       ,viewDistances: viewDistances
                       ,algorithms: algorithms

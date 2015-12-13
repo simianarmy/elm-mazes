@@ -4,6 +4,7 @@ module Mask where
 import Rnd
 
 import Array exposing (Array)
+import String
 
 type alias Mask =
     {
@@ -65,3 +66,26 @@ randomLocation mask rnd =
     if get mask rnd.row rnd.col
        then (rnd.row, rnd.col)
        else randomLocation mask (Rnd.refresh rnd)
+
+-- Creates mask from text (one row per line)
+fromTxt : List String -> Mask
+fromTxt lines =
+    let validLines = List.map String.trim <| List.filter (\l -> not <| String.isEmpty l) lines
+        rows = List.length validLines
+        cols = String.length <| Maybe.withDefault "" (List.head validLines)
+        linesArr = Array.fromList validLines
+    
+        rowBools : Int -> Array Bool
+        rowBools row =
+            let rowStr = Array.get row linesArr
+                cols = String.toList <| Maybe.withDefault "" rowStr
+            in
+                Array.fromList <| List.map (\c -> c == '.')  cols
+
+       in
+          {
+              rows = rows,
+              cols = cols,
+              bits = Array.initialize rows rowBools
+          }
+

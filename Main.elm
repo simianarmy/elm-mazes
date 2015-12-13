@@ -2,7 +2,9 @@ module Main where
 
 import Random exposing (Seed)
 import Maze exposing (..)
+import Mask exposing (Mask)
 
+import Debug
 import String
 import Signal exposing (Signal, Address)
 import Html exposing (..)
@@ -19,7 +21,6 @@ initDisplay = Maze.Ascii
 -- The full application state
 type alias AppState a = 
     { maze : Maze a
-    , maskFile : Maybe (List String)
     }
 
 type alias Model a = AppState a
@@ -36,12 +37,15 @@ type Action =
     | UpdateHeight String
     | SelectAlg String
     | SelectView Maze.Display
-    | UploadMask (List String)
+    | LoadAsCurrentMask (List String)
+    | UploadMask
 
 -- How we update our Model on a given Action?
 --update : Action -> Model a -> Model a
 update action model =
     case action of
+        NoOp -> model
+
         Refresh ->
             {model | maze <- Maze.update model.maze}
 
@@ -67,6 +71,10 @@ update action model =
             in
                {model | maze <- maze''}
 
+        LoadAsCurrentMask lines ->
+            let mask = Mask.fromTxt <| Debug.log "lines from input file: " lines
+            in
+               {model | maze <- Maze.setMask model.maze mask}
 
 --- VIEW ---
 view : Address Action -> Model a -> Html
@@ -118,22 +126,28 @@ main : Signal Html
 main =
     Signal.map (view actions.address) model
 
+userInput : Signal Action
+userInput =
+    Signal.mergeMany
+        [ Signal.map LoadAsCurrentMask outputFromFile
+        , actions.signal
+        ]
+
 -- manage the model of our application over time
 --model : Signal (Model a)
 model =
-  Signal.foldp update initialModel actions.signal
+    Signal.foldp update initialModel userInput
 
 --initialModel : Model a
 initialModel =
     {
-        maze = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initDisplay,
-        maskFile = Nothing
+        maze = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initDisplay
     }
 
 -- actions from user input
 actions : Signal.Mailbox Action
 actions =
-  Signal.mailbox NoOp
+    Signal.mailbox NoOp
 
 startTimeSeed : Seed
 -- uncomment to debug with consistent seed
@@ -144,9 +158,9 @@ startTimeSeed = Random.initialSeed <| round startTime
 port startTime : Float
 
 -- ports for file uploads
-port output : Signal (List String)
-port output = 
-    Signal.map String.lines openFromFile
+port outputFromFile : Signal (List String)
+port outputFromFile = 
+      Signal.map String.lines openFromFile
 
 port openFromFile : Signal String
 
