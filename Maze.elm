@@ -3,8 +3,8 @@ module Maze where
 import Grid exposing (..)
 import DistanceGrid
 import ColoredGrid
-import MaskedGrid
 import Mask
+import MaskedGrid
 import Rnd
 import Cell exposing (Cell)
 import BinaryTree
@@ -45,8 +45,7 @@ defaultAlgorithm = RecursiveBacktracker
 init algType width height seed display =
     let algfn = getAlgFn algType
         mask = Mask.createMask width height
-        mask' = Mask.mset mask [((1, 1), False), ((3, 3), False), ((5, 5), False)]
-        grid = algfn <| MaskedGrid.createGrid mask' seed
+        grid = algfn <| MaskedGrid.createGrid mask seed
     in
        {
            grid = grid,
@@ -64,7 +63,7 @@ updateSize maze width height =
         grid'' = {grid' | rows <- height, cols <- width}
     in
         {maze |
-            grid <- getAlgFn maze.alg <| Grid.update grid''
+            grid <- getAlgFn maze.alg <| MaskedGrid.update grid''
         }
         --{maze | grid <- getAlgFn maze.alg <| createGrid width height (Rnd.nextSeed maze.grid.rnd)}
 

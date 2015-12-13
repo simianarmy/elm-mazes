@@ -80,7 +80,7 @@ fromTxt lines =
             let rowStr = Array.get row linesArr
                 cols = String.toList <| Maybe.withDefault "" rowStr
             in
-                Array.fromList <| List.map (\c -> c == '.')  cols
+                Array.fromList <| List.map (\c -> c /= 'X') cols
 
        in
           {

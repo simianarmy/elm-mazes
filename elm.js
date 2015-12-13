@@ -6550,10 +6550,9 @@ Elm.Main.make = function (_elm) {
                  model);
               }();}
          _U.badCase($moduleName,
-         "between lines 46 and 77");
+         "between lines 45 and 76");
       }();
    });
-   var UploadMask = {ctor: "UploadMask"};
    var LoadAsCurrentMask = function (a) {
       return {ctor: "LoadAsCurrentMask"
              ,_0: a};
@@ -6651,6 +6650,14 @@ Elm.Main.make = function (_elm) {
                       address,
                       Refresh)]),
                       _L.fromArray([$Html.text("REFRESH")]))
+                      ,A2($Html.br,
+                      _L.fromArray([]),
+                      _L.fromArray([]))
+                      ,$Html.text("Ascii Mask file: ")
+                      ,A2($Html.input,
+                      _L.fromArray([$Html$Attributes.type$("file")
+                                   ,$Html$Attributes.id("fileinput")]),
+                      _L.fromArray([]))
                       ,A2($Html.footer,
                       _L.fromArray([]),
                       _L.fromArray([]))]));
@@ -6694,7 +6701,6 @@ Elm.Main.make = function (_elm) {
                       ,SelectAlg: SelectAlg
                       ,SelectView: SelectView
                       ,LoadAsCurrentMask: LoadAsCurrentMask
-                      ,UploadMask: UploadMask
                       ,update: update
                       ,view: view
                       ,displayFromString: displayFromString
@@ -6747,7 +6753,7 @@ Elm.Mask.make = function (_elm) {
                rowStr));
                return $Array.fromList(A2($List.map,
                function (c) {
-                  return _U.eq(c,_U.chr("."));
+                  return !_U.eq(c,_U.chr("X"));
                },
                cols));
             }();
@@ -7104,7 +7110,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return "Wilsons";}
          _U.badCase($moduleName,
-         "between lines 142 and 148");
+         "between lines 141 and 147");
       }();
    };
    var getAlgFn = function (algType) {
@@ -7123,7 +7129,7 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return $Wilsons.on;}
          _U.badCase($moduleName,
-         "between lines 132 and 138");
+         "between lines 131 and 137");
       }();
    };
    var viewDistances = function (maze) {
@@ -7179,7 +7185,7 @@ Elm.Maze.make = function (_elm) {
                     30));
                  }();}
             _U.badCase($moduleName,
-            "between lines 82 and 89");
+            "between lines 81 and 88");
          }();
          return A2($Html.div,
          _L.fromArray([]),
@@ -7216,7 +7222,7 @@ Elm.Maze.make = function (_elm) {
                                  ,["cols",width]],
          grid$);
          return _U.replace([["grid"
-                            ,getAlgFn(maze.alg)($Grid.update(grid$$))]],
+                            ,getAlgFn(maze.alg)($MaskedGrid.update(grid$$))]],
          maze);
       }();
    });
@@ -7234,26 +7240,9 @@ Elm.Maze.make = function (_elm) {
          var mask = A2($Mask.createMask,
          width,
          height);
-         var mask$ = A2($Mask.mset,
-         mask,
-         _L.fromArray([{ctor: "_Tuple2"
-                       ,_0: {ctor: "_Tuple2"
-                            ,_0: 1
-                            ,_1: 1}
-                       ,_1: false}
-                      ,{ctor: "_Tuple2"
-                       ,_0: {ctor: "_Tuple2"
-                            ,_0: 3
-                            ,_1: 3}
-                       ,_1: false}
-                      ,{ctor: "_Tuple2"
-                       ,_0: {ctor: "_Tuple2"
-                            ,_0: 5
-                            ,_1: 5}
-                       ,_1: false}]));
          var algfn = getAlgFn(algType);
          var grid = algfn(A2($MaskedGrid.createGrid,
-         mask$,
+         mask,
          seed));
          return {_: {}
                 ,alg: algType

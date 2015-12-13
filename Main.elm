@@ -38,7 +38,6 @@ type Action =
     | SelectAlg String
     | SelectView Maze.Display
     | LoadAsCurrentMask (List String)
-    | UploadMask
 
 -- How we update our Model on a given Action?
 --update : Action -> Model a -> Model a
@@ -108,6 +107,9 @@ view address model =
         , select [ selectAlg ] (List.map algToOptions Maze.algorithms)
         , select [ selectView ] (viewOptions)
         , button [ onClick address Refresh ] [ text "REFRESH" ]
+        , br [] []
+        , text "Ascii Mask file: "
+        , input [ type' "file", id "fileinput" ] []
         -- , button [ id "fileinput", onClick address UploadMaskInput ] [ text "Upload Mask" ]
         --, text ("start time: " ++ (toString startTime)),
         , footer [] []
