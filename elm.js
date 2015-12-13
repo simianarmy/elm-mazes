@@ -6462,6 +6462,21 @@ Elm.Main.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $StartApp$Simple = Elm.StartApp.Simple.make(_elm),
    $String = Elm.String.make(_elm);
+   var openFromFile = Elm.Native.Port.make(_elm).inboundSignal("openFromFile",
+   "String",
+   function (v) {
+      return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",
+      v);
+   });
+   var output = Elm.Native.Port.make(_elm).outboundSignal("output",
+   function (v) {
+      return Elm.Native.List.make(_elm).toArray(v).map(function (v) {
+         return v;
+      });
+   },
+   A2($Signal.map,
+   $String.lines,
+   openFromFile));
    var startTime = Elm.Native.Port.make(_elm).inbound("startTime",
    "Float",
    function (v) {
@@ -6478,29 +6493,57 @@ Elm.Main.make = function (_elm) {
       return function () {
          switch (action.ctor)
          {case "Refresh":
-            return $Maze.update(model);
-            case "SelectAlg":
-            return $Maze.update(_U.replace([["alg"
-                                            ,$Maze.algByName(action._0)]],
-              model));
-            case "SelectView":
-            return _U.replace([["display"
-                               ,action._0]],
+            return _U.replace([["maze"
+                               ,$Maze.update(model.maze)]],
               model);
+            case "SelectAlg":
+            return function () {
+                 var maze$ = model.maze;
+                 var maze$$ = $Maze.update(_U.replace([["alg"
+                                                       ,$Maze.algByName(action._0)]],
+                 maze$));
+                 return _U.replace([["maze"
+                                    ,maze$$]],
+                 model);
+              }();
+            case "SelectView":
+            return function () {
+                 var maze$ = model.maze;
+                 var maze$$ = _U.replace([["display"
+                                          ,action._0]],
+                 maze$);
+                 return _U.replace([["maze"
+                                    ,maze$$]],
+                 model);
+              }();
             case "UpdateHeight":
-            return A3($Maze.updateSize,
-              model,
-              model.grid.cols,
-              $Maybe.withDefault(model.grid.rows)($Result.toMaybe($String.toInt(action._0))));
+            return function () {
+                 var maze$ = A3($Maze.updateSize,
+                 model.maze,
+                 model.maze.grid.cols,
+                 $Maybe.withDefault(model.maze.grid.rows)($Result.toMaybe($String.toInt(action._0))));
+                 return _U.replace([["maze"
+                                    ,maze$]],
+                 model);
+              }();
             case "UpdateWidth":
-            return A3($Maze.updateSize,
-              model,
-              $Maybe.withDefault(model.grid.cols)($Result.toMaybe($String.toInt(action._0))),
-              model.grid.rows);}
+            return function () {
+                 var maze$ = A3($Maze.updateSize,
+                 model.maze,
+                 $Maybe.withDefault(model.maze.grid.cols)($Result.toMaybe($String.toInt(action._0))),
+                 model.maze.grid.rows);
+                 return _U.replace([["maze"
+                                    ,maze$]],
+                 model);
+              }();}
          _U.badCase($moduleName,
-         "between lines 32 and 51");
+         "between lines 41 and 65");
       }();
    });
+   var UploadMask = function (a) {
+      return {ctor: "UploadMask"
+             ,_0: a};
+   };
    var SelectView = function (a) {
       return {ctor: "SelectView"
              ,_0: a};
@@ -6521,6 +6564,7 @@ Elm.Main.make = function (_elm) {
    var view = F2(function (address,
    model) {
       return function () {
+         var maze = model.maze;
          var viewOptions = _L.fromArray([A2($Html.option,
                                         _L.fromArray([$Html$Attributes.selected(true)]),
                                         _L.fromArray([$Html.text("Ascii")]))
@@ -6552,13 +6596,13 @@ Elm.Main.make = function (_elm) {
                       _L.fromArray([A2($Html.h1,
                       _L.fromArray([]),
                       _L.fromArray([$Html.text("Amazeball Mazes")]))]))
-                      ,$Maze.view(model)
+                      ,$Maze.view(maze)
                       ,A2($Html.br,
                       _L.fromArray([]),
                       _L.fromArray([]))
                       ,A2($Html.input,
                       _L.fromArray([$Html$Attributes.$class("sizeInput")
-                                   ,$Html$Attributes.value($Basics.toString(model.grid.cols))
+                                   ,$Html$Attributes.value($Basics.toString(maze.grid.cols))
                                    ,A3($Html$Events.on,
                                    "input",
                                    $Html$Events.targetValue,
@@ -6569,7 +6613,7 @@ Elm.Main.make = function (_elm) {
                       ,$Html.text(" X ")
                       ,A2($Html.input,
                       _L.fromArray([$Html$Attributes.$class("sizeInput")
-                                   ,$Html$Attributes.value($Basics.toString(model.grid.rows))
+                                   ,$Html$Attributes.value($Basics.toString(maze.grid.rows))
                                    ,A3($Html$Events.on,
                                    "input",
                                    $Html$Events.targetValue,
@@ -6598,27 +6642,39 @@ Elm.Main.make = function (_elm) {
                       _L.fromArray([]))]));
       }();
    });
+   var NoOp = {ctor: "NoOp"};
    var initDisplay = $Maze.Ascii;
    var initHeight = 10;
    var initWidth = 10;
    var main = $StartApp$Simple.start({_: {}
-                                     ,model: A5($Maze.init,
-                                     $Maze.defaultAlgorithm,
-                                     initWidth,
-                                     initHeight,
-                                     startTimeSeed,
-                                     initDisplay)
+                                     ,model: {_: {}
+                                             ,maskFile: $Maybe.Nothing
+                                             ,maze: A5($Maze.init,
+                                             $Maze.defaultAlgorithm,
+                                             initWidth,
+                                             initHeight,
+                                             startTimeSeed,
+                                             initDisplay)}
                                      ,update: update
                                      ,view: view});
+   var AppState = F2(function (a,
+   b) {
+      return {_: {}
+             ,maskFile: b
+             ,maze: a};
+   });
    _elm.Main.values = {_op: _op
+                      ,AppState: AppState
                       ,initWidth: initWidth
                       ,initHeight: initHeight
                       ,initDisplay: initDisplay
+                      ,NoOp: NoOp
                       ,Refresh: Refresh
                       ,UpdateWidth: UpdateWidth
                       ,UpdateHeight: UpdateHeight
                       ,SelectAlg: SelectAlg
                       ,SelectView: SelectView
+                      ,UploadMask: UploadMask
                       ,update: update
                       ,view: view
                       ,displayFromString: displayFromString

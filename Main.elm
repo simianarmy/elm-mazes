@@ -1,7 +1,10 @@
 module Main where
 
-import String
 import Random exposing (Seed)
+import Maze exposing (..)
+
+import String
+import Signal
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
@@ -9,12 +12,14 @@ import Json.Decode as JD
 import StartApp.Simple as StartApp
 --import StartApp
 
-
-import Maze exposing (..)
-
 -- MODEL
 
-type alias Model a = Maze a
+type alias AppState a = {
+    maze: Maze a,
+    maskFile: Maybe (List String)
+}
+
+--type alias Model a = AppState a
 
 initWidth = 10 
 initHeight = 10 
@@ -22,33 +27,43 @@ initDisplay = Maze.Ascii
 
 -- UPDATE
 
-type Action = Refresh |
-    UpdateWidth String |
-    UpdateHeight String |
-    SelectAlg String |
-    SelectView Maze.Display
+type Action = 
+    NoOp
+    | Refresh
+    | UpdateWidth String
+    | UpdateHeight String
+    | SelectAlg String
+    | SelectView Maze.Display
+    | UploadMask (List String)
+
 
 update action model =
     case action of
         Refresh ->
-            Maze.update model
+            {model | maze <- Maze.update model.maze}
 
         UpdateWidth str ->
-            Maze.updateSize model
-            (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.grid.cols)
-            model.grid.rows
+            let maze' = Maze.updateSize model.maze (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.maze.grid.cols) model.maze.grid.rows
+            in
+               {model | maze <- maze'}
 
         UpdateHeight str ->
-            Maze.updateSize model model.grid.cols
-            (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.grid.rows)
+            let maze' = Maze.updateSize model.maze model.maze.grid.cols (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.maze.grid.rows)
+            in
+               {model | maze <- maze'}
 
         SelectAlg str ->
-            Maze.update {model | alg <- Maze.algByName str}
+            let maze' = model.maze
+                maze'' = Maze.update {maze' | alg <- Maze.algByName str}
+            in
+               {model | maze <- maze''}
 
         SelectView display ->
-            {model |
-                display <- display
-            }
+            let maze' = model.maze
+                maze'' = {maze' | display <- display}
+            in
+               {model | maze <- maze''}
+
 
 -- VIEW
 view address model =
@@ -63,23 +78,25 @@ view address model =
             option [selected True] [text "Ascii"]
             , option [] [text "Colored"]
             ]
+        maze = model.maze
     in
     div [] [
         -- title
         header [] [ h1 [] [text "Amazeball Mazes" ]]
         -- the maze
-        , Maze.view model
+        , Maze.view maze
         -- controls
         , br [] []
-        , input [ class "sizeInput", value (toString model.grid.cols)
+        , input [ class "sizeInput", value (toString maze.grid.cols)
               , on "input" targetValue (Signal.message address << UpdateWidth) ] []
         , text " X "
-        , input [ class "sizeInput", value (toString model.grid.rows)
+        , input [ class "sizeInput", value (toString maze.grid.rows)
               , on "input" targetValue (Signal.message address << UpdateHeight)] []
         , br [] []
         , select [ selectAlg ] (List.map algToOptions Maze.algorithms)
         , select [ selectView ] (viewOptions)
         , button [ onClick address Refresh ] [ text "REFRESH" ]
+        -- , button [ id "fileinput", onClick address UploadMaskInput ] [ text "Upload Mask" ]
         --, text ("start time: " ++ (toString startTime)),
         , footer [] []
         ]
@@ -90,17 +107,29 @@ displayFromString str =
        then Maze.Ascii
        else Maze.Colored
 
+-- PORTS --
+
 port startTime : Float
 startTimeSeed : Seed
 startTimeSeed = Random.initialSeed <| round startTime
 -- uncomment to debug with consistent seed
 --startTimeSeed = Random.initialSeed 123
 
+port output : Signal (List String)
+port output = 
+    Signal.map String.lines openFromFile
+
+port openFromFile : Signal String
+    
+
 main =
     StartApp.start {
-        model = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initDisplay
-                   , update = update
-                   , view = view
-               }
+        model = {
+            maze = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initDisplay,
+            maskFile = Nothing
+        }
+        , update = update
+        , view = view
+    }
 
 --};</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main, {startTime: Date.now()})</script></body></html>
