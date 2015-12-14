@@ -157,6 +157,7 @@ randomCell grid =
     let grid' = updateRnd grid
         randRow = grid'.rnd.row
         randCol = grid'.rnd.col
+        
         cell = toValidCell <| getCell grid' randRow randCol
     in
        (grid', cell)

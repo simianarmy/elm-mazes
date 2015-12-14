@@ -1,24 +1,24 @@
 //text output -- it no html or graphical output
-var fileupload = Elm.fullscreen(Elm.Main, {
+var myports = Elm.fullscreen(Elm.Main, {
     startTime: Date.now(),
     openFromFile: ""
 });
 
-var upload = document.getElementById('fileinput');
+var maskUpload = document.getElementById('maskfileinput');
 
-upload.onchange = function (e) {
+maskUpload.onchange = function (e) {
 	reader = new FileReader();
 
 	reader.onload = function (event) {
 		data = event.target.result;	
 		//file's text data is sent to 'openfromfile' port
-		fileupload.ports.openFromFile.send(data);
+		myports.ports.openFromFile.send(data);
     };
-    reader.readAsText(upload.files[0]);
+    reader.readAsText(maskUpload.files[0]);
 };
 	
 function logger(x) { console.log(x); }
 
 //data from 'output' port is sent to logger function
-//fileupload.ports.output.subscribe(logger);
+//myports.ports.output.subscribe(logger);
 

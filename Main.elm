@@ -109,8 +109,7 @@ view address model =
         , button [ onClick address Refresh ] [ text "REFRESH" ]
         , br [] []
         , text "Ascii Mask file: "
-        , input [ type' "file", id "fileinput" ] []
-        -- , button [ id "fileinput", onClick address UploadMaskInput ] [ text "Upload Mask" ]
+        , input [ type' "file", id "maskfileinput" ] []
         --, text ("start time: " ++ (toString startTime)),
         , footer [] []
         ]

@@ -15,6 +15,7 @@ Elm.AldousBroder.make = function (_elm) {
    $Grid = Elm.Grid.make(_elm),
    $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
+   $MaskedGrid = Elm.MaskedGrid.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
@@ -45,7 +46,7 @@ Elm.AldousBroder.make = function (_elm) {
                        neighbor,
                        unvisited - 1);}
                   _U.badCase($moduleName,
-                  "on line 39, column 34 to 76");
+                  "on line 40, column 34 to 76");
                }();
             });
          }() : $Trampoline.Continue(function (_v2) {
@@ -57,16 +58,15 @@ Elm.AldousBroder.make = function (_elm) {
                     neighbor,
                     unvisited);}
                _U.badCase($moduleName,
-               "on line 42, column 31 to 79");
+               "on line 43, column 31 to 79");
             }();
          });
       }();
    });
    var on = function (grid) {
       return function () {
-         var $ = $Grid.randomCell(grid),
-         grid$ = $._0,
-         startCell = $._1;
+         var grid$ = $Grid.updateRnd(grid);
+         var startCell = $MaskedGrid.randomCell(grid);
          return $Trampoline.trampoline(A3(walkRandomly,
          grid$,
          startCell,
@@ -3378,7 +3378,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 251 and 253");
+         "between lines 252 and 254");
       }();
    };
    var gridIndex = F3(function (grid,
@@ -4887,6 +4887,7 @@ Elm.HuntAndKill.make = function (_elm) {
    $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
    $List$Extra = Elm.List.Extra.make(_elm),
+   $MaskedGrid = Elm.MaskedGrid.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
@@ -4929,7 +4930,7 @@ Elm.HuntAndKill.make = function (_elm) {
                       -1,
                       -1)};}
             _U.badCase($moduleName,
-            "between lines 57 and 64");
+            "between lines 58 and 65");
          }();
       }();
    };
@@ -4961,7 +4962,7 @@ Elm.HuntAndKill.make = function (_elm) {
                        grid$$,
                        neighbor);}
                   _U.badCase($moduleName,
-                  "on line 39, column 34 to 62");
+                  "on line 40, column 34 to 62");
                }();
             });
          }() : function () {
@@ -4976,7 +4977,7 @@ Elm.HuntAndKill.make = function (_elm) {
                        grid$,
                        current);}
                   _U.badCase($moduleName,
-                  "on line 44, column 31 to 57");
+                  "on line 45, column 31 to 57");
                }();
             });
          }();
@@ -4984,9 +4985,8 @@ Elm.HuntAndKill.make = function (_elm) {
    });
    var on = function (grid) {
       return function () {
-         var $ = $Grid.randomCell(grid),
-         grid$ = $._0,
-         startCell = $._1;
+         var grid$ = $Grid.updateRnd(grid);
+         var startCell = $MaskedGrid.randomCell(grid);
          return $Trampoline.trampoline(A2(walkRandomly,
          grid$,
          startCell));
@@ -6656,7 +6656,7 @@ Elm.Main.make = function (_elm) {
                       ,$Html.text("Ascii Mask file: ")
                       ,A2($Html.input,
                       _L.fromArray([$Html$Attributes.type$("file")
-                                   ,$Html$Attributes.id("fileinput")]),
+                                   ,$Html$Attributes.id("maskfileinput")]),
                       _L.fromArray([]))
                       ,A2($Html.footer,
                       _L.fromArray([]),
@@ -15364,6 +15364,7 @@ Elm.RecursiveBacktracker.make = function (_elm) {
    $Grid = Elm.Grid.make(_elm),
    $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
+   $MaskedGrid = Elm.MaskedGrid.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
@@ -15388,7 +15389,7 @@ Elm.RecursiveBacktracker.make = function (_elm) {
                     _L.fromArray([]),
                     $List.tail(stack)));}
                _U.badCase($moduleName,
-               "on line 34, column 37 to 88");
+               "on line 35, column 37 to 88");
             }();
          }) : function () {
             var neighbor = $Grid.toValidCell(A2($GridUtils.sampleCell,
@@ -15410,7 +15411,7 @@ Elm.RecursiveBacktracker.make = function (_elm) {
                        neighbor,
                        stack));}
                   _U.badCase($moduleName,
-                  "on line 41, column 36 to 74");
+                  "on line 42, column 36 to 74");
                }();
             });
          }();
@@ -15418,9 +15419,8 @@ Elm.RecursiveBacktracker.make = function (_elm) {
    });
    var on = function (grid) {
       return function () {
-         var $ = $Grid.randomCell(grid),
-         grid$ = $._0,
-         startCell = $._1;
+         var grid$ = $Grid.updateRnd(grid);
+         var startCell = $MaskedGrid.randomCell(grid);
          var stack = _L.fromArray([startCell]);
          return $Trampoline.trampoline(A2(walkRandomly,
          grid$,
@@ -16725,6 +16725,7 @@ Elm.Wilsons.make = function (_elm) {
    $Grid = Elm.Grid.make(_elm),
    $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
+   $MaskedGrid = Elm.MaskedGrid.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
@@ -16813,16 +16814,15 @@ Elm.Wilsons.make = function (_elm) {
                     rwp.grid,
                     rwp.unvisited);}
                _U.badCase($moduleName,
-               "on line 42, column 29 to 56");
+               "on line 44, column 29 to 56");
             }();
          });
       }();
    });
    var on = function (grid) {
       return function () {
-         var $ = $Grid.randomCell(grid),
-         grid$ = $._0,
-         first = $._1;
+         var grid$ = $Grid.updateRnd(grid);
+         var first = $MaskedGrid.randomCell(grid);
          var unvisited = A2($List.filter,
          function (e) {
             return $Basics.not(_U.eq(e.id,

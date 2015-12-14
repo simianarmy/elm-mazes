@@ -6,6 +6,7 @@ import Cell exposing (Cell)
 import Grid exposing (Grid)
 
 import Random exposing (Seed)
+import Debug
 
 type alias Masked a = {
     a|
