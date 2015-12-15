@@ -2,7 +2,6 @@
 module AldousBroder (on) where
 
 import Grid exposing (..)
-import MaskedGrid
 import Cell exposing (Cell)
 import GridUtils
 
@@ -12,13 +11,11 @@ import Array
 import Trampoline exposing (..)
 import Debug exposing (log)
 
---on : Grid a -> Grid a
-on grid =
-    -- start at a random cell in the grid
-    let startCell = MaskedGrid.randomCell grid
-        grid' = Grid.updateRnd grid
+on : (Grid a -> Cell) -> Grid a -> Grid a
+on startCellFn grid =
+    let grid' = Grid.updateRnd grid
     in
-       trampoline (walkRandomly grid' startCell ((size grid) - 1))
+       trampoline (walkRandomly grid' (startCellFn grid) ((size grid) - 1))
 
 -- Breaking out to try trampoline
 walkRandomly : Grid a -> Cell -> Int -> Trampoline (Grid a)

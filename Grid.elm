@@ -152,15 +152,13 @@ center : Grid a -> Cell
 center grid =
     toValidCell <| getCell grid (grid.rows // 2) (grid.cols // 2)
 
-randomCell : Grid a -> (Grid a, Cell)
+randomCell : Grid a -> Cell
 randomCell grid =
     let grid' = updateRnd grid
         randRow = grid'.rnd.row
         randCol = grid'.rnd.col
-        
-        cell = toValidCell <| getCell grid' randRow randCol
     in
-       (grid', cell)
+        toValidCell <| getCell grid' randRow randCol
 
 neighbors : Grid a -> Cell -> List Cell
 neighbors grid cell =

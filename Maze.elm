@@ -4,7 +4,7 @@ import Grid exposing (..)
 import DistanceGrid
 import ColoredGrid
 import Mask
-import MaskedGrid
+import MaskedGrid exposing (Masked)
 import Rnd
 import Cell exposing (Cell)
 import BinaryTree
@@ -41,21 +41,24 @@ type alias Maze a = {
 
 defaultAlgorithm = RecursiveBacktracker
 
+
 --init : Algorithm -> Int -> Int -> Seed -> Maze a
 init algType width height seed display =
-    let algfn = getAlgFn algType
-        mask = Mask.createMask width height
-        grid = algfn <| MaskedGrid.createGrid mask seed
+    let mask = Mask.createMask width height
+        grid' = MaskedGrid.createGrid mask seed 
     in
        {
-           grid = grid,
+           grid = getAlgFn algType <| grid',
            alg = algType,
            display = display
        }
 
 --update : Maze a -> Maze a
 update maze =
-    {maze | grid <- getAlgFn maze.alg <| MaskedGrid.update maze.grid}
+    let grid = MaskedGrid.update maze.grid
+        grid' = (getAlgFn maze.alg) grid
+    in
+       {maze | grid <- grid'}
 
 --updateSize : Maze a -> Int -> Int -> Maze a
 updateSize maze width height =
@@ -129,12 +132,12 @@ algorithms =
 --getAlgFn : Algorithm -> Grid a -> Grid a
 getAlgFn algType =
     case algType of
-        BinaryTree -> BinaryTree.on
-        Sidewinder -> Sidewinder.on
-        AldousBroder -> AldousBroder.on
-        Wilsons -> Wilsons.on
-        HuntAndKill -> HuntAndKill.on
-        RecursiveBacktracker -> RecursiveBacktracker.on
+        BinaryTree -> BinaryTree.on Grid.randomCell
+        Sidewinder -> Sidewinder.on Grid.randomCell
+        AldousBroder -> AldousBroder.on MaskedGrid.randomCell
+        Wilsons -> Wilsons.on MaskedGrid.randomCell
+        HuntAndKill -> HuntAndKill.on MaskedGrid.randomCell
+        RecursiveBacktracker -> RecursiveBacktracker.on MaskedGrid.randomCell
 
 algToString : Algorithm -> String
 algToString algType =

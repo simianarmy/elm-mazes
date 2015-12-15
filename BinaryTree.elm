@@ -10,8 +10,8 @@ import GridUtils
 import Grid exposing (..)
 import Cell exposing (..)
 
-on : Grid a -> Grid a
-on grid =
+on : (Grid a -> Cell) -> Grid a -> Grid a
+on startCellFn grid =
     let getRandomNeighbor : Grid a -> Cell -> Maybe Cell
         getRandomNeighbor grid' cell =
             let northandeast = List.concat [

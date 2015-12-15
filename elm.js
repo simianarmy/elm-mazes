@@ -15,7 +15,6 @@ Elm.AldousBroder.make = function (_elm) {
    $Grid = Elm.Grid.make(_elm),
    $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
-   $MaskedGrid = Elm.MaskedGrid.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
@@ -46,7 +45,7 @@ Elm.AldousBroder.make = function (_elm) {
                        neighbor,
                        unvisited - 1);}
                   _U.badCase($moduleName,
-                  "on line 40, column 34 to 76");
+                  "on line 37, column 34 to 76");
                }();
             });
          }() : $Trampoline.Continue(function (_v2) {
@@ -58,21 +57,21 @@ Elm.AldousBroder.make = function (_elm) {
                     neighbor,
                     unvisited);}
                _U.badCase($moduleName,
-               "on line 43, column 31 to 79");
+               "on line 40, column 31 to 79");
             }();
          });
       }();
    });
-   var on = function (grid) {
+   var on = F2(function (startCellFn,
+   grid) {
       return function () {
          var grid$ = $Grid.updateRnd(grid);
-         var startCell = $MaskedGrid.randomCell(grid);
          return $Trampoline.trampoline(A3(walkRandomly,
          grid$,
-         startCell,
+         startCellFn(grid),
          $Grid.size(grid) - 1));
       }();
-   };
+   });
    _elm.AldousBroder.values = {_op: _op
                               ,on: on};
    return _elm.AldousBroder.values;
@@ -367,7 +366,8 @@ Elm.BinaryTree.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var on = function (grid) {
+   var on = F2(function (startCellFn,
+   grid) {
       return function () {
          var getRandomNeighbor = F2(function (grid$,
          cell) {
@@ -409,7 +409,7 @@ Elm.BinaryTree.make = function (_elm) {
          grid,
          grid.cells);
       }();
-   };
+   });
    _elm.BinaryTree.values = {_op: _op
                             ,on: on};
    return _elm.BinaryTree.values;
@@ -3378,7 +3378,7 @@ Elm.Grid.make = function (_elm) {
             case "Nothing":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 252 and 254");
+         "between lines 250 and 252");
       }();
    };
    var gridIndex = F3(function (grid,
@@ -3761,13 +3761,10 @@ Elm.Grid.make = function (_elm) {
          var grid$ = updateRnd(grid);
          var randRow = grid$.rnd.row;
          var randCol = grid$.rnd.col;
-         var cell = toValidCell(A3(getCell,
+         return toValidCell(A3(getCell,
          grid$,
          randRow,
          randCol));
-         return {ctor: "_Tuple2"
-                ,_0: grid$
-                ,_1: cell};
       }();
    };
    var makeCells = F2(function (rows,
@@ -4887,7 +4884,6 @@ Elm.HuntAndKill.make = function (_elm) {
    $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
    $List$Extra = Elm.List.Extra.make(_elm),
-   $MaskedGrid = Elm.MaskedGrid.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
@@ -4930,7 +4926,7 @@ Elm.HuntAndKill.make = function (_elm) {
                       -1,
                       -1)};}
             _U.badCase($moduleName,
-            "between lines 58 and 65");
+            "between lines 55 and 62");
          }();
       }();
    };
@@ -4962,7 +4958,7 @@ Elm.HuntAndKill.make = function (_elm) {
                        grid$$,
                        neighbor);}
                   _U.badCase($moduleName,
-                  "on line 40, column 34 to 62");
+                  "on line 37, column 34 to 62");
                }();
             });
          }() : function () {
@@ -4977,21 +4973,21 @@ Elm.HuntAndKill.make = function (_elm) {
                        grid$,
                        current);}
                   _U.badCase($moduleName,
-                  "on line 45, column 31 to 57");
+                  "on line 42, column 31 to 57");
                }();
             });
          }();
       }();
    });
-   var on = function (grid) {
+   var on = F2(function (startCellFn,
+   grid) {
       return function () {
          var grid$ = $Grid.updateRnd(grid);
-         var startCell = $MaskedGrid.randomCell(grid);
          return $Trampoline.trampoline(A2(walkRandomly,
          grid$,
-         startCell));
+         startCellFn(grid)));
       }();
-   };
+   });
    _elm.HuntAndKill.values = {_op: _op
                              ,on: on};
    return _elm.HuntAndKill.values;
@@ -7110,26 +7106,26 @@ Elm.Maze.make = function (_elm) {
             case "Wilsons":
             return "Wilsons";}
          _U.badCase($moduleName,
-         "between lines 141 and 147");
+         "between lines 144 and 150");
       }();
    };
    var getAlgFn = function (algType) {
       return function () {
          switch (algType.ctor)
          {case "AldousBroder":
-            return $AldousBroder.on;
+            return $AldousBroder.on($MaskedGrid.randomCell);
             case "BinaryTree":
-            return $BinaryTree.on;
+            return $BinaryTree.on($Grid.randomCell);
             case "HuntAndKill":
-            return $HuntAndKill.on;
+            return $HuntAndKill.on($MaskedGrid.randomCell);
             case "RecursiveBacktracker":
-            return $RecursiveBacktracker.on;
+            return $RecursiveBacktracker.on($MaskedGrid.randomCell);
             case "Sidewinder":
-            return $Sidewinder.on;
+            return $Sidewinder.on($Grid.randomCell);
             case "Wilsons":
-            return $Wilsons.on;}
+            return $Wilsons.on($MaskedGrid.randomCell);}
          _U.badCase($moduleName,
-         "between lines 131 and 137");
+         "between lines 134 and 140");
       }();
    };
    var viewDistances = function (maze) {
@@ -7185,7 +7181,7 @@ Elm.Maze.make = function (_elm) {
                     30));
                  }();}
             _U.badCase($moduleName,
-            "between lines 81 and 88");
+            "between lines 84 and 91");
          }();
          return A2($Html.div,
          _L.fromArray([]),
@@ -7227,9 +7223,15 @@ Elm.Maze.make = function (_elm) {
       }();
    });
    var update = function (maze) {
-      return _U.replace([["grid"
-                         ,getAlgFn(maze.alg)($MaskedGrid.update(maze.grid))]],
-      maze);
+      return function () {
+         var grid = $MaskedGrid.update(maze.grid);
+         var grid$ = A2(getAlgFn,
+         maze.alg,
+         grid);
+         return _U.replace([["grid"
+                            ,grid$]],
+         maze);
+      }();
    };
    var init = F5(function (algType,
    width,
@@ -7240,14 +7242,13 @@ Elm.Maze.make = function (_elm) {
          var mask = A2($Mask.createMask,
          width,
          height);
-         var algfn = getAlgFn(algType);
-         var grid = algfn(A2($MaskedGrid.createGrid,
+         var grid$ = A2($MaskedGrid.createGrid,
          mask,
-         seed));
+         seed);
          return {_: {}
                 ,alg: algType
                 ,display: display
-                ,grid: grid};
+                ,grid: getAlgFn(algType)(grid$)};
       }();
    });
    var Maze = F3(function (a,b,c) {
@@ -15364,7 +15365,6 @@ Elm.RecursiveBacktracker.make = function (_elm) {
    $Grid = Elm.Grid.make(_elm),
    $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
-   $MaskedGrid = Elm.MaskedGrid.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
@@ -15389,7 +15389,7 @@ Elm.RecursiveBacktracker.make = function (_elm) {
                     _L.fromArray([]),
                     $List.tail(stack)));}
                _U.badCase($moduleName,
-               "on line 35, column 37 to 88");
+               "on line 31, column 37 to 88");
             }();
          }) : function () {
             var neighbor = $Grid.toValidCell(A2($GridUtils.sampleCell,
@@ -15411,22 +15411,21 @@ Elm.RecursiveBacktracker.make = function (_elm) {
                        neighbor,
                        stack));}
                   _U.badCase($moduleName,
-                  "on line 42, column 36 to 74");
+                  "on line 38, column 36 to 74");
                }();
             });
          }();
       }();
    });
-   var on = function (grid) {
+   var on = F2(function (startCellFn,
+   grid) {
       return function () {
          var grid$ = $Grid.updateRnd(grid);
-         var startCell = $MaskedGrid.randomCell(grid);
-         var stack = _L.fromArray([startCell]);
          return $Trampoline.trampoline(A2(walkRandomly,
          grid$,
-         stack));
+         _L.fromArray([startCellFn(grid)])));
       }();
-   };
+   });
    _elm.RecursiveBacktracker.values = {_op: _op
                                       ,on: on};
    return _elm.RecursiveBacktracker.values;
@@ -15914,7 +15913,8 @@ Elm.Sidewinder.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
-   var on = function (grid) {
+   var on = F2(function (startCellFn,
+   grid) {
       return function () {
          var processCell = F2(function (cell,
          rowState) {
@@ -15982,7 +15982,7 @@ Elm.Sidewinder.make = function (_elm) {
          $List.reverse(_L.range(1,
          grid.rows)));
       }();
-   };
+   });
    var RowState = F2(function (a,
    b) {
       return {_: {}
@@ -16725,7 +16725,6 @@ Elm.Wilsons.make = function (_elm) {
    $Grid = Elm.Grid.make(_elm),
    $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
-   $MaskedGrid = Elm.MaskedGrid.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
@@ -16814,26 +16813,27 @@ Elm.Wilsons.make = function (_elm) {
                     rwp.grid,
                     rwp.unvisited);}
                _U.badCase($moduleName,
-               "on line 44, column 29 to 56");
+               "on line 43, column 29 to 56");
             }();
          });
       }();
    });
-   var on = function (grid) {
+   var on = F2(function (startCellFn,
+   grid) {
       return function () {
          var grid$ = $Grid.updateRnd(grid);
-         var first = $MaskedGrid.randomCell(grid);
+         var startCell = startCellFn(grid);
          var unvisited = A2($List.filter,
          function (e) {
             return $Basics.not(_U.eq(e.id,
-            first.id));
+            startCell.id));
          },
          grid.cells);
          return $Trampoline.trampoline(A2(work,
          grid$,
          unvisited));
       }();
-   };
+   });
    var RandomWalkPath = F4(function (a,
    b,
    c,

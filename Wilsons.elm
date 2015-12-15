@@ -2,7 +2,6 @@
 module Wilsons (on) where
 
 import Grid exposing (Grid)
-import MaskedGrid
 import Cell exposing (Cell)
 import GridUtils
 
@@ -19,12 +18,12 @@ type alias RandomWalkPath a = {
     unvisited : List Cell
 }
 
---on : Grid a -> Grid a
-on grid =
-    let first = MaskedGrid.randomCell grid
+on : (Grid a -> Cell) -> Grid a -> Grid a
+on startCellFn grid =
+    let startCell = startCellFn grid
         grid' = Grid.updateRnd grid
         -- get all cells but the sampled one
-        unvisited = filter (\e -> not <| e.id == first.id) grid.cells
+        unvisited = filter (\e -> not <| e.id == startCell.id) grid.cells
     in
        trampoline (work grid' unvisited)
 

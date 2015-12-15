@@ -12,8 +12,8 @@ import Random exposing (..)
 
 type alias RowState a = {run : List Cell, grid : Grid a}
 
-on : Grid a -> Grid a
-on grid =
+on : (Grid a -> Cell) -> Grid a -> Grid a
+on startCellFn grid =
     let -- bias is to start at the bottom left...may not matter
         bottomLeftToTopRightCells = List.concatMap (rowCells grid) (List.reverse [1..grid.rows])
 
