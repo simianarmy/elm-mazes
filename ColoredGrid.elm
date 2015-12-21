@@ -15,14 +15,14 @@ type alias Colored a = {
         maximum : Int
     }
 
-createColoredGrid : Grid a -> Cell -> Colored (CellDistances (Grid a))
+--createColoredGrid : Grid a -> Cell -> Colored (CellDistances (Grid a))
 createColoredGrid grid root =
     let grid' = createDistanceGrid grid root
         (farthest, max) = Distances.max grid'.dists
     in
        {grid' | maximum = max}
 
-view : Colored (CellDistances (Grid a)) -> Int -> Element
+--view : Colored (CellDistances (Grid a)) -> Int -> Element
 view grid cellSize =
     Grid.view cellBackgroundColor grid cellSize
 

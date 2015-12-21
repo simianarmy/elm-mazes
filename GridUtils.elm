@@ -5,7 +5,7 @@ import Cell exposing (..)
 
 import Random
 import List exposing (..)
-import List.Extra as LE
+import ListUtils
 import Array
 
 sampleCell : List Cell -> GridRnd -> Maybe Cell
@@ -17,6 +17,4 @@ sampleCell sample rnd =
 -- returns 0-based index of a cell in a list or -1 if not found
 indexOfCell : Cell -> List Cell -> Int
 indexOfCell cell cells =
-    case LE.findIndex (\e -> e.id == cell.id) cells of
-        Nothing -> -1
-        Just n -> n
+    ListUtils.firstIndexOf cell.id <| List.map .id cells

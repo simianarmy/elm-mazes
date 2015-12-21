@@ -18,7 +18,7 @@ lookup dists cell =
 
 add : Distances -> Cell -> Int -> Distances
 add dists cell dist =
-    {dists | cells <- Dict.insert cell.id dist dists.cells}
+    {dists | cells = Dict.insert cell.id dist dists.cells}
 
 -- Returns cell id and distance of largest distance
 max : Distances -> (CellID, Int)

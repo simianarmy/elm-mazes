@@ -48,9 +48,9 @@ on startCellFn grid =
                   else 
                   {
                       rowState |
-                      run <- run',
+                      run = run',
                       -- link cells and update the grid RND
-                      grid <- linkCells grid' cell (toValidCell (east grid' cell)) True
+                      grid = linkCells grid' cell (toValidCell (east grid' cell)) True
                   }
 
         -- elm told me to do this

@@ -55,9 +55,9 @@ loopErasedRandomWalk rwp =
        in
           if position >= 0
              then
-             loopErasedRandomWalk {rwp | grid <- grid, cell <- cell', path <- take (position + 1) rwp.path}
+             loopErasedRandomWalk {rwp | grid = grid, cell = cell', path = take (position + 1) rwp.path}
              else
-             loopErasedRandomWalk {rwp | grid <- grid, cell <- cell', path <- List.concat [rwp.path, [cell']]}
+             loopErasedRandomWalk {rwp | grid = grid, cell = cell', path = List.concat [rwp.path, [cell']]}
 
 carvePassage : RandomWalkPath a -> RandomWalkPath a
 carvePassage rwp =
@@ -73,8 +73,8 @@ carvePassage rwp =
                 unvisited' = filter (\e -> not <| e.id == icell.id) rwp.unvisited
             in
                {rwp |
-                   grid <- grid',
-                   unvisited <- unvisited'
+                   grid = grid',
+                   unvisited = unvisited'
                }
     in
        foldl carve rwp [0..((length rwp.path) - 2)]

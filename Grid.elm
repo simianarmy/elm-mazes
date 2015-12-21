@@ -45,12 +45,12 @@ createGrid rows cols initSeed =
 updateRnd : Grid a -> Grid a
 updateRnd grid =
     {grid |
-        rnd <- Rnd.refresh grid.rnd
+        rnd = Rnd.refresh grid.rnd
     }
 
 update grid =
     {grid |
-        cells <- makeCells grid.rows grid.cols
+        cells = makeCells grid.rows grid.cols
     }
 
 -- generates collage view of the grid
@@ -80,7 +80,7 @@ view cellPainter grid cellSize =
                    ((not <| isValidCell (west grid cell)), (segment (x1, y1) (x1, y2))),
                    ((not <| Cell.isLinked cell (toValidCell (east grid cell))), (segment (x2, y1) (x2, y2))),
                    ((not <| Cell.isLinked cell (toValidCell (south grid cell))), (segment (x1, y2) (x2, y2)))
-               ]
+                   ]
 
         cellBackground : LineStyle -> Cell -> Form
         cellBackground style cell =
@@ -98,7 +98,7 @@ view cellPainter grid cellSize =
 
         paintCell : Cell -> Form
         paintCell cell =
-            let style = { defaultLine | width <- 2 }
+            let style = { defaultLine | width = 2 }
             in
                group <| ((cellBackground style cell) :: (cellWalls style cell))
 
@@ -184,7 +184,7 @@ linkCells : Grid a -> Cell -> Cell -> Bool -> Grid a
 linkCells grid cell cellToLink bidi =
     let linkCell : Cell -> Cell -> Cell
         linkCell cell1 cell2 = {
-            cell1 | links <- Set.insert cell2.id cell1.links
+            cell1 | links = Set.insert cell2.id cell1.links
         }
         linkMatched : Cell -> Cell
         linkMatched c =
@@ -194,14 +194,14 @@ linkCells grid cell cellToLink bidi =
                        then linkCell c cell
                        else c
     in
-        {grid | cells <- List.map linkMatched grid.cells}
+        {grid | cells = List.map linkMatched grid.cells}
 
 -- unlink 2 cells w/ optional bidirectional flag
 unlinkCells : Grid a -> Cell -> Cell -> Bool -> Grid a
 unlinkCells grid cell cellToUnlink bidi =
     let unlinkCell : Cell -> Cell -> Cell
         unlinkCell cell1 cell2 = {
-            cell1 | links <- Set.remove cell2.id cell1.links
+            cell1 | links = Set.remove cell2.id cell1.links
         }
         unlinkMatched : Cell -> Cell
         unlinkMatched c =
@@ -211,7 +211,7 @@ unlinkCells grid cell cellToUnlink bidi =
                        then unlinkCell cellToUnlink cell
                        else c
     in
-       {grid | cells <- List.map unlinkMatched grid.cells}
+       {grid | cells = List.map unlinkMatched grid.cells}
 
 -- returns all cells linked to a cell
 linkedCells : Grid a -> Cell -> List Cell
@@ -283,8 +283,8 @@ toAscii cellViewer grid =
             in
                {
                    ascii |
-                   top <- curtop ++ body ++ east_boundary,
-                   bottom <- curbottom ++ south_boundary ++ "+"
+                   top = curtop ++ body ++ east_boundary,
+                   bottom = curbottom ++ south_boundary ++ "+"
                }
 
         rowToStrings : Int -> String

@@ -16,10 +16,16 @@ type alias Masked a = {
 --createGrid : Mask -> Seed -> Masked (Grid a)
 createGrid mask initSeed =
     let grid = Grid.createGrid mask.rows mask.cols initSeed
-        grid' = {grid | cells <- prepareGrid mask}
     in
-       {grid' |
-           mask = mask
+       {
+           rows = grid.rows,
+           cols = grid.cols,
+           cells = prepareGrid mask,
+           rnd = grid.rnd,
+           mask = mask,
+           -- WELP, NOW I HAVE TO ADD OTHER TYPES' PROPS :(
+           maximum = 0,
+           dists = []
        }
 
 prepareGrid : Mask -> List Cell
@@ -36,7 +42,7 @@ prepareGrid mask =
 
 update grid =
     {grid |
-        cells <- prepareGrid grid.mask
+        cells = Debug.log "updated cells: " prepareGrid grid.mask
     }
 
 randomCell : Masked (Grid a) -> Cell

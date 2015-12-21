@@ -39,7 +39,7 @@ set mask (row, col) isOn =
     case Array.get (row - 1) mask.bits of
         -- update columns array
         Just rowbits -> {
-           mask | bits <- Array.set (row - 1) (Array.set (col - 1) isOn rowbits) mask.bits
+           mask | bits = Array.set (row - 1) (Array.set (col - 1) isOn rowbits) mask.bits
         }
         Nothing -> mask
 

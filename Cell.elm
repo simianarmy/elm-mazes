@@ -28,7 +28,7 @@ createCell row col =
 createMaskedCell row col =
     let cell = createCell row col
     in
-       {cell | masked <- True}
+       {cell | masked = True}
 
 -- generate a unique id string
 createCellID : Int -> Int -> CellID

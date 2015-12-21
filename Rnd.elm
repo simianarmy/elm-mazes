@@ -36,10 +36,10 @@ refresh rnd =
         (headOrTail, seed4) = generate (int 1 2) seed3
     in
        { rnd |
-        seed <- seed4,
-        row <- nextRow,
-        col <- nextCol,
-        heads <- headOrTail == 1
+        seed = seed4,
+        row = nextRow,
+        col = nextCol,
+        heads = headOrTail == 1
     }
 
 refreshCoinFlip : GridRnd -> GridRnd
@@ -47,8 +47,8 @@ refreshCoinFlip rnd =
     let (headOrTail, seed') = generate (int 1 2) rnd.seed
     in
        { rnd |
-        seed <- seed',
-        heads <- headOrTail == 1
+        seed = seed',
+        heads = headOrTail == 1
     }
 
 refreshRow : GridRnd -> GridRnd
@@ -56,8 +56,8 @@ refreshRow rnd =
     let (nextRow, seed') = rnd.rowRnd rnd.seed
     in
        { rnd |
-        seed <- seed',
-        row <- nextRow
+        seed = seed',
+        row = nextRow
     }
 
 refreshCol : GridRnd -> GridRnd
@@ -65,6 +65,6 @@ refreshCol rnd =
     let (nextCol, seed') = rnd.colRnd rnd.seed
     in
        { rnd |
-        seed <- seed',
-        col <- nextCol
+        seed = seed',
+        col = nextCol
     }

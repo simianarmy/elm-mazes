@@ -58,24 +58,24 @@ update maze =
     let grid = MaskedGrid.update maze.grid
         grid' = (getAlgFn maze.alg) grid
     in
-       {maze | grid <- grid'}
+       {maze | grid = grid'}
 
 --updateSize : Maze a -> Int -> Int -> Maze a
 updateSize maze width height =
     let grid' = Grid.updateRnd maze.grid
-        grid'' = {grid' | rows <- height, cols <- width}
+        grid'' = {grid' | rows = height, cols = width}
     in
         {maze |
-            grid <- getAlgFn maze.alg <| MaskedGrid.update grid''
+            grid = getAlgFn maze.alg <| MaskedGrid.update grid''
         }
-        --{maze | grid <- getAlgFn maze.alg <| createGrid width height (Rnd.nextSeed maze.grid.rnd)}
+        --{maze | grid = getAlgFn maze.alg <| createGrid width height (Rnd.nextSeed maze.grid.rnd)}
 
 -- setMask : Maze a -> Mask -> Maze a
 setMask maze mask =
     let grid = MaskedGrid.createGrid mask maze.grid.rnd.seed
     in
        {maze |
-           grid <- getAlgFn maze.alg <| grid
+           grid = getAlgFn maze.alg <| grid
        }
 
 --view : Maze a -> Html
@@ -101,12 +101,12 @@ viewDistances maze =
     let --root = toValidCell <| getCell maze.grid 1 1
         root = center maze.grid
         goal = toValidCell <| getCell maze.grid maze.grid.rows 1
-        dgrid = DistanceGrid.createDistanceGrid maze.grid root
-        pathDistances = DistanceGrid.pathTo maze.grid root goal
-        pathGrid = {dgrid | dists <- pathDistances}
-        longDistances = DistanceGrid.longestPath maze.grid root
-        longGrid = {dgrid | dists <- longDistances}
-        rootStr = Cell.cellToString root
+        --dgrid = DistanceGrid.createDistanceGrid maze.grid root
+        --pathDistances = DistanceGrid.pathTo maze.grid root goal
+        --pathGrid = {dgrid | dists = pathDistances}
+        --longDistances = DistanceGrid.longestPath maze.grid root
+        --longGrid = {dgrid | dists = longDistances}
+        --rootStr = Cell.cellToString root
     in
        div [] [
           br [] [] 

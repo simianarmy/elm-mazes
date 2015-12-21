@@ -25,8 +25,8 @@ cellDistances grid cell =
                in
                   {
                       diter |
-                      newFrontier <- List.append diter.newFrontier [linked],
-                      dists <- Distances.add diter.dists linked (curDist + 1)
+                      newFrontier = List.append diter.newFrontier [linked],
+                      dists = Distances.add diter.dists linked (curDist + 1)
                   }
 
         -- iterate over each cell link
@@ -39,7 +39,7 @@ cellDistances grid cell =
         scanFrontier diter =
             let res = List.foldl scanCellLinks diter diter.frontier
             in
-               {res | frontier <- res.newFrontier}
+               {res | frontier = res.newFrontier}
 
         -- recursively scan frontiers
         frontierAcc : DijkstraIter a -> DijkstraIter a
@@ -47,7 +47,7 @@ cellDistances grid cell =
             if List.isEmpty diter.frontier
                then diter
                else
-               let acc = {diter | newFrontier <- []}
+               let acc = {diter | newFrontier = []}
                in
                   frontierAcc <| scanFrontier acc
 

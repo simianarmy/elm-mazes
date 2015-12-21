@@ -46,37 +46,37 @@ update action model =
         NoOp -> model
 
         Refresh ->
-            {model | maze <- Maze.update model.maze}
+            {model | maze = Maze.update model.maze}
 
         UpdateWidth str ->
             let maze' = Maze.updateSize model.maze (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.maze.grid.cols) model.maze.grid.rows
             in
-               {model | maze <- maze'}
+               {model | maze = maze'}
 
         UpdateHeight str ->
             let maze' = Maze.updateSize model.maze model.maze.grid.cols (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.maze.grid.rows)
             in
-               {model | maze <- maze'}
+               {model | maze = maze'}
 
         SelectAlg str ->
             let maze' = model.maze
-                maze'' = Maze.update {maze' | alg <- Maze.algByName str}
+                maze'' = Maze.update {maze' | alg = Maze.algByName str}
             in
-               {model | maze <- maze''}
+               {model | maze = maze''}
 
         SelectView display ->
             let maze' = model.maze
-                maze'' = {maze' | display <- display}
+                maze'' = {maze' | display = display}
             in
-               {model | maze <- maze''}
+               {model | maze = maze''}
 
         LoadAsCurrentMask lines ->
             let mask = Mask.fromTxt <| Debug.log "lines from input file: " lines
             in
-               {model | maze <- Maze.setMask model.maze mask}
+               {model | maze = Maze.setMask model.maze mask}
 
 --- VIEW ---
-view : Address Action -> Model a -> Html
+--view : Address Action -> Model a -> Html
 view address model =
     let
         selectAlg = Html.Events.on "change" targetValue
