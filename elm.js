@@ -13409,6 +13409,19 @@ Elm.Mask.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
    var _op = {};
+   var fromImage = F2(function (_p0,flags) {
+      var _p1 = _p0;
+      var _p3 = _p1._1;
+      var _p2 = _p1._0;
+      var rowBools = function (row) {
+         var start = row * _p2;
+         var end = start + _p2;
+         return A3($Array.slice,start,end,flags);
+      };
+      return {rows: _p3
+             ,cols: _p2
+             ,bits: A2($Array.initialize,_p3,rowBools)};
+   });
    var fromTxt = function (lines) {
       var validLines = A2($List.map,
       $String.trim,
@@ -13447,15 +13460,15 @@ Elm.Mask.make = function (_elm) {
       0,
       A2($Array.map,addCols,mask.bits));
    };
-   var set = F3(function (mask,_p0,isOn) {
-      var _p1 = _p0;
-      var _p3 = _p1._0;
-      var _p2 = A2($Array.get,_p3 - 1,mask.bits);
-      if (_p2.ctor === "Just") {
+   var set = F3(function (mask,_p4,isOn) {
+      var _p5 = _p4;
+      var _p7 = _p5._0;
+      var _p6 = A2($Array.get,_p7 - 1,mask.bits);
+      if (_p6.ctor === "Just") {
             return _U.update(mask,
             {bits: A3($Array.set,
-            _p3 - 1,
-            A3($Array.set,_p1._1 - 1,isOn,_p2._0),
+            _p7 - 1,
+            A3($Array.set,_p5._1 - 1,isOn,_p6._0),
             mask.bits)});
          } else {
             return mask;
@@ -13468,11 +13481,11 @@ Elm.Mask.make = function (_elm) {
       return A3($List.foldl,setone,mask,vals);
    });
    var get = F3(function (mask,row,col) {
-      var _p4 = A2($Array.get,row - 1,mask.bits);
-      if (_p4.ctor === "Just") {
-            var _p5 = A2($Array.get,col - 1,_p4._0);
-            if (_p5.ctor === "Just") {
-                  return _p5._0;
+      var _p8 = A2($Array.get,row - 1,mask.bits);
+      if (_p8.ctor === "Just") {
+            var _p9 = A2($Array.get,col - 1,_p8._0);
+            if (_p9.ctor === "Just") {
+                  return _p9._0;
                } else {
                   return false;
                }
@@ -13486,9 +13499,9 @@ Elm.Mask.make = function (_elm) {
       rnd.row,
       rnd.col)) return {ctor: "_Tuple2",_0: rnd.row,_1: rnd.col};
       else {
-            var _v4 = mask,_v5 = $Rnd.refresh(rnd);
-            mask = _v4;
-            rnd = _v5;
+            var _v5 = mask,_v6 = $Rnd.refresh(rnd);
+            mask = _v5;
+            rnd = _v6;
             continue randomLocation;
          }
    });
@@ -13511,7 +13524,8 @@ Elm.Mask.make = function (_elm) {
                              ,mset: mset
                              ,count: count
                              ,randomLocation: randomLocation
-                             ,fromTxt: fromTxt};
+                             ,fromTxt: fromTxt
+                             ,fromImage: fromImage};
 };
 Elm.MaskedGrid = Elm.MaskedGrid || {};
 Elm.MaskedGrid.make = function (_elm) {
@@ -13975,6 +13989,7 @@ Elm.Main.make = function (_elm) {
    _elm.Main = _elm.Main || {};
    if (_elm.Main.values) return _elm.Main.values;
    var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
@@ -13989,19 +14004,43 @@ Elm.Main.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
    var _op = {};
-   var openFromFile = Elm.Native.Port.make(_elm).inboundSignal("openFromFile",
+   var openFromPNGFile = Elm.Native.Port.make(_elm).inboundSignal("openFromPNGFile",
+   "Main.PngData",
+   function (v) {
+      return typeof v === "object" && "width" in v && "height" in v && "blackFlags" in v ? {_: {}
+                                                                                           ,width: typeof v.width === "number" && isFinite(v.width) && Math.floor(v.width) === v.width ? v.width : _U.badPort("an integer",
+                                                                                           v.width)
+                                                                                           ,height: typeof v.height === "number" && isFinite(v.height) && Math.floor(v.height) === v.height ? v.height : _U.badPort("an integer",
+                                                                                           v.height)
+                                                                                           ,blackFlags: typeof v.blackFlags === "object" && v.blackFlags instanceof Array ? Elm.Native.Array.make(_elm).fromJSArray(v.blackFlags.map(function (v) {
+                                                                                              return typeof v === "boolean" ? v : _U.badPort("a boolean (true or false)",
+                                                                                              v);
+                                                                                           })) : _U.badPort("an array",
+                                                                                           v.blackFlags)} : _U.badPort("an object with fields `width`, `height`, `blackFlags`",
+      v);
+   });
+   var openFromTextFile = Elm.Native.Port.make(_elm).inboundSignal("openFromTextFile",
    "String",
    function (v) {
       return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",
       v);
    });
-   var outputFromFile = Elm.Native.Port.make(_elm).outboundSignal("outputFromFile",
+   var outputFromFilePNG = Elm.Native.Port.make(_elm).outboundSignal("outputFromFilePNG",
+   function (v) {
+      return {width: v.width
+             ,height: v.height
+             ,blackFlags: Elm.Native.Array.make(_elm).toJSArray(v.blackFlags).map(function (v) {
+                return v;
+             })};
+   },
+   openFromPNGFile);
+   var outputFromFileAscii = Elm.Native.Port.make(_elm).outboundSignal("outputFromFileAscii",
    function (v) {
       return Elm.Native.List.make(_elm).toArray(v).map(function (v) {
          return v;
       });
    },
-   A2($Signal.map,$String.lines,openFromFile));
+   A2($Signal.map,$String.lines,openFromTextFile));
    var startTime = Elm.Native.Port.make(_elm).inbound("startTime",
    "Float",
    function (v) {
@@ -14038,14 +14077,25 @@ Elm.Main.make = function (_elm) {
          case "SelectView": var maze$ = model.maze;
            var maze$$ = _U.update(maze$,{display: _p0._0});
            return _U.update(model,{maze: maze$$});
-         default: var mask = $Mask.fromTxt(A2($Debug.log,
+         case "LoadAsciiMask": var mask = $Mask.fromTxt(A2($Debug.log,
            "lines from input file: ",
            _p0._0));
            return _U.update(model,
+           {maze: A2($Maze.setMask,model.maze,mask)});
+         default: var _p1 = _p0._0;
+           var mask = A2($Debug.log,
+           "img mask ",
+           A2($Mask.fromImage,
+           {ctor: "_Tuple2",_0: _p1.width,_1: _p1.height},
+           _p1.blackFlags));
+           return _U.update(model,
            {maze: A2($Maze.setMask,model.maze,mask)});}
    });
-   var LoadAsCurrentMask = function (a) {
-      return {ctor: "LoadAsCurrentMask",_0: a};
+   var LoadImageMask = function (a) {
+      return {ctor: "LoadImageMask",_0: a};
+   };
+   var LoadAsciiMask = function (a) {
+      return {ctor: "LoadAsciiMask",_0: a};
    };
    var SelectView = function (a) {
       return {ctor: "SelectView",_0: a};
@@ -14104,8 +14154,8 @@ Elm.Main.make = function (_elm) {
                       ,A3($Html$Events.on,
                       "input",
                       $Html$Events.targetValue,
-                      function (_p1) {
-                         return A2($Signal.message,address,UpdateWidth(_p1));
+                      function (_p2) {
+                         return A2($Signal.message,address,UpdateWidth(_p2));
                       })]),
               _U.list([]))
               ,$Html.text(" X ")
@@ -14115,8 +14165,8 @@ Elm.Main.make = function (_elm) {
                       ,A3($Html$Events.on,
                       "input",
                       $Html$Events.targetValue,
-                      function (_p2) {
-                         return A2($Signal.message,address,UpdateHeight(_p2));
+                      function (_p3) {
+                         return A2($Signal.message,address,UpdateHeight(_p3));
                       })]),
               _U.list([]))
               ,A2($Html.br,_U.list([]),_U.list([]))
@@ -14138,9 +14188,13 @@ Elm.Main.make = function (_elm) {
    var NoOp = {ctor: "NoOp"};
    var actions = $Signal.mailbox(NoOp);
    var userInput = $Signal.mergeMany(_U.list([A2($Signal.map,
-                                             LoadAsCurrentMask,
-                                             outputFromFile)
+                                             LoadAsciiMask,
+                                             outputFromFileAscii)
+                                             ,A2($Signal.map,LoadImageMask,outputFromFilePNG)
                                              ,actions.signal]));
+   var PngData = F3(function (a,b,c) {
+      return {width: a,height: b,blackFlags: c};
+   });
    var AppState = function (a) {    return {maze: a};};
    var initDisplay = $Maze.Ascii;
    var initHeight = 10;
@@ -14158,13 +14212,15 @@ Elm.Main.make = function (_elm) {
                              ,initHeight: initHeight
                              ,initDisplay: initDisplay
                              ,AppState: AppState
+                             ,PngData: PngData
                              ,NoOp: NoOp
                              ,Refresh: Refresh
                              ,UpdateWidth: UpdateWidth
                              ,UpdateHeight: UpdateHeight
                              ,SelectAlg: SelectAlg
                              ,SelectView: SelectView
-                             ,LoadAsCurrentMask: LoadAsCurrentMask
+                             ,LoadAsciiMask: LoadAsciiMask
+                             ,LoadImageMask: LoadImageMask
                              ,update: update
                              ,view: view
                              ,displayFromString: displayFromString

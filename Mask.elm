@@ -5,6 +5,7 @@ import  Rnd
 
 import Array exposing (Array)
 import String
+import Debug
 
 type alias Mask =
     {
@@ -89,3 +90,17 @@ fromTxt lines =
               bits = Array.initialize rows rowBools
           }
 
+-- Creates mask from 1D array of flags
+fromImage : (Int, Int) -> Array Bool -> Mask
+fromImage (cols, rows) flags =
+    let rowBools row =
+        let start = row * cols
+            end = start + cols
+        in
+           Array.slice start end flags
+    in
+    {
+        rows = rows,
+        cols = cols,
+        bits = Array.initialize rows rowBools
+    }

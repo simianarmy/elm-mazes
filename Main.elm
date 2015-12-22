@@ -5,12 +5,12 @@ import Maze exposing (..)
 import Mask exposing (Mask)
 
 import Debug
+import Array exposing (Array)
 import String
 import Signal exposing (Signal, Address)
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
-import Json.Decode as JD
 
 initWidth = 10 
 initHeight = 10 
@@ -21,6 +21,12 @@ initDisplay = Maze.Ascii
 -- The full application state
 type alias AppState a = 
     { maze : Maze a
+    }
+
+type alias PngData =
+    { width : Int,
+      height : Int,
+      blackFlags : Array Bool
     }
 
 type alias Model a = AppState a
@@ -37,7 +43,8 @@ type Action =
     | UpdateHeight String
     | SelectAlg String
     | SelectView Maze.Display
-    | LoadAsCurrentMask (List String)
+    | LoadAsciiMask (List String)
+    | LoadImageMask PngData
 
 -- How we update our Model on a given Action?
 --update : Action -> Model a -> Model a
@@ -70,10 +77,16 @@ update action model =
             in
                {model | maze = maze''}
 
-        LoadAsCurrentMask lines ->
+        LoadAsciiMask lines ->
             let mask = Mask.fromTxt <| Debug.log "lines from input file: " lines
             in
                {model | maze = Maze.setMask model.maze mask}
+
+        LoadImageMask png ->
+            let mask = Debug.log "img mask " <| Mask.fromImage (png.width, png.height) png.blackFlags
+            in
+               {model | maze = Maze.setMask model.maze mask}
+
 
 --- VIEW ---
 --view : Address Action -> Model a -> Html
@@ -131,7 +144,8 @@ main =
 userInput : Signal Action
 userInput =
     Signal.mergeMany
-        [ Signal.map LoadAsCurrentMask outputFromFile
+        [ Signal.map LoadAsciiMask outputFromFileAscii
+        , Signal.map LoadImageMask outputFromFilePNG
         , actions.signal
         ]
 
@@ -160,9 +174,14 @@ startTimeSeed = Random.initialSeed <| round startTime
 port startTime : Float
 
 -- ports for file uploads
-port outputFromFile : Signal (List String)
-port outputFromFile = 
-      Signal.map String.lines openFromFile
+port outputFromFileAscii : Signal (List String)
+port outputFromFileAscii = 
+      Signal.map String.lines openFromTextFile
 
-port openFromFile : Signal String
+port outputFromFilePNG : Signal PngData
+port outputFromFilePNG =
+      openFromPNGFile
+
+port openFromTextFile : Signal String
+port openFromPNGFile : Signal PngData
 
