@@ -1,7 +1,7 @@
 -- Mask module for shaping grids
 module Mask where
 
-import Rnd
+import  Rnd
 
 import Array exposing (Array)
 import String
@@ -14,7 +14,7 @@ type alias Mask =
     }
 
 createMask : Int -> Int -> Mask
-createMask rows cols =
+createMask cols rows =
     let bits = Array.initialize rows (\n -> Array.repeat cols True)
     in
        {

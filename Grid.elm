@@ -74,13 +74,16 @@ view cellPainter grid cellSize =
                 x2 = toFloat (cell.col * cellSize)
                 y2 = toFloat (negate cell.row  * cellSize)
             in
-               List.concatMap (maybeVisibleLine style)
-               [
-                   ((not <| isValidCell (north grid cell)), (segment (x1, y1) (x2, y1))),
-                   ((not <| isValidCell (west grid cell)), (segment (x1, y1) (x1, y2))),
-                   ((not <| Cell.isLinked cell (toValidCell (east grid cell))), (segment (x2, y1) (x2, y2))),
-                   ((not <| Cell.isLinked cell (toValidCell (south grid cell))), (segment (x1, y2) (x2, y2)))
-                   ]
+               if cell.masked
+                  then []
+                  else
+                  List.concatMap (maybeVisibleLine style)
+                  [
+                      ((not <| isValidCell (north grid cell)), (segment (x1, y1) (x2, y1))),
+                      ((not <| isValidCell (west grid cell)), (segment (x1, y1) (x1, y2))),
+                      ((not <| Cell.isLinked cell (toValidCell (east grid cell))), (segment (x2, y1) (x2, y2))),
+                      ((not <| Cell.isLinked cell (toValidCell (south grid cell))), (segment (x1, y2) (x2, y2)))
+                      ]
 
         cellBackground : LineStyle -> Cell -> Form
         cellBackground style cell =

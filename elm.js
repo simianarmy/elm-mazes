@@ -12753,7 +12753,7 @@ Elm.Grid.make = function (_elm) {
          var x2 = $Basics.toFloat(cell.col * cellSize);
          var y1 = $Basics.toFloat($Basics.negate(cell.row - 1) * cellSize);
          var x1 = $Basics.toFloat((cell.col - 1) * cellSize);
-         return A2($List.concatMap,
+         return cell.masked ? _U.list([]) : A2($List.concatMap,
          maybeVisibleLine(style),
          _U.list([{ctor: "_Tuple2"
                   ,_0: $Basics.not(isValidCell(A2(north,grid,cell)))
@@ -13492,7 +13492,7 @@ Elm.Mask.make = function (_elm) {
             continue randomLocation;
          }
    });
-   var createMask = F2(function (rows,cols) {
+   var createMask = F2(function (cols,rows) {
       var bits = A2($Array.initialize,
       rows,
       function (n) {
@@ -13878,6 +13878,10 @@ Elm.Maze.make = function (_elm) {
               " algorithm"))
               ,A2($Html.br,_U.list([]),_U.list([]))
               ,$Html.text(A2($Basics._op["++"],
+              $Basics.toString(maze.grid.cols),
+              A2($Basics._op["++"]," X ",$Basics.toString(maze.grid.rows))))
+              ,A2($Html.br,_U.list([]),_U.list([]))
+              ,$Html.text(A2($Basics._op["++"],
               $Basics.toString($List.length($Grid.deadEnds(maze.grid))),
               " deadends"))
               ,gridHtml]));
@@ -13887,12 +13891,6 @@ Elm.Maze.make = function (_elm) {
       mask,
       maze.grid.rnd.seed);
       return _U.update(maze,{grid: A2(getAlgFn,maze.alg,grid)});
-   });
-   var updateSize = F3(function (maze,width,height) {
-      var grid$ = $Grid.updateRnd(maze.grid);
-      var grid$$ = _U.update(grid$,{rows: height,cols: width});
-      return _U.update(maze,
-      {grid: A2(getAlgFn,maze.alg,$MaskedGrid.update(grid$$))});
    });
    var update = function (maze) {
       var grid = $MaskedGrid.update(maze.grid);
@@ -13905,6 +13903,14 @@ Elm.Maze.make = function (_elm) {
       return {grid: A2(getAlgFn,algType,grid$)
              ,alg: algType
              ,display: display};
+   });
+   var updateSize = F3(function (maze,width,height) {
+      return A5(init,
+      maze.alg,
+      A2($Debug.log,"width: ",width),
+      A2($Debug.log,"height: ",height),
+      maze.grid.rnd.seed,
+      maze.display);
    });
    var Maze = F3(function (a,b,c) {
       return {grid: a,alg: b,display: c};
@@ -14090,6 +14096,7 @@ Elm.Main.make = function (_elm) {
               _U.list([]),
               _U.list([$Html.text("Amazeball Mazes")]))]))
               ,$Maze.view(maze)
+              ,$Html.text("width X height")
               ,A2($Html.br,_U.list([]),_U.list([]))
               ,A2($Html.input,
               _U.list([$Html$Attributes.$class("sizeInput")

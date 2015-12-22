@@ -48,8 +48,7 @@ init algType width height seed display =
         grid' = MaskedGrid.createGrid mask seed 
     in
        {
-           grid = getAlgFn algType <| grid',
-           alg = algType,
+           grid = getAlgFn algType <| grid', alg = algType,
            display = display
        }
 
@@ -60,15 +59,10 @@ update maze =
     in
        {maze | grid = grid'}
 
+-- INVALIDATES MASK, SO REFRESH MAZE
 --updateSize : Maze a -> Int -> Int -> Maze a
 updateSize maze width height =
-    let grid' = Grid.updateRnd maze.grid
-        grid'' = {grid' | rows = height, cols = width}
-    in
-        {maze |
-            grid = getAlgFn maze.alg <| MaskedGrid.update grid''
-        }
-        --{maze | grid = getAlgFn maze.alg <| createGrid width height (Rnd.nextSeed maze.grid.rnd)}
+    init maze.alg (Debug.log "width: " width) (Debug.log "height: " height) maze.grid.rnd.seed maze.display
 
 -- setMask : Maze a -> Mask -> Maze a
 setMask maze mask =
@@ -91,6 +85,8 @@ view maze =
     in
        div [] [
            text <| (algToString maze.alg) ++ " algorithm"
+           , br [] []
+           , text <| (toString maze.grid.cols) ++ " X " ++ (toString maze.grid.rows)
            , br [] []
            , text <| (toString <| List.length (Grid.deadEnds maze.grid)) ++ " deadends"
            , gridHtml

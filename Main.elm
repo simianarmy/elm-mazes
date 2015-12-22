@@ -97,6 +97,7 @@ view address model =
         -- the maze
         , Maze.view maze
         -- controls
+        , text "width X height"
         , br [] []
         , input [ class "sizeInput", value (toString maze.grid.cols)
               , on "input" targetValue (Signal.message address << UpdateWidth) ] []
