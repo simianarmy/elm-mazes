@@ -13220,28 +13220,28 @@ Elm.DistanceGrid.make = function (_elm) {
       $Distances.init(root),
       current,
       A2($Distances.lookup,dgrid.dists,current));
-      var walkPath = F2(function (breadcrumbs$,current$) {
-         walkPath: while (true) if (_U.eq(current$.id,root.id))
-         return breadcrumbs$; else {
+      var walkPath = F2(function (xpbreadcrumbs,xpcurrent) {
+         walkPath: while (true) if (_U.eq(xpcurrent.id,root.id))
+         return xpbreadcrumbs; else {
                var currentDistance = A2($Distances.lookup,
                dgrid.dists,
-               current$);
-               var links = A2($Grid.linkedCells,grid,current$);
+               xpcurrent);
+               var links = A2($Grid.linkedCells,grid,xpcurrent);
                var res = A2($List.filter,
                function (neighbor) {
                   return _U.cmp(A2($Distances.lookup,dgrid.dists,neighbor),
                   currentDistance) < 0;
                },
                links);
-               if ($List.isEmpty(res)) return breadcrumbs$; else {
+               if ($List.isEmpty(res)) return xpbreadcrumbs; else {
                      var neighbor = $Grid.toValidCell($List.head(res));
-                     var breadcrumbs$$ = A3($Distances.add,
-                     breadcrumbs$,
+                     var ixpbreadcrumbs = A3($Distances.add,
+                     xpbreadcrumbs,
                      neighbor,
                      A2($Distances.lookup,dgrid.dists,neighbor));
-                     var _v0 = breadcrumbs$$,_v1 = neighbor;
-                     breadcrumbs' = _v0;
-                     current' = _v1;
+                     var _v0 = ixpbreadcrumbs,_v1 = neighbor;
+                     xpbreadcrumbs = _v0;
+                     xpcurrent = _v1;
                      continue walkPath;
                   }
             }

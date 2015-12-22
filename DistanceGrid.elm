@@ -46,24 +46,24 @@ pathTo grid root goal =
         breadcrumbs = Distances.add (Distances.init root) current (lookup dgrid.dists current)
 
         walkPath : Distances -> Cell -> Distances
-        walkPath breadcrumbs' current' =
-            if current'.id == root.id
-               then breadcrumbs'
+        walkPath xpbreadcrumbs xpcurrent =
+            if xpcurrent.id == root.id
+               then xpbreadcrumbs
                else
                -- scan each linked cell
-               let links = Grid.linkedCells grid current'
-                   currentDistance = lookup dgrid.dists current'
+               let links = Grid.linkedCells grid xpcurrent
+                   currentDistance = lookup dgrid.dists xpcurrent
                    res = List.filter (\neighbor ->
                        (lookup dgrid.dists neighbor) < currentDistance
                    ) links
                in
                   if List.isEmpty res
-                     then breadcrumbs'
+                     then xpbreadcrumbs
                      else
                      let neighbor = Grid.toValidCell <| List.head res
-                         breadcrumbs'' = Distances.add breadcrumbs' neighbor (lookup dgrid.dists neighbor)
+                         ixpbreadcrumbs = Distances.add xpbreadcrumbs neighbor (lookup dgrid.dists neighbor)
                      in
-                        walkPath breadcrumbs'' neighbor
+                        walkPath ixpbreadcrumbs neighbor
 
     in
        walkPath breadcrumbs current
