@@ -13667,7 +13667,12 @@ Elm.PolarGrid.make = function (_elm) {
       imgSize + 1,
       forms);
    });
-   return _elm.PolarGrid.values = {_op: _op,view: view};
+   var createGrid = F2(function (rows,initSeed) {
+      return A3($Grid.createGrid,rows,1,initSeed);
+   });
+   return _elm.PolarGrid.values = {_op: _op
+                                  ,createGrid: createGrid
+                                  ,view: view};
 };
 Elm.Sidewinder = Elm.Sidewinder || {};
 Elm.Sidewinder.make = function (_elm) {

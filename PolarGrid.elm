@@ -9,6 +9,9 @@ import Graphics.Collage as GC
 import Html
 import Color
 
+createGrid rows initSeed =
+    Grid.createGrid rows 1 initSeed
+
 view : Grid a -> Int -> GE.Element
 view grid cellSize =
     let imgSize = 2 * grid.rows * cellSize

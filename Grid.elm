@@ -24,8 +24,14 @@ type alias Grid a =
 }
 
 -- helper to make new grid cells
+-- TODO: Refactor to parameterize the following:
+--   prepareGrid function (for PolarGrid, MaskedGrid, etc.)
+--   configureCells function
+--   randomCell function
+-- Possible signature: (row,col), gridPrep, makeCells, randomCell ?
+-- (Int, Int) -> (Grid a -> Grid a) -> (Grid a -> List Cell b) -> (Grid a -> Cell b)
 makeCells : Int -> Int -> List Cell
-makeCells rows cols = 
+makeCells rows cols =
     let makeRow cols' row =
         List.map (Cell.createCell row) [1..cols']
     in
