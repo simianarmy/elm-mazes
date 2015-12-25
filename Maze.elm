@@ -138,7 +138,7 @@ algorithms =
 --getAlgFn : Algorithm -> Grid a -> Grid a
 getAlgFn algType =
     case algType of
-        NoOp -> (\x -> x)
+        NoOp -> identity
         BinaryTree -> BinaryTree.on Grid.randomCell
         Sidewinder -> Sidewinder.on Grid.randomCell
         AldousBroder -> AldousBroder.on MaskedGrid.randomCell

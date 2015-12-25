@@ -13930,9 +13930,7 @@ Elm.Maze.make = function (_elm) {
    var getAlgFn = function (algType) {
       var _p1 = algType;
       switch (_p1.ctor)
-      {case "NoOp": return function (x) {
-              return x;
-           };
+      {case "NoOp": return $Basics.identity;
          case "BinaryTree": return $BinaryTree.on($Grid.randomCell);
          case "Sidewinder": return $Sidewinder.on($Grid.randomCell);
          case "AldousBroder":
