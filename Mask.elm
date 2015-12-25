@@ -14,6 +14,8 @@ type alias Mask =
         bits: Array (Array Bool)
     }
 
+maxGetRandomLocationTries = 10000
+
 createMask : Int -> Int -> Mask
 createMask cols rows =
     let bits = Array.initialize rows (\n -> Array.repeat cols True)
@@ -64,9 +66,15 @@ count mask =
 -- returns 1-based (row,col) pair corresponding to a random, enabled location in the grid
 randomLocation : Mask -> Rnd.GridRnd -> (Int, Int)
 randomLocation mask rnd =
+    getRandomLoc mask rnd 1
+
+getRandomLoc mask rnd itr =
     if get mask rnd.row rnd.col
        then (rnd.row, rnd.col)
-       else randomLocation mask (Rnd.refresh rnd)
+       else
+       if itr > maxGetRandomLocationTries
+          then (1, 1) -- what wil this do??
+          else getRandomLoc mask (Rnd.refresh rnd) (itr + 1)
 
 -- Creates mask from text (one row per line)
 fromTxt : List String -> Mask

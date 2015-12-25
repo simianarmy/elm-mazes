@@ -5,6 +5,7 @@ import DistanceGrid
 import ColoredGrid
 import Mask
 import MaskedGrid exposing (Masked)
+import PolarGrid exposing (view)
 import Rnd
 import Cell exposing (Cell)
 import BinaryTree
@@ -18,7 +19,8 @@ import Random exposing (Seed)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 
-type Algorithm = BinaryTree
+type Algorithm = NoOp
+               | BinaryTree
                | Sidewinder
                | AldousBroder
                | Wilsons
@@ -32,6 +34,7 @@ type alias AlgAttr = {
 
 type Display = Ascii
              | Colored
+             | Polar
 
 type alias Maze a = {
     grid : Grid a,
@@ -41,6 +44,8 @@ type alias Maze a = {
 
 defaultAlgorithm = RecursiveBacktracker
 
+cellSize : Int
+cellSize = 20
 
 --init : Algorithm -> Int -> Int -> Seed -> Maze a
 init algType width height seed display =
@@ -75,13 +80,17 @@ setMask maze mask =
 --view : Maze a -> Html
 view maze =
     let root = center maze.grid
+        -- Ideally all view operations look like this:
+        -- Grid.view maze.grid <Painter> cellSize
         gridHtml = case maze.display of
             Ascii ->
                 pre [] [text <| Grid.toAscii Grid.cellToAscii maze.grid]
             Colored ->
                 let coloredGrid = ColoredGrid.createColoredGrid maze.grid root
                 in
-                fromElement <| ColoredGrid.view coloredGrid 30
+                   fromElement <| ColoredGrid.view coloredGrid cellSize
+            Polar ->
+                fromElement <| PolarGrid.view maze.grid cellSize
     in
        div [] [
            text <| (algToString maze.alg) ++ " algorithm"
@@ -117,7 +126,8 @@ viewDistances maze =
 --TODO: Be smarter about this
 algorithms : List AlgAttr
 algorithms =
-    [{alg = BinaryTree, name = algToString BinaryTree}
+    [ {alg = NoOp, name = algToString NoOp}
+    , {alg = BinaryTree, name = algToString BinaryTree}
     , {alg = Sidewinder, name = algToString Sidewinder}
     , {alg = AldousBroder, name = algToString AldousBroder}
     , {alg = Wilsons, name = algToString Wilsons}
@@ -128,6 +138,7 @@ algorithms =
 --getAlgFn : Algorithm -> Grid a -> Grid a
 getAlgFn algType =
     case algType of
+        NoOp -> (\x -> x)
         BinaryTree -> BinaryTree.on Grid.randomCell
         Sidewinder -> Sidewinder.on Grid.randomCell
         AldousBroder -> AldousBroder.on MaskedGrid.randomCell
@@ -138,6 +149,7 @@ getAlgFn algType =
 algToString : Algorithm -> String
 algToString algType =
     case algType of
+        NoOp -> "None"
         BinaryTree -> "Binary Tree"
         Sidewinder -> "Sidewinder"
         AldousBroder -> "Aldous-Broder"

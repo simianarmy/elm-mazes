@@ -83,7 +83,7 @@ update action model =
                {model | maze = Maze.setMask model.maze mask}
 
         LoadImageMask png ->
-            let mask = Debug.log "img mask " <| Mask.fromImage (png.width, png.height) png.blackFlags
+            let mask = Mask.fromImage (png.width, png.height) png.blackFlags
             in
                {model | maze = Maze.setMask model.maze mask}
 
@@ -101,6 +101,7 @@ view address model =
         viewOptions = [
             option [selected True] [text "Ascii"]
             , option [] [text "Colored"]
+            , option [] [text "Polar"]
             ]
         maze = model.maze
     in
@@ -132,7 +133,9 @@ displayFromString : String -> Display
 displayFromString str =
     if str == "Ascii"
        then Maze.Ascii
-       else Maze.Colored
+       else if str == "Colored"
+               then Maze.Colored
+               else Maze.Polar
 
 ---- INPUTS ----
 

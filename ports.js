@@ -9,6 +9,12 @@ var myports = Elm.fullscreen(Elm.Main, {
     }
 });
 
+/**
+ * Converts image PNG data to array flags for an image mask
+ * where every black or transparent pixel is a mask
+ * @param {PNG} png
+ * @return {Array[Bool]}
+ */
 function imageDataToMask (png) {
     var index, red, green, blue, alpha;
     var width = png.width,
@@ -28,19 +34,20 @@ function imageDataToMask (png) {
 var maskUpload = document.getElementById('maskfileinput');
 
 maskUpload.onchange = function (e) {
+
     if (maskUpload.files.length == 0) {
         return;
     }
-	var reader = new FileReader();
-    var filename = maskUpload.files[0].name;
+    var reader = new FileReader();
+    var file = maskUpload.files[0];
+    var filename = file.name;
 
     if (filename.indexOf('.txt') !== -1) {
         reader.onload = function (event) {
-            data = event.target.result;	
-            //file's text data is sent to 'openfromfile' port
+            var data = event.target.result;
             myports.ports.openFromTextFile.send(data);
         };
-        reader.readAsText(maskUpload.files[0]);
+        reader.readAsText(file);
     }
     else if (filename.indexOf('.png') !== -1) {
         reader.onload = function (event) {
@@ -48,7 +55,6 @@ maskUpload.onchange = function (e) {
             var png = new PNG(data);
             // Convert img data to mask data
             var mask = imageDataToMask(png);
-            console.log('mask', mask);
 
             myports.ports.openFromPNGFile.send({
                 width: png.width,
@@ -56,7 +62,7 @@ maskUpload.onchange = function (e) {
                 blackFlags: mask
             });
         };
-        reader.readAsArrayBuffer(maskUpload.files[0]);
+        reader.readAsArrayBuffer(file);
     }
 };
 	
