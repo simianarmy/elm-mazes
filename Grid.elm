@@ -54,6 +54,8 @@ update grid =
     }
 
 -- generates collage view of the grid
+-- TODO: toElement?
+
 view : (Grid a -> Cell -> Color) -> Grid a -> Int -> Element
 view cellPainter grid cellSize =
     let imgWidth = cellSize * grid.cols

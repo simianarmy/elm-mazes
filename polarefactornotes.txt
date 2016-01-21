@@ -1,0 +1,15 @@
+New data in polar cells:
+    clockwise
+    counter-clockwise
+    inward
+    outward
+
+New function behavior in polar cells
+    neighbors
+
+New function behavior in polar grid
+    configure_cells
+    randomCell
+    inward
+    cw
+

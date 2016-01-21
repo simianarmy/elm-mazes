@@ -47,6 +47,12 @@ defaultAlgorithm = RecursiveBacktracker
 cellSize : Int
 cellSize = 20
 
+-- Possible functions for creating grids:
+-- generateCells
+
+gridMaker (width, height) mask display seed =
+    True
+
 --init : Algorithm -> Int -> Int -> Seed -> Maze a
 init algType width height seed display =
     let mask = Mask.createMask width height
