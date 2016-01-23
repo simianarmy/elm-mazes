@@ -1,5 +1,6 @@
 module Grid where
 
+import Mask exposing (Mask)
 import Cell exposing (..)
 
 import Set
@@ -20,26 +21,48 @@ type alias Grid a =
         rows: Int,
         cols: Int,
         cells: List Cell,
-        rnd: GridRnd
+        rnd: GridRnd,
+        mask : Mask
 }
 
 -- helper to make new grid cells
-makeCells : Int -> Int -> List Cell
-makeCells rows cols = 
-    let makeRow cols' row =
-        List.map (Cell.createCell row) [1..cols']
+makeCells : Mask -> List Cell
+makeCells mask =
+    let createMaskedCell row col =
+        if Mask.get mask row col
+           then Cell.createCell row col
+           else Cell.createMaskedCell row col
+
+        makeRow cols row =
+            List.map (createMaskedCell row) [1..(mask.cols)]
     in
-        List.concatMap (makeRow cols) [1..rows]
+       List.concatMap (makeRow mask.cols) [1..(mask.rows)]
 
 -- constructor
-createGrid : Int -> Int -> Seed -> Grid {}
+--createGrid : Int -> Int -> Seed -> Grid a
 createGrid rows cols initSeed =
+    let mask' = Mask.createMask rows cols
+    in
+       {
+           rows = rows,
+           cols = cols,
+           -- loop rows times
+           cells = makeCells mask',
+           rnd = createGridRnd rows cols initSeed,
+           mask = mask'
+       }
+
+--createGridFromMask : Mask -> Seed -> Grid a
+createGridFromMask mask initSeed =
     {
-        rows = rows,
-        cols = cols,
-        -- loop rows times
-        cells = makeCells rows cols,
-        rnd = createGridRnd rows cols initSeed
+        rows = mask.rows,
+        cols = mask.cols,
+        cells = makeCells mask,
+        rnd = createGridRnd mask.rows mask.cols initSeed,
+        mask = mask,
+        -- WELP, NOW I HAVE TO ADD OTHER TYPES' PROPS :(
+        maximum = 0,
+        dists = []
     }
 
 updateRnd : Grid a -> Grid a
@@ -50,7 +73,7 @@ updateRnd grid =
 
 update grid =
     {grid |
-        cells = makeCells grid.rows grid.cols
+        cells = makeCells grid.mask
     }
 
 -- generates collage view of the grid
@@ -159,11 +182,9 @@ center grid =
 
 randomCell : Grid a -> Cell
 randomCell grid =
-    let grid' = updateRnd grid
-        randRow = grid'.rnd.row
-        randCol = grid'.rnd.col
+    let (row, col) = Mask.randomLocation grid.mask grid.rnd
     in
-        toValidCell <| getCell grid' randRow randCol
+       getCell grid row col |> toValidCell
 
 neighbors : Grid a -> Cell -> List Cell
 neighbors grid cell =
@@ -229,7 +250,7 @@ rowCells grid row =
 
 size : Grid a -> Int
 size grid =
-    grid.rows * grid.cols
+    Mask.count grid.mask
 
 -- cardinal index of a cell in a grid (1,1) = 1, etc
 cellIndex : Grid a -> Cell -> Int

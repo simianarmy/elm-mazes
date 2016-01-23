@@ -4,8 +4,7 @@ import Grid exposing (..)
 import DistanceGrid
 import ColoredGrid
 import Mask
-import MaskedGrid exposing (Masked)
-import PolarGrid exposing (view)
+--import PolarGrid exposing (view)
 import Rnd
 import Cell exposing (Cell)
 import BinaryTree
@@ -56,7 +55,7 @@ gridMaker (width, height) mask display seed =
 --init : Algorithm -> Int -> Int -> Seed -> Maze a
 init algType width height seed display =
     let mask = Mask.createMask width height
-        grid' = MaskedGrid.createGrid mask seed 
+        grid' = Grid.createGridFromMask mask seed 
     in
        {
            grid = getAlgFn algType <| grid', alg = algType,
@@ -65,7 +64,7 @@ init algType width height seed display =
 
 --update : Maze a -> Maze a
 update maze =
-    let grid = MaskedGrid.update maze.grid
+    let grid = Grid.update maze.grid
         grid' = (getAlgFn maze.alg) grid
     in
        {maze | grid = grid'}
@@ -77,7 +76,7 @@ updateSize maze width height =
 
 -- setMask : Maze a -> Mask -> Maze a
 setMask maze mask =
-    let grid = MaskedGrid.createGrid mask maze.grid.rnd.seed
+    let grid = Grid.createGridFromMask mask maze.grid.rnd.seed
     in
        {maze |
            grid = getAlgFn maze.alg <| grid
@@ -96,7 +95,8 @@ view maze =
                 in
                    fromElement <| ColoredGrid.view coloredGrid cellSize
             Polar ->
-                fromElement <| PolarGrid.view maze.grid cellSize
+                pre [] [text <| Grid.toAscii Grid.cellToAscii maze.grid]
+                --fromElement <| PolarGrid.view maze.grid cellSize
     in
        div [] [
            text <| (algToString maze.alg) ++ " algorithm"
@@ -147,10 +147,10 @@ getAlgFn algType =
         NoOp -> identity
         BinaryTree -> BinaryTree.on Grid.randomCell
         Sidewinder -> Sidewinder.on Grid.randomCell
-        AldousBroder -> AldousBroder.on MaskedGrid.randomCell
-        Wilsons -> Wilsons.on MaskedGrid.randomCell
-        HuntAndKill -> HuntAndKill.on MaskedGrid.randomCell
-        RecursiveBacktracker -> RecursiveBacktracker.on MaskedGrid.randomCell
+        AldousBroder -> AldousBroder.on Grid.randomCell
+        Wilsons -> Wilsons.on Grid.randomCell
+        HuntAndKill -> HuntAndKill.on Grid.randomCell
+        RecursiveBacktracker -> RecursiveBacktracker.on Grid.randomCell
 
 algToString : Algorithm -> String
 algToString algType =
