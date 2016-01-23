@@ -36,7 +36,7 @@ cellToAscii dgrid cell =
 -- distances view
 --viewDistances : CellDistances (Grid a) -> String
 viewDistances dgrid =
-    toAscii cellToAscii dgrid
+    toAscii dgrid cellToAscii
 
 -- Finds shortest path between 2 cells
 --pathTo : Grid a -> Cell -> Cell -> Distances

@@ -21,8 +21,14 @@ type alias Grid a =
         rows: Int,
         cols: Int,
         cells: List Cell,
+        cellMaker: (Mask -> List Cell),
         rnd: GridRnd,
         mask : Mask
+}
+
+type alias RowAscii = {
+    top : String,
+    bottom : String
 }
 
 -- helper to make new grid cells
@@ -40,24 +46,24 @@ makeCells mask =
 
 -- constructor
 --createGrid : Int -> Int -> Seed -> Grid a
-createGrid rows cols initSeed =
+createGrid rows cols initSeed cellMaker =
     let mask' = Mask.createMask rows cols
-    in
-       {
+    in {
            rows = rows,
            cols = cols,
            -- loop rows times
-           cells = makeCells mask',
+           cells = cellMaker mask',
            rnd = createGridRnd rows cols initSeed,
            mask = mask'
        }
 
 --createGridFromMask : Mask -> Seed -> Grid a
-createGridFromMask mask initSeed =
+createGridFromMask mask initSeed cellMaker =
     {
         rows = mask.rows,
         cols = mask.cols,
-        cells = makeCells mask,
+        cells = cellMaker mask,
+        cellMaker = cellMaker,
         rnd = createGridRnd mask.rows mask.cols initSeed,
         mask = mask,
         -- WELP, NOW I HAVE TO ADD OTHER TYPES' PROPS :(
@@ -73,14 +79,47 @@ updateRnd grid =
 
 update grid =
     {grid |
-        cells = makeCells grid.mask
+        cells = grid.cellMaker grid.mask
     }
 
 -- generates collage view of the grid
--- TODO: toElement?
+-- Takes 2 painter functions: one for the whole grid and one for each cell
+toElement grid gridPainter cellPainter cellSize =
+    gridPainter cellPainter grid cellSize
 
-view : (Grid a -> Cell -> Color) -> Grid a -> Int -> Element
-view cellPainter grid cellSize =
+-- Returns ASCII representation of a grid
+toAscii : Grid a -> (Grid a -> Cell -> String) -> String
+toAscii grid cellViewer =
+    let cellToString : Cell -> RowAscii -> RowAscii
+        cellToString cell ascii =
+            let body = " " ++ (cellViewer grid cell) ++ " "
+                east_boundary = (if Cell.isLinked cell (toValidCell (east grid cell)) then " " else "|")
+                south_boundary = (if Cell.isLinked cell (toValidCell (south grid cell)) then "   " else "---")
+                curtop = ascii.top
+                curbottom = ascii.bottom
+            in
+               {
+                   ascii |
+                   top = curtop ++ body ++ east_boundary,
+                   bottom = curbottom ++ south_boundary ++ "+"
+               }
+
+        rowToStrings : Int -> String
+        rowToStrings row =
+            let rowascii = {
+                top = "|",
+                bottom = "+"
+            }
+                finalascii = List.foldl cellToString rowascii (rowCells grid row)
+            in
+               finalascii.top ++ "\n" ++ finalascii.bottom ++ "\n"
+    in
+       "+" ++ (String.repeat grid.cols "---+") ++ "\n" ++
+       String.concat (List.map rowToStrings [1..grid.rows])
+
+-- generates rectangular grid element
+painter : (Grid a -> Cell -> Color) -> Grid a -> Int -> Element
+painter cellPainter grid cellSize =
     let imgWidth = cellSize * grid.cols
         imgHeight = cellSize * grid.rows
         ox = toFloat (negate imgWidth) / 2.0
@@ -290,40 +329,5 @@ cellToAscii grid cell =
 cellBackgroundColor : Grid a -> Cell -> Color
 cellBackgroundColor grid cell =
     Color.white
-
--- Returns ASCII representation of a grid
-type alias RowAscii = {
-    top : String,
-    bottom : String
-}
-
-toAscii : (Grid a -> Cell -> String) -> Grid a -> String
-toAscii cellViewer grid =
-    let cellToString : Cell -> RowAscii -> RowAscii
-        cellToString cell ascii =
-            let body = " " ++ (cellViewer grid cell) ++ " "
-                east_boundary = (if Cell.isLinked cell (toValidCell (east grid cell)) then " " else "|")
-                south_boundary = (if Cell.isLinked cell (toValidCell (south grid cell)) then "   " else "---")
-                curtop = ascii.top
-                curbottom = ascii.bottom
-            in
-               {
-                   ascii |
-                   top = curtop ++ body ++ east_boundary,
-                   bottom = curbottom ++ south_boundary ++ "+"
-               }
-
-        rowToStrings : Int -> String
-        rowToStrings row =
-            let rowascii = {
-                top = "|",
-                bottom = "+"
-            }
-                finalascii = List.foldl cellToString rowascii (rowCells grid row)
-            in
-               finalascii.top ++ "\n" ++ finalascii.bottom ++ "\n"
-    in
-       "+" ++ (String.repeat grid.cols "---+") ++ "\n" ++
-       String.concat (List.map rowToStrings [1..grid.rows])
 
 

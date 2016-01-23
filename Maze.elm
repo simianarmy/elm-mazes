@@ -4,7 +4,7 @@ import Grid exposing (..)
 import DistanceGrid
 import ColoredGrid
 import Mask
---import PolarGrid exposing (view)
+import PolarGrid
 import Rnd
 import Cell exposing (Cell)
 import BinaryTree
@@ -55,7 +55,10 @@ gridMaker (width, height) mask display seed =
 --init : Algorithm -> Int -> Int -> Seed -> Maze a
 init algType width height seed display =
     let mask = Mask.createMask width height
-        grid' = Grid.createGridFromMask mask seed 
+        cellGenFn = case display of
+            Polar -> PolarGrid.makeCells
+            _ -> Grid.makeCells
+        grid' = Grid.createGridFromMask mask seed cellGenFn
     in
        {
            grid = getAlgFn algType <| grid', alg = algType,
@@ -76,7 +79,7 @@ updateSize maze width height =
 
 -- setMask : Maze a -> Mask -> Maze a
 setMask maze mask =
-    let grid = Grid.createGridFromMask mask maze.grid.rnd.seed
+    let grid = Grid.createGridFromMask mask maze.grid.rnd.seed make.grid.cellMaker
     in
        {maze |
            grid = getAlgFn maze.alg <| grid
@@ -89,14 +92,13 @@ view maze =
         -- Grid.view maze.grid <Painter> cellSize
         gridHtml = case maze.display of
             Ascii ->
-                pre [] [text <| Grid.toAscii Grid.cellToAscii maze.grid]
+                pre [] [text <| Grid.toAscii maze.grid Grid.cellToAscii]
             Colored ->
                 let coloredGrid = ColoredGrid.createColoredGrid maze.grid root
                 in
-                   fromElement <| ColoredGrid.view coloredGrid cellSize
+                   fromElement <| Grid.toElement coloredGrid Grid.painter ColoredGrid.cellBackgroundColor cellSize
             Polar ->
-                pre [] [text <| Grid.toAscii Grid.cellToAscii maze.grid]
-                --fromElement <| PolarGrid.view maze.grid cellSize
+                fromElement <| Grid.toElement maze.grid PolarGrid.painter ColoredGrid.cellBackgroundColor cellSize
     in
        div [] [
            text <| (algToString maze.alg) ++ " algorithm"

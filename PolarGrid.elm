@@ -2,6 +2,7 @@
 module PolarGrid where
 
 import Grid exposing (..)
+import Mask exposing (Mask)
 import Cell exposing (Cell)
 
 import Array
@@ -11,9 +12,11 @@ import Html
 import Color
 
 -- Does all the work of initializing a polar grid's cells
-makeCells : Grid a -> List Cell
-makeCells nrows ncols =
-    let rowHeight = 1 / (round nrows)
+makeCells : Mask -> List Cell
+makeCells mask =
+    let nrows = mask.rows
+        ncols = mask.cols
+        rowHeight = 1 / (round nrows)
         -- rows = 2-D array of Cell that we can convet to list format on return
         rows = Array.initialize nrows Array.empty
         rows' = Array.set 0 (Array.fromList [Cell.createCell 0 0]) rows
@@ -79,8 +82,8 @@ neighbors grid cell =
        List.concat [(cellToList cw), (cellToList ccw), (cellToList inward), (cellToList outward)]
 
 
-view : Grid a -> Int -> GE.Element
-view grid cellSize =
+painter : Grid a -> Int -> GE.Element
+painter grid cellSize =
     let imgSize = 2 * grid.rows * cellSize
         background = Color.white
         wall = Color.black

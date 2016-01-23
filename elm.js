@@ -11343,7 +11343,22 @@ Elm.Grid.make = function (_elm) {
       imgHeight,
       _U.list([A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: ox,_1: oy},$Graphics$Collage.group(drawables))]));
    });
+   var update = function (grid) {    return _U.update(grid,{cells: grid.cellMaker(grid.mask)});};
    var updateRnd = function (grid) {    return _U.update(grid,{rnd: $Rnd.refresh(grid.rnd)});};
+   var createGridFromMask = F3(function (mask,initSeed,cellMaker) {
+      return {rows: mask.rows
+             ,cols: mask.cols
+             ,cells: cellMaker(mask)
+             ,cellMaker: cellMaker
+             ,rnd: A3($Rnd.createGridRnd,mask.rows,mask.cols,initSeed)
+             ,mask: mask
+             ,maximum: 0
+             ,dists: _U.list([])};
+   });
+   var createGrid = F4(function (rows,cols,initSeed,cellMaker) {
+      var mask$ = A2($Mask.createMask,rows,cols);
+      return {rows: rows,cols: cols,cells: cellMaker(mask$),rnd: A3($Rnd.createGridRnd,rows,cols,initSeed),mask: mask$};
+   });
    var makeCells = function (mask) {
       var createMaskedCell = F2(function (row,col) {
          return A3($Mask.get,mask,row,col) ? A2($Cell.createCell,row,col) : A2($Cell.createMaskedCell,row,col);
@@ -11351,20 +11366,6 @@ Elm.Grid.make = function (_elm) {
       var makeRow = F2(function (cols,row) {    return A2($List.map,createMaskedCell(row),_U.range(1,mask.cols));});
       return A2($List.concatMap,makeRow(mask.cols),_U.range(1,mask.rows));
    };
-   var createGrid = F3(function (rows,cols,initSeed) {
-      var mask$ = A2($Mask.createMask,rows,cols);
-      return {rows: rows,cols: cols,cells: makeCells(mask$),rnd: A3($Rnd.createGridRnd,rows,cols,initSeed),mask: mask$};
-   });
-   var createGridFromMask = F2(function (mask,initSeed) {
-      return {rows: mask.rows
-             ,cols: mask.cols
-             ,cells: makeCells(mask)
-             ,rnd: A3($Rnd.createGridRnd,mask.rows,mask.cols,initSeed)
-             ,mask: mask
-             ,maximum: 0
-             ,dists: _U.list([])};
-   });
-   var update = function (grid) {    return _U.update(grid,{cells: makeCells(grid.mask)});};
    return _elm.Grid.values = {_op: _op
                              ,makeCells: makeCells
                              ,createGrid: createGrid
@@ -11972,25 +11973,25 @@ Elm.Maze.make = function (_elm) {
       return A2($Html.div,_U.list([]),_U.list([A2($Html.br,_U.list([]),_U.list([]))]));
    };
    var setMask = F2(function (maze,mask) {
-      var grid = A2($Grid.createGridFromMask,mask,maze.grid.rnd.seed);
+      var grid = A3($Grid.createGridFromMask,mask,maze.grid.rnd.seed,$Grid.makeCells);
       return _U.update(maze,{grid: A2(getAlgFn,maze.alg,grid)});
    });
    var update = function (maze) {    var grid = $Grid.update(maze.grid);var grid$ = A2(getAlgFn,maze.alg,grid);return _U.update(maze,{grid: grid$});};
    var init = F5(function (algType,width,height,seed,display) {
       var mask = A2($Mask.createMask,width,height);
-      var grid$ = A2($Grid.createGridFromMask,mask,seed);
+      var grid$ = function () {    var _p2 = display;return A3($Grid.createGridFromMask,mask,seed,$Grid.makeCells);}();
       return {grid: A2(getAlgFn,algType,grid$),alg: algType,display: display};
    });
    var updateSize = F3(function (maze,width,height) {
       return A5(init,maze.alg,A2($Debug.log,"width: ",width),A2($Debug.log,"height: ",height),maze.grid.rnd.seed,maze.display);
    });
-   var gridMaker = F4(function (_p2,mask,display,seed) {    var _p3 = _p2;return true;});
+   var gridMaker = F4(function (_p3,mask,display,seed) {    var _p4 = _p3;return true;});
    var cellSize = 20;
    var view = function (maze) {
       var root = $Grid.center(maze.grid);
       var gridHtml = function () {
-         var _p4 = maze.display;
-         switch (_p4.ctor)
+         var _p5 = maze.display;
+         switch (_p5.ctor)
          {case "Ascii": return A2($Html.pre,_U.list([]),_U.list([$Html.text(A2($Grid.toAscii,$Grid.cellToAscii,maze.grid))]));
             case "Colored": var coloredGrid = A2($ColoredGrid.createColoredGrid,maze.grid,root);
               return $Html.fromElement(A2($ColoredGrid.view,coloredGrid,cellSize));
@@ -12027,9 +12028,9 @@ Elm.Maze.make = function (_elm) {
                             ,{alg: RecursiveBacktracker,name: algToString(RecursiveBacktracker)}]);
    var algByName = function (str) {
       var res = $List.head(A2($List.filter,function (a) {    return _U.eq(a.name,str);},algorithms));
-      var _p5 = res;
-      if (_p5.ctor === "Just") {
-            return _p5._0.alg;
+      var _p6 = res;
+      if (_p6.ctor === "Just") {
+            return _p6._0.alg;
          } else {
             return Sidewinder;
          }
