@@ -1,7 +1,8 @@
 module Grid where
 
 import Mask exposing (Mask)
-import Cell exposing (..)
+import Cell exposing (Cell)
+import PolarCell exposing (PolarCell)
 
 import Set
 import List
@@ -15,13 +16,18 @@ import Graphics.Element exposing (Element)
 import Color exposing (..)
 import Text exposing (..)
 
+-- Abstract cell list type
+type GridCell
+    = Rect Cell
+    | Polar PolarCell
+
 -- made extensible to contain additional data (ie. distances)
 type alias Grid a =
     {a |
         rows: Int,
         cols: Int,
-        cells: List Cell,
-        cellMaker: (Mask -> List Cell),
+        cells: List GridCell,
+        cellMaker: (Mask -> List GridCell),
         rnd: GridRnd,
         mask : Mask
 }
@@ -30,19 +36,6 @@ type alias RowAscii = {
     top : String,
     bottom : String
 }
-
--- helper to make new grid cells
-makeCells : Mask -> List Cell
-makeCells mask =
-    let createMaskedCell row col =
-        if Mask.get mask row col
-           then Cell.createCell row col
-           else Cell.createMaskedCell row col
-
-        makeRow cols row =
-            List.map (createMaskedCell row) [1..(mask.cols)]
-    in
-       List.concatMap (makeRow mask.cols) [1..(mask.rows)]
 
 -- constructor
 --createGrid : Int -> Int -> Seed -> Grid a
@@ -71,23 +64,38 @@ createGridFromMask mask initSeed cellMaker =
         dists = []
     }
 
+-- updates all rngs with fresh seeds
 updateRnd : Grid a -> Grid a
 updateRnd grid =
     {grid |
         rnd = Rnd.refresh grid.rnd
     }
 
+-- regenerates all cells based the current mask
 update grid =
     {grid |
         cells = grid.cellMaker grid.mask
     }
 
--- generates collage view of the grid
+-- cells constructor for "basic" grids
+makeCells : Mask -> List Cell
+makeCells mask =
+    let createMaskedCell row col =
+        if Mask.get mask row col
+           then Cell.createCell row col
+           else Cell.createMaskedCell row col
+
+        makeRow cols row =
+            List.map (createMaskedCell row) [1..(mask.cols)]
+    in
+       List.concatMap (makeRow mask.cols) [1..(mask.rows)]
+
+-- generates collage object (Element) of the grid
 -- Takes 2 painter functions: one for the whole grid and one for each cell
 toElement grid gridPainter cellPainter cellSize =
     gridPainter cellPainter grid cellSize
 
--- Returns ASCII representation of a grid
+-- Returns string ASCII representation of a grid
 toAscii : Grid a -> (Grid a -> Cell -> String) -> String
 toAscii grid cellViewer =
     let cellToString : Cell -> RowAscii -> RowAscii
@@ -190,7 +198,7 @@ getCell grid row col =
 toValidCell : Maybe Cell -> Cell
 toValidCell cell =
     case cell of
-        Nothing -> createCell -1 -1
+        Nothing -> Cell.createCell -1 -1
         Just cell -> cell
 
 isValidCell : Maybe Cell -> Bool
@@ -225,7 +233,7 @@ randomCell grid =
     in
        getCell grid row col |> toValidCell
 
-neighbors : Grid a -> Cell -> List Cell
+neighbors : Grid a -> Cell -> List GridCell
 neighbors grid cell =
     let n = north grid cell
         s = south grid cell
@@ -235,12 +243,12 @@ neighbors grid cell =
        List.concat [(cellToList n), (cellToList s), (cellToList w), (cellToList e)]
 
 -- returns all cells with only 1 link
-deadEnds : Grid a -> List Cell
+--deadEnds : Grid a -> List GridCell
 deadEnds grid =
     List.filter (\c -> (List.length (Set.toList c.links)) == 1) grid.cells
 
 -- sometimes useful to filter the neighbors of a cell by some criteria
-filterNeighbors : (Cell -> Bool) -> Grid a -> Cell -> List Cell
+filterNeighbors : (Cell -> Bool) -> Grid a -> Cell -> List GridCell
 filterNeighbors pred grid cell =
     List.filter pred <| neighbors grid cell
 
@@ -279,13 +287,17 @@ unlinkCells grid cell cellToUnlink bidi =
        {grid | cells = List.map unlinkMatched grid.cells}
 
 -- returns all cells linked to a cell
-linkedCells : Grid a -> Cell -> List Cell
+linkedCells : Grid a -> Cell -> List GridCell
 linkedCells grid cell =
     List.map (cellIdToCell grid) (Set.toList cell.links)
 
-rowCells : Grid a -> Int -> List Cell
+rowCells : Grid a -> Int -> List GridCell
 rowCells grid row =
-    List.filter (\c -> c.row == row) grid.cells
+    let tcells = case grid.cells of
+        Rect t -> (Rect t)
+        Polar t -> (Polar t)
+    in
+       List.filter (\c -> c.row == row) tcells
 
 size : Grid a -> Int
 size grid =
@@ -302,7 +314,7 @@ gridIndex grid row col =
     grid.cols * (row - 1) + col
 
 -- returns cell by its id
-cellIdToCell : Grid a -> CellID -> Cell
+cellIdToCell : Grid a -> Cell.CellID -> Cell
 cellIdToCell grid cellid =
     let row = (fst cellid)
         col = (snd cellid)
@@ -310,7 +322,7 @@ cellIdToCell grid cellid =
        toValidCell <| getCell grid row col
 
 -- Helper to make a maybe cell a list (empty if maybe)
-cellToList : Maybe Cell -> List Cell
+cellToList : Maybe Cell -> List GridCell
 cellToList cell =
     case cell of
         Just cell -> [cell]

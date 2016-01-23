@@ -16,19 +16,19 @@ makeCells : Mask -> List Cell
 makeCells mask =
     let nrows = mask.rows
         ncols = mask.cols
-        rowHeight = 1 / (round nrows)
+        rowHeight = 1 / (toFloat nrows)
         -- rows = 2-D array of Cell that we can convet to list format on return
-        rows = Array.initialize nrows Array.empty
+        rows = Array.initialize nrows (\r -> Array.empty)
         rows' = Array.set 0 (Array.fromList [Cell.createCell 0 0]) rows
 
         makeCellRows res row =
             if row >= nrows
                then res
                else
-               let radius = row / nrows
+               let radius = (toFloat row) / (toFloat nrows)
                    circumference = 2 * pi * radius
-                   prevCount = Array.length (Array.get (row - 1) res)
-                   estCellWidth = circumference / prevCount
+                   prevCount = Array.length (Maybe.withDefault Array.empty (Array.get (row - 1) res))
+                   estCellWidth = circumference / (toFloat prevCount)
                    ratio = round (estCellWidth / rowHeight)
                    ncells = prevCount * ratio
                    rowCells = Array.initialize ncells (\a -> Cell.createCell row a)
@@ -47,7 +47,7 @@ makeCells mask =
 
 clockwiseCell : Grid a -> Cell -> Maybe Cell
 clockwiseCell grid cell =
-    cell
+    Grid.getCell grid cell.row (cell.col + 1)
 
 counterClockwiseCell : Grid a -> Cell -> Maybe Cell
 counterClockwiseCell grid cell =

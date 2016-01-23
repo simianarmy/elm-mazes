@@ -5,6 +5,7 @@ import Set exposing (..)
 -- MODEL
 
 type alias CellID = (Int,Int)
+-- Standard cell
 type alias Cell = {
     id: CellID,
     row: Int,
