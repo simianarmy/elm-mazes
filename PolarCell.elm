@@ -13,7 +13,6 @@ type alias PolarCell = {
     col: Int,
     masked: Bool,
     links: Set CellID,
-    outward: Set CellID,
-    parent: Cell
+    outward: Set CellID
 }
 
