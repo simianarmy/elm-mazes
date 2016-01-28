@@ -188,12 +188,18 @@ getCell grid row col =
     -- validate bounds
     if (row > grid.rows || col > grid.cols || row <= 0 || col <= 0)
        then Nothing
-       else 
+       else
        let cell = Array.get ((gridIndex grid row col) - 1) <| Array.fromList grid.cells
        in
           case cell of
-              RectCellTag c -> (RectCellTag c) 
-              PolarCellTag p -> (PolarCellTag p)
+              Just (RectCellTag c) ->
+                  if c.masked
+                     then Nothing
+                     else Just (RectCellTag c)
+              Just (PolarCellTag c) ->
+                  if c.masked
+                     then Nothing
+                     else Just (PolarCellTag c)
               Nothing -> Nothing
 
 -- commonly used to map a maybe cell to a cell
@@ -210,7 +216,7 @@ isValidCell cell =
         Just cell -> True
 
 north : Grid a -> GridCell -> Maybe GridCell
-north grid cell =
+north grid (RectCellTag cell) =
     getCell grid (cell.row - 1) cell.col
 
 south : Grid a -> GridCell -> Maybe GridCell
