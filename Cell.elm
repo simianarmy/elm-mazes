@@ -31,6 +31,10 @@ createMaskedCell row col =
     in
        {cell | masked = True}
 
+createNilCell : Cell
+createNilCell =
+    createCell -1 -1
+
 -- generate a unique id string
 createCellID : Int -> Int -> CellID
 createCellID a b =

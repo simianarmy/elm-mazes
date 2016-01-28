@@ -181,6 +181,8 @@ painter cellPainter grid cellSize =
     in
        collage imgWidth imgHeight [group drawables |> move (ox, oy)]
 
+-- returns cell at an x,y index.
+-- returns nil cell if the index is invalid or the cell at that location is masked
 getCell : Grid a -> Int -> Int -> Maybe GridCell
 getCell grid row col =
     -- validate bounds
@@ -189,10 +191,10 @@ getCell grid row col =
        else 
        let cell = Array.get ((gridIndex grid row col) - 1) <| Array.fromList grid.cells
        in
-          -- Masked cells are considered nil
           case cell of
-             Nothing -> Nothing
-             Just c -> if cell.masked then cell else Nothing
+              RectCellTag c -> (RectCellTag c) 
+              PolarCellTag p -> (PolarCellTag p)
+              Nothing -> Nothing
 
 -- commonly used to map a maybe cell to a cell
 toValidCell : Maybe GridCell -> GridCell
