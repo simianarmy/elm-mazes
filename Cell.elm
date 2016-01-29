@@ -5,14 +5,17 @@ import Set exposing (..)
 -- MODEL
 
 type alias CellID = (Int,Int)
--- Standard cell
-type alias Cell = {
+
+type alias BaseCell = {
     id: CellID,
     row: Int,
     col: Int,
     masked: Bool,
     links: Set CellID
 }
+
+-- Standard cell
+type alias Cell = BaseCell
 
 -- create cell at row col
 createCell : Int -> Int -> Cell

@@ -1,10 +1,10 @@
 module Grid where
 
 import Mask exposing (Mask)
-import Cell exposing (Cell)
+import Cell exposing (BaseCell, Cell, CellID)
 import PolarCell exposing (PolarCell)
 
-import Set
+import Set exposing (Set)
 import List
 import Array
 import String
@@ -17,9 +17,14 @@ import Color exposing (..)
 import Text exposing (..)
 
 -- Abstract cell list type
+-- type OldGridCell
+--     = RectCellTag Cell
+--     | PolarCellTag PolarCell
+
+-- RG says a better way might be to extract common properties into a new type and add the differences to the tag function like so
 type GridCell
-    = RectCellTag Cell
-    | PolarCellTag PolarCell
+    = RectCellTag BaseCell
+    | PolarCellTag BaseCell (Set CellID)
 
 -- made extensible to contain additional data (ie. distances)
 type alias Grid a =
@@ -98,7 +103,7 @@ toElement grid gridPainter cellPainter cellSize =
 -- Returns string ASCII representation of a grid
 toAscii : Grid a -> (Grid a -> Cell -> String) -> String
 toAscii grid cellViewer =
-    let cellToString : Cell -> RowAscii -> RowAscii
+    let cellToString : BaseCell -> RowAscii -> RowAscii
         cellToString cell ascii =
             let body = " " ++ (cellViewer grid cell) ++ " "
                 east_boundary = (if Cell.isLinked cell (toValidCell (east grid cell)) then " " else "|")
@@ -117,8 +122,9 @@ toAscii grid cellViewer =
             let rowascii = {
                 top = "|",
                 bottom = "+"
-            }
-                finalascii = List.foldl cellToString rowascii (gridRowCells grid row)
+                }
+                baseCells = gridCellsToBaseCells <| rowCells grid row
+                finalascii = List.foldl cellToString rowascii baseCells
             in
                finalascii.top ++ "\n" ++ finalascii.bottom ++ "\n"
     in
@@ -178,7 +184,7 @@ painter cellPainter grid cellSize =
                group <| ((cellBackground style cell) :: (cellWalls style cell))
 
         -- cast grid.cells to rectCells
-        drawables = List.map paintCell (List.map toRectCell grid.cells)
+        drawables = List.map paintCell (gridCellsToBaseCells grid.cells)
     in
        collage imgWidth imgHeight [group drawables |> move (ox, oy)]
 
@@ -197,10 +203,10 @@ getCell grid row col =
                   if c.masked
                      then Nothing
                      else Just (RectCellTag c)
-              Just (PolarCellTag c) ->
+              Just (PolarCellTag c outwards) ->
                   if c.masked
                      then Nothing
-                     else Just (PolarCellTag c)
+                     else Just (PolarCellTag c outwards)
               Nothing -> Nothing
 
 -- commonly used to map a maybe cell to a cell
@@ -210,15 +216,18 @@ toValidCell cell =
         Just cell -> cell
         Nothing -> (Cell.createCell -1 -1)
 
-toRectCell : GridCell -> Cell
-toRectCell (RectCellTag cell) = cell
+toRectCell : GridCell -> BaseCell
+toRectCell cell =
+    case cell of
+        RectCellTag c -> c
+        PolarCellTag c _ -> c
 
--- all this shit is bullshit
-maybeGridCellToCell : Maybe GridCell -> Cell
+maybeGridCellToCell : Maybe GridCell -> BaseCell
 maybeGridCellToCell cell =
     case cell of
         Nothing -> (Cell.createCell -1 -1)
-        Just (RectCellTag c) -> toRectCell (RectCellTag c)
+        Just (RectCellTag c) -> c
+        Just (PolarCellTag c out) -> c
 
 maybeGridCellToMaybeCell : Maybe GridCell -> Maybe Cell
 maybeGridCellToMaybeCell cell =
@@ -280,64 +289,71 @@ filterNeighbors : (GridCell -> Bool) -> Grid a -> GridCell -> List GridCell
 filterNeighbors pred grid cell =
     List.filter pred <| neighbors grid cell
 
--- WOW THANKS TAGGED UNIONS!! NO CODE DUPLICATION HERE AT ALL NO SIRREEE
-linkRectCells : Grid a -> Cell -> Cell -> Bool -> Grid a
-linkRectCells grid cell cellToLink bidi =
-    let linkCell : Cell -> Cell -> Cell
-        linkCell cell1 cell2 = {
-            cell1 | links = Set.insert cell2.id cell1.links
-        }
-        linkMatched : Cell -> Cell
-        linkMatched c =
-            if c.id == cell.id
-               then linkCell c cellToLink
-               else if bidi && (c.id == cellToLink.id)
-                       then linkCell c cell
-                       else c
-    in
-       {grid | cells = List.map linkMatched grid.cells}
+gridCellID : GridCell -> CellID
+gridCellID gc =
+    case gc of
+        RectCellTag c -> c.id
+        PolarCellTag c _ -> c.id
 
-linkPolarCells : Grid a -> PolarCell -> PolarCell -> Bool -> Grid a
-linkPolarCells grid cell cellToLink bidi =
-    let linkCell : PolarCell -> PolarCell -> PolarCell
-        linkCell cell1 cell2 = {
-            cell1 | links = Set.insert cell2.id cell1.links
+linkCellsHelper : Grid a -> BaseCell -> CellID -> Bool -> Grid a
+linkCellsHelper grid cell cellToLinkId bidi =
+    let linkCell : BaseCell -> CellID -> BaseCell
+        linkCell cell1 id = {
+            cell1 | links = Set.insert id cell1.links
         }
-        linkMatched : PolarCell -> PolarCell
-        linkMatched c =
+        linker : BaseCell -> BaseCell
+        linker c =
             if c.id == cell.id
-               then linkCell c cellToLink
-               else if bidi && (c.id == cellToLink.id)
-                       then linkCell c cell
+               then linkCell c cellToLinkId
+               else if bidi && (c.id == cellToLinkId)
+                       then linkCell c cell.id
                        else c
+
+        -- We still have the problem with GridCell vs BaseCell here
+        linkMatched : GridCell -> GridCell
+        linkMatched c =
+            -- Do I extract BaseCell from GridCell here then convert back before returning?
+            case c of
+                RectCellTag rc -> RectCellTag (linker rc)
+                PolarCellTag pc outward -> PolarCellTag (linker pc) outward
+
     in
        {grid | cells = List.map linkMatched grid.cells}
 
 -- link 2 cells
 linkCells : Grid a -> GridCell -> GridCell -> Bool -> Grid a
-linkCells grid cell cellToLink bidi =
-    case cell of
-        RectCellTag c ->
-            linkRectCells grid c (RectCellTag cellToLink) bidi
-        PolarCellTag c ->
-            linkPolarCells grid c (PolarCellTag cellToLink) bidi
+linkCells grid cell cell2 bidi =
+    let c2Id = gridCellID cell2
+    in
+       case cell of
+           RectCellTag c ->
+               linkCellsHelper grid c c2Id bidi
+           PolarCellTag c _ ->
+               linkCellsHelper grid c c2Id bidi
 
 -- returns all cells linked to a cell
 linkedCells : Grid a -> GridCell -> List GridCell
 linkedCells grid cell =
     case cell of
-        RectCellTag c -> 
+        RectCellTag c ->
             List.map (cellIdToCell grid) (Set.toList c.links)
-        PolarCellTag c ->
+        PolarCellTag c _ ->
             List.map (cellIdToCell grid) (Set.toList c.links)
 
-gridRowCells : Grid a -> Int -> List Cell
-gridRowCells grid row =
-    List.filter (\c -> c.row == row) grid.cells
 
 rowCells : Grid a -> Int -> List GridCell
 rowCells grid row =
-       List.filter (\c -> c.row == row) grid.cells
+    let rowMatcher cell =
+        case cell of
+            RectCellTag c -> c.row == row
+            PolarCellTag c _ -> c.row == row
+    in
+       List.filter rowMatcher grid.cells
+
+-- helper to pattern match list of unions
+gridCellsToBaseCells : List GridCell -> List BaseCell
+gridCellsToBaseCells gridcells =
+    List.map toRectCell gridcells
 
 size : Grid a -> Int
 size grid =
@@ -346,7 +362,9 @@ size grid =
 -- cardinal index of a cell in a grid (1,1) = 1, etc
 cellIndex : Grid a -> GridCell -> Int
 cellIndex grid cell =
-    (grid.cols * (cell.row - 1)) + cell.col
+    let rc = toRectCell cell
+    in
+       (grid.cols * (rc.row - 1)) + rc.col
 
 -- cardinal index of row col in a grid (1,1) = 1, etc
 gridIndex : Grid a -> Int -> Int -> Int
@@ -363,7 +381,7 @@ cellIdToCell grid cellid =
        case cell of
            Nothing -> RectCellTag Cell.createNilCell
            Just (RectCellTag c) -> RectCellTag c
-           Just (PolarCellTag d) -> PolarCellTag d
+           Just (PolarCellTag d outward) -> PolarCellTag d outward
 
 -- Helper to make a maybe cell a list (empty if maybe)
 cellToList : Maybe Cell -> List Cell
