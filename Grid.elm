@@ -96,9 +96,9 @@ toElement grid gridPainter cellPainter cellSize =
     gridPainter cellPainter grid cellSize
 
 -- Returns string ASCII representation of a grid
-toAscii : Grid a -> (Grid a -> GridCell -> String) -> String
+toAscii : Grid a -> (Grid a -> Cell -> String) -> String
 toAscii grid cellViewer =
-    let cellToString : GridCell -> RowAscii -> RowAscii
+    let cellToString : Cell -> RowAscii -> RowAscii
         cellToString cell ascii =
             let body = " " ++ (cellViewer grid cell) ++ " "
                 east_boundary = (if Cell.isLinked cell (toValidCell (east grid cell)) then " " else "|")
@@ -118,7 +118,7 @@ toAscii grid cellViewer =
                 top = "|",
                 bottom = "+"
             }
-                finalascii = List.foldl cellToString rowascii (rowCells grid row)
+                finalascii = List.foldl cellToString rowascii (gridRowCells grid row)
             in
                finalascii.top ++ "\n" ++ finalascii.bottom ++ "\n"
     in
@@ -126,7 +126,7 @@ toAscii grid cellViewer =
        String.concat (List.map rowToStrings [1..grid.rows])
 
 -- generates rectangular grid element
-painter : (Grid a -> GridCell -> Color) -> Grid a -> Int -> Element
+painter : (Grid a -> Cell -> Color) -> Grid a -> Int -> Element
 painter cellPainter grid cellSize =
     let imgWidth = cellSize * grid.cols
         imgHeight = cellSize * grid.rows
@@ -139,7 +139,7 @@ painter cellPainter grid cellSize =
                then [traced style seg]
                else []
 
-        cellWalls : LineStyle -> GridCell -> List Form
+        cellWalls : LineStyle -> Cell -> List Form
         cellWalls style cell =
             let x1 = toFloat ((cell.col - 1) * cellSize)
                 y1 = toFloat (negate (cell.row - 1) * cellSize)
@@ -157,7 +157,7 @@ painter cellPainter grid cellSize =
                       ((not <| Cell.isLinked cell (toValidCell (south grid cell))), (segment (x1, y2) (x2, y2)))
                       ]
 
-        cellBackground : LineStyle -> GridCell -> Form
+        cellBackground : LineStyle -> Cell -> Form
         cellBackground style cell =
             let bgRect = filled (cellPainter grid cell) (cellToRect cell)
                 --dbg = outlinedText style (Text.fromString " C ")
@@ -167,17 +167,18 @@ painter cellPainter grid cellSize =
             in
                move (cx, cy) bgRect
 
-        cellToRect : GridCell -> Shape
+        cellToRect : Cell -> Shape
         cellToRect cell =
             square <| toFloat cellSize
 
-        paintCell : GridCell -> Form
+        paintCell : Cell -> Form
         paintCell cell =
             let style = { defaultLine | width = 2 }
             in
                group <| ((cellBackground style cell) :: (cellWalls style cell))
 
-        drawables = List.map paintCell grid.cells
+        -- TODO: Convert grid.cells to rectCells
+        drawables = List.map paintCell rectCells
     in
        collage imgWidth imgHeight [group drawables |> move (ox, oy)]
 
@@ -203,7 +204,7 @@ getCell grid row col =
               Nothing -> Nothing
 
 -- commonly used to map a maybe cell to a cell
-toValidCell : Maybe GridCell -> GridCell
+toValidCell : Maybe Cell -> Cell
 toValidCell cell =
     case cell of
         Nothing -> RectCellTag (Cell.createCell -1 -1)
@@ -215,23 +216,23 @@ isValidCell cell =
         Nothing -> False
         Just cell -> True
 
-north : Grid a -> GridCell -> Maybe GridCell
-north grid (RectCellTag cell) =
+north : Grid a -> Cell -> Maybe Cell
+north grid cell =
     getCell grid (cell.row - 1) cell.col
 
-south : Grid a -> GridCell -> Maybe GridCell
+south : Grid a -> Cell -> Maybe Cell
 south grid cell =
     getCell grid (cell.row + 1) cell.col
 
-west : Grid a -> Cell -> Maybe GridCell
+west : Grid a -> Cell -> Maybe Cell
 west grid cell =
     getCell grid cell.row (cell.col - 1)
 
-east : Grid a -> GridCell -> Maybe GridCell
+east : Grid a -> Cell -> Maybe Cell
 east grid cell =
     getCell grid cell.row (cell.col + 1)
 
-center : Grid a -> GridCell
+center : Grid a -> Cell
 center grid =
     toValidCell <| getCell grid (grid.rows // 2) (grid.cols // 2)
 
@@ -281,6 +282,10 @@ linkCells grid cell cellToLink bidi =
 linkedCells : Grid a -> GridCell -> List GridCell
 linkedCells grid cell =
     List.map (cellIdToCell grid) (Set.toList cell.links)
+
+gridRowCells : Grid a -> Int -> List Cell
+gridRowCells grid row =
+    List.filter (\c -> c.row == row) grid.cells
 
 rowCells : Grid a -> Int -> List GridCell
 rowCells grid row =
