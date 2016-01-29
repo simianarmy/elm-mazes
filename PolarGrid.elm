@@ -61,6 +61,12 @@ outwardCell : Grid a -> Cell -> Maybe Cell
 outwardCell grid cell =
     cell
 
+toValidCell : Maybe PolarCell -> PolarCell
+toValidCell cell =
+    case cell of
+        Just cell -> cell
+        Nothing -> (PolarCell.createCell -1 -1)
+
 randomCell: Grid a -> Cell
 randomCell grid =
     let grid' = updateRnd grid

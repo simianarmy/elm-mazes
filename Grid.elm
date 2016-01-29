@@ -177,8 +177,8 @@ painter cellPainter grid cellSize =
             in
                group <| ((cellBackground style cell) :: (cellWalls style cell))
 
-        -- TODO: Convert grid.cells to rectCells
-        drawables = List.map paintCell rectCells
+        -- cast grid.cells to rectCells
+        drawables = List.map paintCell (List.map toRectCell grid.cells)
     in
        collage imgWidth imgHeight [group drawables |> move (ox, oy)]
 
@@ -207,10 +207,24 @@ getCell grid row col =
 toValidCell : Maybe Cell -> Cell
 toValidCell cell =
     case cell of
-        Nothing -> RectCellTag (Cell.createCell -1 -1)
         Just cell -> cell
+        Nothing -> (Cell.createCell -1 -1)
 
-isValidCell : Maybe GridCell -> Bool
+toRectCell : GridCell -> Cell
+toRectCell (RectCellTag cell) = cell
+
+-- all this shit is bullshit
+maybeGridCellToCell : Maybe GridCell -> Cell
+maybeGridCellToCell cell =
+    case cell of
+        Nothing -> (Cell.createCell -1 -1)
+        Just (RectCellTag c) -> toRectCell (RectCellTag c)
+
+maybeGridCellToMaybeCell : Maybe GridCell -> Maybe Cell
+maybeGridCellToMaybeCell cell =
+    Maybe.map toRectCell cell
+
+isValidCell : Maybe Cell -> Bool
 isValidCell cell =
     case cell of
         Nothing -> False
@@ -218,38 +232,43 @@ isValidCell cell =
 
 north : Grid a -> Cell -> Maybe Cell
 north grid cell =
-    getCell grid (cell.row - 1) cell.col
+    maybeGridCellToMaybeCell <| getCell grid (cell.row - 1) cell.col
 
 south : Grid a -> Cell -> Maybe Cell
 south grid cell =
-    getCell grid (cell.row + 1) cell.col
+    maybeGridCellToMaybeCell <| getCell grid (cell.row + 1) cell.col
 
 west : Grid a -> Cell -> Maybe Cell
 west grid cell =
-    getCell grid cell.row (cell.col - 1)
+    maybeGridCellToMaybeCell <| getCell grid cell.row (cell.col - 1)
 
 east : Grid a -> Cell -> Maybe Cell
 east grid cell =
-    getCell grid cell.row (cell.col + 1)
+    maybeGridCellToMaybeCell <| getCell grid cell.row (cell.col + 1)
 
 center : Grid a -> Cell
 center grid =
-    toValidCell <| getCell grid (grid.rows // 2) (grid.cols // 2)
+    maybeGridCellToCell <| getCell grid (grid.rows // 2) (grid.cols // 2)
 
-randomCell : Grid a -> GridCell
+randomCell : Grid a -> Maybe GridCell
 randomCell grid =
     let (row, col) = Mask.randomLocation grid.mask grid.rnd
     in
-       getCell grid row col |> toValidCell
+       getCell grid row col
 
 neighbors : Grid a -> GridCell -> List GridCell
 neighbors grid cell =
-    let n = north grid cell
-        s = south grid cell
-        w = west grid cell
-        e = east grid cell
-    in
-       List.concat [(cellToList n), (cellToList s), (cellToList w), (cellToList e)]
+    case cell of
+        RectCellTag c ->
+            let n = north grid c
+                s = south grid c
+                w = west grid c
+                e = east grid c
+                res = List.concat [(cellToList n), (cellToList s), (cellToList w), (cellToList e)]
+            in
+                List.map (\e -> RectCellTag e) res
+        -- TOOD: Implement for PolarCelTag
+        _ -> []
 
 -- returns all cells with only 1 link
 --deadEnds : Grid a -> List GridCell
@@ -261,14 +280,14 @@ filterNeighbors : (GridCell -> Bool) -> Grid a -> GridCell -> List GridCell
 filterNeighbors pred grid cell =
     List.filter pred <| neighbors grid cell
 
--- link 2 cells
-linkCells : Grid a -> GridCell -> GridCell -> Bool -> Grid a
-linkCells grid cell cellToLink bidi =
+-- WOW THANKS TAGGED UNIONS!! NO CODE DUPLICATION HERE AT ALL NO SIRREEE
+linkRectCells : Grid a -> Cell -> Cell -> Bool -> Grid a
+linkRectCells grid cell cellToLink bidi =
     let linkCell : Cell -> Cell -> Cell
         linkCell cell1 cell2 = {
             cell1 | links = Set.insert cell2.id cell1.links
         }
-        linkMatched : GridCell -> GridCell
+        linkMatched : Cell -> Cell
         linkMatched c =
             if c.id == cell.id
                then linkCell c cellToLink
@@ -276,12 +295,41 @@ linkCells grid cell cellToLink bidi =
                        then linkCell c cell
                        else c
     in
-        {grid | cells = List.map linkMatched grid.cells}
+       {grid | cells = List.map linkMatched grid.cells}
+
+linkPolarCells : Grid a -> PolarCell -> PolarCell -> Bool -> Grid a
+linkPolarCells grid cell cellToLink bidi =
+    let linkCell : PolarCell -> PolarCell -> PolarCell
+        linkCell cell1 cell2 = {
+            cell1 | links = Set.insert cell2.id cell1.links
+        }
+        linkMatched : PolarCell -> PolarCell
+        linkMatched c =
+            if c.id == cell.id
+               then linkCell c cellToLink
+               else if bidi && (c.id == cellToLink.id)
+                       then linkCell c cell
+                       else c
+    in
+       {grid | cells = List.map linkMatched grid.cells}
+
+-- link 2 cells
+linkCells : Grid a -> GridCell -> GridCell -> Bool -> Grid a
+linkCells grid cell cellToLink bidi =
+    case cell of
+        RectCellTag c ->
+            linkRectCells grid c (RectCellTag cellToLink) bidi
+        PolarCellTag c ->
+            linkPolarCells grid c (PolarCellTag cellToLink) bidi
 
 -- returns all cells linked to a cell
 linkedCells : Grid a -> GridCell -> List GridCell
 linkedCells grid cell =
-    List.map (cellIdToCell grid) (Set.toList cell.links)
+    case cell of
+        RectCellTag c -> 
+            List.map (cellIdToCell grid) (Set.toList c.links)
+        PolarCellTag c ->
+            List.map (cellIdToCell grid) (Set.toList c.links)
 
 gridRowCells : Grid a -> Int -> List Cell
 gridRowCells grid row =
@@ -310,11 +358,15 @@ cellIdToCell : Grid a -> Cell.CellID -> GridCell
 cellIdToCell grid cellid =
     let row = (fst cellid)
         col = (snd cellid)
+        cell = getCell grid row col
     in
-       toValidCell <| getCell grid row col
+       case cell of
+           Nothing -> RectCellTag Cell.createNilCell
+           Just (RectCellTag c) -> RectCellTag c
+           Just (PolarCellTag d) -> PolarCellTag d
 
 -- Helper to make a maybe cell a list (empty if maybe)
-cellToList : Maybe GridCell -> List GridCell
+cellToList : Maybe Cell -> List Cell
 cellToList cell =
     case cell of
         Just cell -> [cell]
@@ -324,7 +376,7 @@ toTitle : Grid a -> String
 toTitle grid =
     toString grid.rows ++ " X " ++ toString grid.cols ++ " Grid"
 
-cellToAscii : Grid a -> GridCell -> String
+cellToAscii : Grid a -> Cell -> String
 cellToAscii grid cell = 
     if cell.masked
        then "M"

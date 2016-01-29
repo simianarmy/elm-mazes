@@ -16,3 +16,13 @@ type alias PolarCell = {
     outward: Set CellID
 }
 
+createCell : Int -> Int -> PolarCell
+createCell row col =
+    {
+        id = Cell.createCellID row col,
+        row = row,
+        col = col,
+        masked = False,
+        links = Set.empty,
+        outward = Set.empty
+    }
