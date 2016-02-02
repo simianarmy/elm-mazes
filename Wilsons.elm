@@ -2,7 +2,8 @@
 module Wilsons (on) where
 
 import Grid exposing (Grid)
-import Cell exposing (Cell)
+import Cell exposing (BaseCell)
+import GridCell exposing (..)
 import GridUtils
 
 import Random
@@ -13,12 +14,12 @@ import Debug exposing (log)
 
 type alias RandomWalkPath a = {
     grid : Grid a,
-    cell : Cell,
-    path : List Cell,
-    unvisited : List Cell
+    cell : GridCell,
+    path : List GridCell,
+    unvisited : List GridCell
 }
 
-on : (Grid a -> Cell) -> Grid a -> Grid a
+on : (Grid a -> GridCell) -> Grid a -> Grid a
 on startCellFn grid =
     let startCell = startCellFn grid
         grid' = Grid.updateRnd grid
@@ -27,7 +28,7 @@ on startCellFn grid =
     in
        trampoline (work grid' unvisited)
 
-work : Grid a -> List Cell -> Trampoline (Grid a)
+work : Grid a -> List GridCell -> Trampoline (Grid a)
 work grid unvisited =
     if isEmpty unvisited
        then Done grid

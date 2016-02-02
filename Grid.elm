@@ -1,8 +1,8 @@
 module Grid where
 
 import Mask exposing (Mask)
-import Cell exposing (BaseCell, Cell, CellID)
-import PolarCell exposing (PolarCell)
+import Cell exposing (BaseCell, Cell, CellID, CellLinks)
+import GridCell exposing (..)
 
 import Set exposing (Set)
 import List
@@ -15,16 +15,6 @@ import Graphics.Collage exposing (..)
 import Graphics.Element exposing (Element)
 import Color exposing (..)
 import Text exposing (..)
-
--- Abstract cell list type
--- type OldGridCell
---     = RectCellTag Cell
---     | PolarCellTag PolarCell
-
--- RG says a better way might be to extract common properties into a new type and add the differences to the tag function like so
-type GridCell
-    = RectCellTag BaseCell
-    | PolarCellTag BaseCell (Set CellID)
 
 -- made extensible to contain additional data (ie. distances)
 type alias Grid a =

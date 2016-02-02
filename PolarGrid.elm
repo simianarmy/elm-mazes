@@ -3,8 +3,10 @@ module PolarGrid where
 
 import Grid exposing (..)
 import Mask exposing (Mask)
-import Cell exposing (Cell)
+import Cell exposing (Cell, BaseCell, CellLinks)
+import GridCell exposing (..)
 
+import Set
 import Array
 import Graphics.Element as GE
 import Graphics.Collage as GC
@@ -12,7 +14,7 @@ import Html
 import Color
 
 -- Does all the work of initializing a polar grid's cells
-makeCells : Mask -> List Cell
+makeCells : Mask -> List GridCell
 makeCells mask =
     let nrows = mask.rows
         ncols = mask.cols
@@ -45,7 +47,7 @@ makeCells mask =
        |> Array.toList
        |> List.concat
 
-clockwiseCell : Grid a -> Cell -> Maybe Cell
+clockwiseCell : Grid a -> BaseCell -> Maybe BaseCell CellLinks
 clockwiseCell grid cell =
     Grid.getCell grid cell.row (cell.col + 1)
 
@@ -61,11 +63,11 @@ outwardCell : Grid a -> Cell -> Maybe Cell
 outwardCell grid cell =
     cell
 
-toValidCell : Maybe PolarCell -> PolarCell
+toValidCell : Maybe GridCell -> BaseCell CellLinks
 toValidCell cell =
     case cell of
-        Just cell -> cell
-        Nothing -> (PolarCell.createCell -1 -1)
+        Just cell -> cell Set.empty
+        Nothing -> Cell.createNilCell Set.empty
 
 randomCell: Grid a -> Cell
 randomCell grid =
