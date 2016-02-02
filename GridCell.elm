@@ -10,5 +10,6 @@ import Cell exposing (BaseCell, CellLinks)
 -- RG says a better way might be to extract common properties into a new type and add the differences to the tag function like so
 type GridCell
     = RectCellTag BaseCell
-    | PolarCellTag BaseCell CellLinks
+    -- We always want these together
+    | PolarCellTag (BaseCell, CellLinks)
 

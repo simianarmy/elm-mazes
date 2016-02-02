@@ -47,11 +47,11 @@ makeCells mask =
        |> Array.toList
        |> List.concat
 
-clockwiseCell : Grid a -> BaseCell -> Maybe BaseCell CellLinks
+clockwiseCell : Grid a -> (BaseCell, CellLinks) -> Maybe (BaseCell, CellLinks)
 clockwiseCell grid cell =
     Grid.getCell grid cell.row (cell.col + 1)
 
-counterClockwiseCell : Grid a -> Cell -> Maybe Cell
+counterClockwiseCell : Grid a -> BaseCell -> Maybe BaseCell
 counterClockwiseCell grid cell =
     cell
 
@@ -82,7 +82,7 @@ randomCell grid =
 
 neighbors : Grid a -> Cell -> List Cell
 neighbors grid cell =
-    let cw = clockwiseCell grid cell
+    let (cw, outward) = clockwiseCell grid cell
         ccw = counterClockwiseCell grid cell
         inward = inwardCell grid cell
         outward = outwardCell grid cell
