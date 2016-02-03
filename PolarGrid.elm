@@ -3,7 +3,7 @@ module PolarGrid where
 
 import Grid exposing (..)
 import Mask exposing (Mask)
-import Cell exposing (Cell, BaseCell, CellLinks)
+import Cell exposing (Cell, BaseCell, CellID, CellLinks)
 import GridCell exposing (..)
 
 import Set
@@ -21,7 +21,7 @@ makeCells mask =
         rowHeight = 1 / (toFloat nrows)
         -- rows = 2-D array of Cell that we can convet to list format on return
         rows = Array.initialize nrows (\r -> Array.empty)
-        rows' = Array.set 0 (Array.fromList [Cell.createCell 0 0]) rows
+        rows' = Array.set 0 (Array.fromList [PolarCellTag ((Cell.createCell 0 0, ((-1, -1), Set.empty)))]) rows
 
         makeCellRows res row =
             if row >= nrows
@@ -33,41 +33,63 @@ makeCells mask =
                    estCellWidth = circumference / (toFloat prevCount)
                    ratio = round (estCellWidth / rowHeight)
                    ncells = prevCount * ratio
-                   rowCells = Array.initialize ncells (\a -> Cell.createCell row a)
+                   rowCells = Array.initialize ncells (\a -> PolarCellTag ((Cell.createCell row a), ((-1, -1), Set.empty)))
                    res' = Array.set row rowCells res
                in
                   makeCellRows res' (row + 1)
 
         -- populate the 2D array
         acells = makeCellRows rows' 1
+        -- convert to list of lists and
+        -- flatten inner lists to final list
+        cellList = Array.map Array.toList acells
+           |> Array.toList
+           |> List.concat
     in
-       -- convert to list of lists and
-       -- flatten inner lists to final list
-       Array.map Array.toList acells
-       |> Array.toList
-       |> List.concat
+       configureCells cellList
 
-clockwiseCell : Grid a -> (BaseCell, CellLinks) -> Maybe (BaseCell, CellLinks)
-clockwiseCell grid cell =
-    Grid.getCell grid cell.row (cell.col + 1)
+-- Performs additional processing on generated cells
+-- Calculates each cell's parent and inward properties
+configureCells : List GridCell -> List GridCell
+configureCells cells =
+    -- map cells to tuple (cell, parent)
+    cells
 
-counterClockwiseCell : Grid a -> BaseCell -> Maybe BaseCell
+clockwiseCell : Grid a -> (BaseCell) -> Maybe (BaseCell, (CellID, CellLinks))
+clockwiseCell grid (cell) =
+    maybeGridCellToMaybePolarCell <| Grid.getCell grid cell.row (cell.col + 1)
+
+counterClockwiseCell : Grid a -> (BaseCell) -> Maybe (BaseCell, (CellID, CellLinks))
 counterClockwiseCell grid cell =
     cell
 
-inwardCell : Grid a -> Cell -> Maybe Cell
-inwardCell grid cell =
-    cell
+inwardCell : Grid a -> (BaseCell, (CellID)) -> Maybe (BaseCell, (CellID, CellLinks))
+inwardCell grid (cell, (inward)) =
+    inward
 
-outwardCell : Grid a -> Cell -> Maybe Cell
-outwardCell grid cell =
-    cell
+outwardCell : Grid a -> (BaseCell, (CellID, CellLinks)) -> List (BaseCell, (CellID, CellLinks))
+outwardCell grid (cell, (inward, outward)) =
+    outward
 
-toValidCell : Maybe GridCell -> BaseCell CellLinks
+gridCellsToPolarCells : List GridCell -> List (BaseCell, (CellID, CellLinks))
+gridCellsToPolarCells gridcells =
+    List.map toPolarCell gridcells
+
+toValidCell : Maybe GridCell -> (BaseCell, (CellID, CellLinks))
 toValidCell cell =
     case cell of
-        Just cell -> cell Set.empty
-        Nothing -> Cell.createNilCell Set.empty
+        PolarCellTag (base, (links, out)) -> cell
+        Nothing -> (Cell.createNilCell, ((-1, -1), Set.empty))
+
+toPolarCell : GridCell -> (BaseCell, (CellID, CellLinks))
+toPolarCell cell =
+    case cell of
+        RectCellTag c -> (c, ((-1, -1), Set.empty))
+        PolarCellTag c -> c
+
+maybeGridCellToMaybePolarCell : Maybe GridCell -> Maybe (BaseCell, (CellID, CellLinks))
+maybeGridCellToMaybePolarCell cell =
+    Maybe.map toPolarCell cell
 
 randomCell: Grid a -> Cell
 randomCell grid =
@@ -80,15 +102,16 @@ randomCell grid =
     in
         toValidCell <| getCell grid' randRow randCol
 
-neighbors : Grid a -> Cell -> List Cell
+neighbors : Grid a -> GridCell -> List GridCell
 neighbors grid cell =
-    let (cw, outward) = clockwiseCell grid cell
-        ccw = counterClockwiseCell grid cell
-        inward = inwardCell grid cell
-        outward = outwardCell grid cell
-    in
-       List.concat [(cellToList cw), (cellToList ccw), (cellToList inward), (cellToList outward)]
-
+    case cell of
+        PolarCellTag (c, (inId, outwardIds)) ->
+            let (cw) = clockwiseCell grid c
+                (ccw) = counterClockwiseCell grid c
+                inward = Grid.cellIdToCell grid inId
+                outward = outwardCell grid cell
+            in
+               List.concat [cw, ccw, inward, outward]
 
 painter : Grid a -> Int -> GE.Element
 painter grid cellSize =
@@ -99,8 +122,8 @@ painter grid cellSize =
         radius = grid.rows * cellSize
         circleForm = GC.outlined GC.defaultLine <| GC.circle (toFloat radius)
 
-        cellLines : Cell -> List GC.Form
-        cellLines cell =
+        cellLines : (BaseCell, (CellID, CellLinks)) -> List GC.Form
+        cellLines (cell, (inward, outwards)) =
             let theta = (2 * pi) / (toFloat <| List.length (Grid.rowCells grid cell.row))
                 innerRadius = toFloat ((cell.row - 1) * cellSize)
                 outerRadius = toFloat ((cell.row) * cellSize)
@@ -115,8 +138,8 @@ painter grid cellSize =
                 dx = (center + (outerRadius * (cos thetaCw)))
                 dy = (center + (outerRadius * (sin thetaCw)))
 
-                linkedInward = Cell.isLinked cell <| toValidCell (inwardCell grid cell)
-                linkedCw  = Cell.isLinked cell <| toValidCell (clockwiseCell grid cell)
+                linkedInward = Cell.isLinked cell (fst <| toValidCell (Grid.cellIdToCell grid inward))
+                linkedCw  = Cell.isLinked cell (fst <| toValidCell (clockwiseCell grid cell))
                 line1 = if not linkedInward
                            then [GC.segment (ax, ay) (cx, cy)]
                            else []
@@ -126,7 +149,7 @@ painter grid cellSize =
             in
                List.map (GC.traced GC.defaultLine) <| List.concat [line1, line2]
 
-        drawables = List.concatMap cellLines grid.cells
+        drawables = List.concatMap cellLines (gridCellsToPolarCells grid.cells)
         forms = circleForm :: [GC.group drawables |> GC.move (negate center, negate center)]
     in
        GC.collage (imgSize + 1) (imgSize + 1) forms

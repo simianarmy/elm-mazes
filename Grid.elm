@@ -193,10 +193,10 @@ getCell grid row col =
                   if c.masked
                      then Nothing
                      else Just (RectCellTag c)
-              Just (PolarCellTag c outwards) ->
+              Just (PolarCellTag (c, o)) ->
                   if c.masked
                      then Nothing
-                     else Just (PolarCellTag c outwards)
+                     else Just (PolarCellTag (c, o))
               Nothing -> Nothing
 
 -- commonly used to map a maybe cell to a cell
@@ -204,20 +204,20 @@ toValidCell : Maybe Cell -> Cell
 toValidCell cell =
     case cell of
         Just cell -> cell
-        Nothing -> (Cell.createCell -1 -1)
+        Nothing -> Cell.createNilCell
 
 toRectCell : GridCell -> BaseCell
 toRectCell cell =
     case cell of
         RectCellTag c -> c
-        PolarCellTag c _ -> c
+        PolarCellTag (c, _) -> c
 
 maybeGridCellToCell : Maybe GridCell -> BaseCell
 maybeGridCellToCell cell =
     case cell of
-        Nothing -> (Cell.createCell -1 -1)
+        Nothing -> Cell.createNilCell
         Just (RectCellTag c) -> c
-        Just (PolarCellTag c out) -> c
+        Just (PolarCellTag (c, _)) -> c
 
 maybeGridCellToMaybeCell : Maybe GridCell -> Maybe Cell
 maybeGridCellToMaybeCell cell =
@@ -283,7 +283,7 @@ gridCellID : GridCell -> CellID
 gridCellID gc =
     case gc of
         RectCellTag c -> c.id
-        PolarCellTag c _ -> c.id
+        PolarCellTag (c, _) -> c.id
 
 linkCellsHelper : Grid a -> BaseCell -> CellID -> Bool -> Grid a
 linkCellsHelper grid cell cellToLinkId bidi =
@@ -305,7 +305,7 @@ linkCellsHelper grid cell cellToLinkId bidi =
             -- Do I extract BaseCell from GridCell here then convert back before returning?
             case c of
                 RectCellTag rc -> RectCellTag (linker rc)
-                PolarCellTag pc outward -> PolarCellTag (linker pc) outward
+                PolarCellTag (pc, data) -> PolarCellTag ((linker pc), data)
 
     in
        {grid | cells = List.map linkMatched grid.cells}
@@ -318,7 +318,7 @@ linkCells grid cell cell2 bidi =
        case cell of
            RectCellTag c ->
                linkCellsHelper grid c c2Id bidi
-           PolarCellTag c _ ->
+           PolarCellTag (c, _) ->
                linkCellsHelper grid c c2Id bidi
 
 -- returns all cells linked to a cell
@@ -327,7 +327,7 @@ linkedCells grid cell =
     case cell of
         RectCellTag c ->
             List.map (cellIdToCell grid) (Set.toList c.links)
-        PolarCellTag c _ ->
+        PolarCellTag (c, _)  ->
             List.map (cellIdToCell grid) (Set.toList c.links)
 
 
@@ -336,7 +336,7 @@ rowCells grid row =
     let rowMatcher cell =
         case cell of
             RectCellTag c -> c.row == row
-            PolarCellTag c _ -> c.row == row
+            PolarCellTag (c, _) -> c.row == row
     in
        List.filter rowMatcher grid.cells
 
@@ -371,7 +371,7 @@ cellIdToCell grid cellid =
        case cell of
            Nothing -> RectCellTag Cell.createNilCell
            Just (RectCellTag c) -> RectCellTag c
-           Just (PolarCellTag d outward) -> PolarCellTag d outward
+           Just (PolarCellTag p) -> PolarCellTag p
 
 -- Helper to make a maybe cell a list (empty if maybe)
 cellToList : Maybe Cell -> List Cell
