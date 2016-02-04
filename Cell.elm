@@ -45,6 +45,14 @@ createCellID a b =
     --toString a ++ ":" ++ toString b
     (a, b)
 
+isNilCellID : CellID -> Bool
+isNilCellID (r, c) =
+    r == -1 && c == -1
+
+isNilCell : Cell -> Bool
+isNilCell cell =
+    cell.row == -1 && cell.col == -1
+
 -- returns all linked cells
 linked : Cell -> Set CellID
 linked cell =

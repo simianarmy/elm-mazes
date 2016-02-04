@@ -223,6 +223,14 @@ maybeGridCellToMaybeCell : Maybe GridCell -> Maybe Cell
 maybeGridCellToMaybeCell cell =
     Maybe.map toRectCell cell
 
+-- defaults to RectCellTag
+maybeGridCellToGridCell : Maybe GridCell -> GridCell
+maybeGridCellToGridCell cell =
+    case cell of
+        Nothing -> RectCellTag Cell.createNilCell
+        Just (RectCellTag c) -> RectCellTag c
+        Just (PolarCellTag p) -> PolarCellTag p
+
 isValidCell : Maybe Cell -> Bool
 isValidCell cell =
     case cell of
@@ -366,12 +374,8 @@ cellIdToCell : Grid a -> Cell.CellID -> GridCell
 cellIdToCell grid cellid =
     let row = (fst cellid)
         col = (snd cellid)
-        cell = getCell grid row col
     in
-       case cell of
-           Nothing -> RectCellTag Cell.createNilCell
-           Just (RectCellTag c) -> RectCellTag c
-           Just (PolarCellTag p) -> PolarCellTag p
+        maybeGridCellToGridCell <| getCell grid row col
 
 -- Helper to make a maybe cell a list (empty if maybe)
 cellToList : Maybe Cell -> List Cell

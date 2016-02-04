@@ -61,15 +61,18 @@ clockwiseCell grid (cell) =
 
 counterClockwiseCell : Grid a -> (BaseCell) -> Maybe (BaseCell, (CellID, CellLinks))
 counterClockwiseCell grid cell =
-    cell
+    maybeGridCellToMaybePolarCell <| Grid.getCell grid cell.row (cell.col - 1)
 
-inwardCell : Grid a -> (BaseCell, (CellID)) -> Maybe (BaseCell, (CellID, CellLinks))
-inwardCell grid (cell, (inward)) =
-    inward
+inwardCell : Grid a -> (BaseCell, (CellID)) -> (BaseCell, (CellID, CellLinks))
+inwardCell grid (cell, (inwardId)) =
+    Grid.cellIdToCell grid inwardId
 
-outwardCell : Grid a -> (BaseCell, (CellID, CellLinks)) -> List (BaseCell, (CellID, CellLinks))
-outwardCell grid (cell, (inward, outward)) =
-    outward
+outwardCell : Grid a -> CellLinks -> List (BaseCell, (CellID, CellLinks))
+outwardCell grid outward =
+    let outwardIds = Set.toList outward
+        outwardCells = List.map (Grid.cellIdToCell grid) outwardIds
+    in
+       gridCellsToPolarCells outwardCells
 
 gridCellsToPolarCells : List GridCell -> List (BaseCell, (CellID, CellLinks))
 gridCellsToPolarCells gridcells =
@@ -78,7 +81,7 @@ gridCellsToPolarCells gridcells =
 toValidCell : Maybe GridCell -> (BaseCell, (CellID, CellLinks))
 toValidCell cell =
     case cell of
-        PolarCellTag (base, (links, out)) -> cell
+        Just (PolarCellTag c) -> c
         Nothing -> (Cell.createNilCell, ((-1, -1), Set.empty))
 
 toPolarCell : GridCell -> (BaseCell, (CellID, CellLinks))
@@ -87,11 +90,17 @@ toPolarCell cell =
         RectCellTag c -> (c, ((-1, -1), Set.empty))
         PolarCellTag c -> c
 
+toCellOrEmptyList : Maybe GridCell -> List GridCell
+toCellOrEmptyList cell =
+    case cell of
+        Nothing -> []
+        Just cell -> [cell]
+
 maybeGridCellToMaybePolarCell : Maybe GridCell -> Maybe (BaseCell, (CellID, CellLinks))
 maybeGridCellToMaybePolarCell cell =
     Maybe.map toPolarCell cell
 
-randomCell: Grid a -> Cell
+randomCell: Grid a -> Maybe GridCell
 randomCell grid =
     let grid' = updateRnd grid
         randRow = grid'.rnd.row
@@ -100,18 +109,21 @@ randomCell grid =
         -- a dynamic rng, so this is a hack
         randCol = min rowLen grid'.rnd.col
     in
-        toValidCell <| getCell grid' randRow randCol
+        getCell grid' randRow randCol
 
 neighbors : Grid a -> GridCell -> List GridCell
 neighbors grid cell =
     case cell of
         PolarCellTag (c, (inId, outwardIds)) ->
-            let (cw) = clockwiseCell grid c
-                (ccw) = counterClockwiseCell grid c
-                inward = Grid.cellIdToCell grid inId
-                outward = outwardCell grid cell
+            -- massage everything to be a [] or [gridcell]
+            let (cw) = toCellOrEmptyList <| clockwiseCell grid c
+                (ccw) = toCellOrEmptyList <| counterClockwiseCell grid c
+                inward = if Cell.isNilCellID inId
+                            then []
+                            else [Grid.cellIdToCell grid inId]
+                outward = outwardCell grid outwardIds
             in
-               List.concat [cw, ccw, inward, outward]
+               List.append (List.concat [cw, ccw, inward]) outward
 
 painter : Grid a -> Int -> GE.Element
 painter grid cellSize =
