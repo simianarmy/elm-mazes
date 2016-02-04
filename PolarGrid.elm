@@ -55,17 +55,14 @@ configureCells cells =
     -- map cells to tuple (cell, parent)
     cells
 
-clockwiseCell : Grid a -> (BaseCell) -> Maybe (BaseCell, (CellID, CellLinks))
-clockwiseCell grid (cell) =
+clockwiseCell : Grid a -> BaseCell -> Maybe (BaseCell, (CellID, CellLinks))
+clockwiseCell grid cell =
     maybeGridCellToMaybePolarCell <| Grid.getCell grid cell.row (cell.col + 1)
 
 counterClockwiseCell : Grid a -> (BaseCell) -> Maybe (BaseCell, (CellID, CellLinks))
 counterClockwiseCell grid cell =
     maybeGridCellToMaybePolarCell <| Grid.getCell grid cell.row (cell.col - 1)
 
-inwardCell : Grid a -> (BaseCell, (CellID)) -> (BaseCell, (CellID, CellLinks))
-inwardCell grid (cell, (inwardId)) =
-    Grid.cellIdToCell grid inwardId
 
 outwardCell : Grid a -> CellLinks -> List (BaseCell, (CellID, CellLinks))
 outwardCell grid outward =
@@ -78,10 +75,14 @@ gridCellsToPolarCells : List GridCell -> List (BaseCell, (CellID, CellLinks))
 gridCellsToPolarCells gridcells =
     List.map toPolarCell gridcells
 
-toValidCell : Maybe GridCell -> (BaseCell, (CellID, CellLinks))
+polarCellsToGridCells : List (BaseCell, (CellID, CellLinks)) -> List GridCell
+polarCellsToGridCells cells =
+    List.map (\c -> PolarCellTag c) cells
+
+toValidCell : Maybe (BaseCell, (CellID, CellLinks)) -> (BaseCell, (CellID, CellLinks))
 toValidCell cell =
     case cell of
-        Just (PolarCellTag c) -> c
+        Just c -> c
         Nothing -> (Cell.createNilCell, ((-1, -1), Set.empty))
 
 toPolarCell : GridCell -> (BaseCell, (CellID, CellLinks))
@@ -90,11 +91,11 @@ toPolarCell cell =
         RectCellTag c -> (c, ((-1, -1), Set.empty))
         PolarCellTag c -> c
 
-toCellOrEmptyList : Maybe GridCell -> List GridCell
-toCellOrEmptyList cell =
+toCellList : Maybe (BaseCell, (CellID, CellLinks)) -> List GridCell
+toCellList cell =
     case cell of
         Nothing -> []
-        Just cell -> [cell]
+        Just cell -> [PolarCellTag cell]
 
 maybeGridCellToMaybePolarCell : Maybe GridCell -> Maybe (BaseCell, (CellID, CellLinks))
 maybeGridCellToMaybePolarCell cell =
@@ -116,14 +117,15 @@ neighbors grid cell =
     case cell of
         PolarCellTag (c, (inId, outwardIds)) ->
             -- massage everything to be a [] or [gridcell]
-            let (cw) = toCellOrEmptyList <| clockwiseCell grid c
-                (ccw) = toCellOrEmptyList <| counterClockwiseCell grid c
+            let (cw) = toCellList <| clockwiseCell grid c
+                (ccw) = toCellList <| counterClockwiseCell grid c
                 inward = if Cell.isNilCellID inId
                             then []
                             else [Grid.cellIdToCell grid inId]
-                outward = outwardCell grid outwardIds
+                outward = polarCellsToGridCells <| outwardCell grid outwardIds
             in
                List.append (List.concat [cw, ccw, inward]) outward
+        _ -> []
 
 painter : Grid a -> Int -> GE.Element
 painter grid cellSize =
@@ -150,7 +152,7 @@ painter grid cellSize =
                 dx = (center + (outerRadius * (cos thetaCw)))
                 dy = (center + (outerRadius * (sin thetaCw)))
 
-                linkedInward = Cell.isLinked cell (fst <| toValidCell (Grid.cellIdToCell grid inward))
+                linkedInward = Cell.isLinked cell (fst <| toPolarCell <| (Grid.cellIdToCell grid inward))
                 linkedCw  = Cell.isLinked cell (fst <| toValidCell (clockwiseCell grid cell))
                 line1 = if not linkedInward
                            then [GC.segment (ax, ay) (cx, cy)]

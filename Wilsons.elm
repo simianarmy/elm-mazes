@@ -19,7 +19,7 @@ type alias RandomWalkPath a = {
     unvisited : List GridCell
 }
 
-on : (Grid a -> GridCell) -> Grid a -> Grid a
+on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
 on startCellFn grid =
     let startCell = startCellFn grid
         grid' = Grid.updateRnd grid
@@ -67,11 +67,12 @@ carvePassage rwp =
 
         carve : Int -> RandomWalkPath a -> RandomWalkPath a
         carve index rwp =
-            let icell = Grid.toValidCell <| Array.get index pathArr
-                nextcell = Grid.toValidCell <| Array.get (index + 1) pathArr
+            let icell = Grid.maybeGridCellToGridCell <| Array.get index pathArr
+                nextcell = Grid.maybeGridCellToGridCell  <| Array.get (index + 1) pathArr
                 grid' = Grid.linkCells rwp.grid icell nextcell True
+                icellId = GridCell.id icell
                 -- delete icell from unvisited
-                unvisited' = filter (\e -> not <| e.id == icell.id) rwp.unvisited
+                unvisited' = filter (\e -> not <| e.id == icellId) rwp.unvisited
             in
                {rwp |
                    grid = grid',

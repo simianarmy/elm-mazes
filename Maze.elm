@@ -8,11 +8,11 @@ import PolarGrid
 import Rnd
 import Cell exposing (Cell)
 import BinaryTree
-import Sidewinder
-import AldousBroder
-import Wilsons
-import HuntAndKill
-import RecursiveBacktracker
+--import Sidewinder
+--import AldousBroder
+--import Wilsons
+--import HuntAndKill
+--import RecursiveBacktracker
 
 import Random exposing (Seed)
 import Html exposing (..)
@@ -20,11 +20,11 @@ import Html.Attributes exposing (..)
 
 type Algorithm = NoOp
                | BinaryTree
-               | Sidewinder
-               | AldousBroder
-               | Wilsons
-               | HuntAndKill
-               | RecursiveBacktracker
+               --| Sidewinder
+               --| AldousBroder
+               --| Wilsons
+               --| HuntAndKill
+               --| RecursiveBacktracker
 
 type alias AlgAttr = {
     alg : Algorithm,
@@ -41,7 +41,7 @@ type alias Maze a = {
     display : Display
 }
 
-defaultAlgorithm = RecursiveBacktracker
+defaultAlgorithm = BinaryTree
 
 cellSize : Int
 cellSize = 20
@@ -79,7 +79,7 @@ updateSize maze width height =
 
 -- setMask : Maze a -> Mask -> Maze a
 setMask maze mask =
-    let grid = Grid.createGridFromMask mask maze.grid.rnd.seed make.grid.cellMaker
+    let grid = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker
     in
        {maze |
            grid = getAlgFn maze.alg <| grid
@@ -136,11 +136,11 @@ algorithms : List AlgAttr
 algorithms =
     [ {alg = NoOp, name = algToString NoOp}
     , {alg = BinaryTree, name = algToString BinaryTree}
-    , {alg = Sidewinder, name = algToString Sidewinder}
-    , {alg = AldousBroder, name = algToString AldousBroder}
-    , {alg = Wilsons, name = algToString Wilsons}
-    , {alg = HuntAndKill, name = algToString HuntAndKill}
-    , {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
+    --, {alg = Sidewinder, name = algToString Sidewinder}
+    --, {alg = AldousBroder, name = algToString AldousBroder}
+    --, {alg = Wilsons, name = algToString Wilsons}
+    --, {alg = HuntAndKill, name = algToString HuntAndKill}
+    --, {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
     ]
 
 --getAlgFn : Algorithm -> Grid a -> Grid a
@@ -148,22 +148,22 @@ getAlgFn algType =
     case algType of
         NoOp -> identity
         BinaryTree -> BinaryTree.on Grid.randomCell
-        Sidewinder -> Sidewinder.on Grid.randomCell
-        AldousBroder -> AldousBroder.on Grid.randomCell
-        Wilsons -> Wilsons.on Grid.randomCell
-        HuntAndKill -> HuntAndKill.on Grid.randomCell
-        RecursiveBacktracker -> RecursiveBacktracker.on Grid.randomCell
+        --Sidewinder -> Sidewinder.on Grid.randomCell
+        --AldousBroder -> AldousBroder.on Grid.randomCell
+        --Wilsons -> Wilsons.on Grid.randomCell
+        --HuntAndKill -> HuntAndKill.on Grid.randomCell
+        --RecursiveBacktracker -> RecursiveBacktracker.on Grid.randomCell
 
 algToString : Algorithm -> String
 algToString algType =
     case algType of
         NoOp -> "None"
         BinaryTree -> "Binary Tree"
-        Sidewinder -> "Sidewinder"
-        AldousBroder -> "Aldous-Broder"
-        Wilsons -> "Wilsons"
-        HuntAndKill -> "Hunt - Kill"
-        RecursiveBacktracker -> "Recursive Backtracker"
+        --Sidewinder -> "Sidewinder"
+        --AldousBroder -> "Aldous-Broder"
+        --Wilsons -> "Wilsons"
+        --HuntAndKill -> "Hunt - Kill"
+        --RecursiveBacktracker -> "Recursive Backtracker"
 
 algByName : String -> Algorithm
 algByName str =
@@ -171,5 +171,5 @@ algByName str =
     in
        case res of
            Just a -> a.alg
-           _ -> Sidewinder
+           _ -> BinaryTree
 

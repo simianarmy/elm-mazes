@@ -12,3 +12,8 @@ type GridCell
     = RectCellTag BaseCell
     | PolarCellTag (BaseCell, (CellID, CellLinks))
 
+id : GridCell -> CellID
+id gc =
+    case gc of
+        RectCellTag bc -> bc.id
+        PolarCellTag (bc, _) -> bc.id
