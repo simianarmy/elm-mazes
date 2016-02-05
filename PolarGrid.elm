@@ -11,7 +11,7 @@ import Array
 import Graphics.Element as GE
 import Graphics.Collage as GC
 import Html
-import Color
+import Color exposing (Color)
 
 -- Does all the work of initializing a polar grid's cells
 makeCells : Mask -> List GridCell
@@ -127,8 +127,8 @@ neighbors grid cell =
                List.append (List.concat [cw, ccw, inward]) outward
         _ -> []
 
-painter : Grid a -> Int -> GE.Element
-painter grid cellSize =
+painter :  (Grid a -> BaseCell -> Color) -> Grid a -> Int -> GE.Element
+painter cellPainter grid cellSize =
     let imgSize = 2 * grid.rows * cellSize
         background = Color.white
         wall = Color.black

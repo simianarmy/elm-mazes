@@ -8,21 +8,26 @@ import Random exposing (..)
 import GridUtils
 
 import Grid exposing (..)
-import Cell exposing (..)
+import GridCell exposing (..)
 
-on : (Grid a -> Cell) -> Grid a -> Grid a
+on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
 on startCellFn grid =
-    let getRandomNeighbor : Grid a -> Cell -> Maybe Cell
+    let getRandomNeighbor : Grid a -> GridCell -> Maybe GridCell
         getRandomNeighbor grid' cell =
-            let northandeast = List.concat [
-                cellToList (north grid' cell),
-                cellToList (east grid' cell)]
+            let acell = Grid.toRectCell cell
+                northandeast = List.concat [
+                    Grid.cellToList (north grid' acell),
+                    Grid.cellToList (east grid' acell)]
             in
+               -- TODO: Maybe.andThen here?
                if isEmpty northandeast
                   then Nothing
                   else
-                  GridUtils.sampleCell northandeast grid'.rnd
+                  case (GridUtils.sampleCell northandeast grid'.rnd) of
+                      Nothing -> Nothing
+                      Just c -> Just (RectCellTag c)
 
+        processCell : GridCell -> Grid a -> Grid a
         processCell cell grid =
             let neighbor = getRandomNeighbor grid cell
                 grid' = updateRnd grid

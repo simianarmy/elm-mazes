@@ -6,7 +6,7 @@ import ColoredGrid
 import Mask
 import PolarGrid
 import Rnd
-import Cell exposing (Cell)
+import GridCell exposing (GridCell)
 import BinaryTree
 --import Sidewinder
 --import AldousBroder
@@ -61,14 +61,24 @@ init algType width height seed display =
         grid' = Grid.createGridFromMask mask seed cellGenFn
     in
        {
-           grid = getAlgFn algType <| grid', alg = algType,
+           grid = applyAlg algType display <| grid', alg = algType,
            display = display
        }
+
+-- generates maze algorithm function taking a grid and random cell generator and
+-- returning a grid
+applyAlg : Algorithm -> Display -> (Grid a -> Grid a)
+applyAlg algName displayType =
+    let randCellFn = case displayType of
+        Polar -> PolarGrid.randomCell
+        _ -> Grid.randomCell
+    in
+        getAlgFn algName randCellFn
 
 --update : Maze a -> Maze a
 update maze =
     let grid = Grid.update maze.grid
-        grid' = (getAlgFn maze.alg) grid
+        grid' = (applyAlg maze.alg maze.display) grid
     in
        {maze | grid = grid'}
 
@@ -82,7 +92,7 @@ setMask maze mask =
     let grid = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker
     in
        {maze |
-           grid = getAlgFn maze.alg <| grid
+           grid = (applyAlg maze.alg maze.display) grid
        }
 
 --view : Maze a -> Html
@@ -143,11 +153,10 @@ algorithms =
     --, {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
     ]
 
---getAlgFn : Algorithm -> Grid a -> Grid a
-getAlgFn algType =
+getAlgFn algType randCellFn =
     case algType of
         NoOp -> identity
-        BinaryTree -> BinaryTree.on Grid.randomCell
+        BinaryTree -> BinaryTree.on randCellFn
         --Sidewinder -> Sidewinder.on Grid.randomCell
         --AldousBroder -> AldousBroder.on Grid.randomCell
         --Wilsons -> Wilsons.on Grid.randomCell

@@ -5,19 +5,19 @@ module Sidewinder where
 
 import GridUtils
 import Grid exposing (..)
-import Cell exposing (Cell)
+import GridCell exposing (GridCell)
 
 import List exposing (..)
 import Random exposing (..)
 
-type alias RowState a = {run : List Cell, grid : Grid a}
+type alias RowState a = {run : List GridCell, grid : Grid a}
 
-on : (Grid a -> Cell) -> Grid a -> Grid a
+on : (Grid a -> GridCell) -> Grid a -> Grid a
 on startCellFn grid =
     let -- bias is to start at the bottom left...may not matter
         bottomLeftToTopRightCells = List.concatMap (rowCells grid) (List.reverse [1..grid.rows])
 
-        processCell : Cell -> RowState a -> RowState a
+        processCell : GridCell -> RowState a -> RowState a
         processCell cell rowState =
             let run' = cell :: rowState.run
                 atEasternBoundary = not (isValidCell (east rowState.grid cell))
