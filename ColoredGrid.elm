@@ -2,7 +2,8 @@
 module ColoredGrid where
 
 import Distances exposing (Distances)
-import DistanceGrid exposing (CellDistances, createDistanceGrid)
+import DistanceGrid exposing (CellDistances)
+import GridCell exposing (GridCell)
 import Cell exposing (Cell)
 import Grid exposing (Grid)
 
@@ -13,16 +14,17 @@ type alias Colored a = {
         maximum : Int
     }
 
---createColoredGrid : Grid a -> Cell -> Colored (CellDistances (Grid a))
-createColoredGrid grid root =
-    let grid' = createDistanceGrid grid root
+--createGrid : Grid a -> Cell -> Colored (CellDistances (Grid a))
+createGrid grid root =
+    let grid' = DistanceGrid.createGrid grid root
         (farthest, max) = Distances.max grid'.dists
     in
        {grid' | maximum = max}
 
---cellBackgroundColor : Grid {dists: Distances, maximum: Int} -> Cell -> Color
-cellBackgroundColor grid cell =
-    let distance = Distances.lookup grid.dists cell
+cellBackgroundColor : Colored (CellDistances (Grid a)) -> GridCell -> Color
+cellBackgroundColor grid gridcell =
+    let cell = Grid.toRectCell gridcell
+        distance = Distances.lookup grid.dists cell
         intensity = toFloat (grid.maximum - distance) / (toFloat grid.maximum)
         dark = round (255 * intensity)
         bright = round (128 + (127 * intensity))

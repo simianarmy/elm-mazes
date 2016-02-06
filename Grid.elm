@@ -87,6 +87,15 @@ makeCells mask =
 
 -- generates collage object (Element) of the grid
 -- Takes 2 painter functions: one for the whole grid and one for each cell
+toElement : Grid a -> 
+    -- grid painter
+    ((Grid a -> GridCell -> Color) -> Grid a -> Int -> Element) -> 
+    -- cell painter
+    (Grid a -> GridCell -> Color) -> 
+    -- cell size
+    Int ->
+    -- returns
+    Element
 toElement grid gridPainter cellPainter cellSize =
     gridPainter cellPainter grid cellSize
 
@@ -122,7 +131,7 @@ toAscii grid cellViewer =
        String.concat (List.map rowToStrings [1..grid.rows])
 
 -- generates rectangular grid element
-painter : (Grid a -> Cell -> Color) -> Grid a -> Int -> Element
+painter : (Grid a -> GridCell -> Color) -> Grid a -> Int -> Element
 painter cellPainter grid cellSize =
     let imgWidth = cellSize * grid.cols
         imgHeight = cellSize * grid.rows
@@ -135,9 +144,10 @@ painter cellPainter grid cellSize =
                then [traced style seg]
                else []
 
-        cellWalls : LineStyle -> Cell -> List Form
-        cellWalls style cell =
-            let x1 = toFloat ((cell.col - 1) * cellSize)
+        cellWalls : LineStyle -> GridCell -> List Form
+        cellWalls style gridcell =
+            let cell = toRectCell gridcell
+                x1 = toFloat ((cell.col - 1) * cellSize)
                 y1 = toFloat (negate (cell.row - 1) * cellSize)
                 x2 = toFloat (cell.col * cellSize)
                 y2 = toFloat (negate cell.row  * cellSize)
@@ -153,13 +163,14 @@ painter cellPainter grid cellSize =
                       ((not <| Cell.isLinked cell (toValidCell (south grid cell))), (segment (x1, y2) (x2, y2)))
                       ]
 
-        cellBackground : LineStyle -> Cell -> Form
+        cellBackground : LineStyle -> GridCell -> Form
         cellBackground style cell =
-            let bgRect = filled (cellPainter grid cell) (cellToRect cell)
+            let rectcell = toRectCell cell
+                bgRect = filled (cellPainter grid cell) (cellToRect rectcell)
                 --dbg = outlinedText style (Text.fromString " C ")
                 halfSize = (toFloat cellSize) / 2.0
-                cx = toFloat ((cell.col - 1) * cellSize) + halfSize
-                cy = toFloat (negate (cell.row - 1) * cellSize) - halfSize
+                cx = toFloat ((rectcell.col - 1) * cellSize) + halfSize
+                cy = toFloat (negate (rectcell.row - 1) * cellSize) - halfSize
             in
                move (cx, cy) bgRect
 
@@ -167,14 +178,14 @@ painter cellPainter grid cellSize =
         cellToRect cell =
             square <| toFloat cellSize
 
-        paintCell : Cell -> Form
+        paintCell : GridCell -> Form
         paintCell cell =
             let style = { defaultLine | width = 2 }
             in
                group <| ((cellBackground style cell) :: (cellWalls style cell))
 
         -- cast grid.cells to rectCells
-        drawables = List.map paintCell (gridCellsToBaseCells grid.cells)
+        drawables = List.map paintCell grid.cells
     in
        collage imgWidth imgHeight [group drawables |> move (ox, oy)]
 

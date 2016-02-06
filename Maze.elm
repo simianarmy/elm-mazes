@@ -1,10 +1,10 @@
 module Maze where
 
 import Grid exposing (..)
---import DistanceGrid
---import ColoredGrid
+import DistanceGrid
+import ColoredGrid
 import Mask
---import PolarGrid
+import PolarGrid
 import Rnd
 import GridCell exposing (GridCell)
 import BinaryTree
@@ -56,7 +56,7 @@ gridMaker (width, height) mask display seed =
 init algType width height seed display =
     let mask = Mask.createMask width height
         cellGenFn = case display of
-            --Polar -> PolarGrid.makeCells
+            Polar -> PolarGrid.makeCells
             _ -> Grid.makeCells
         grid' = Grid.createGridFromMask mask seed cellGenFn
     in
@@ -71,7 +71,7 @@ init algType width height seed display =
 applyAlg : Algorithm -> Display -> (Grid a -> Grid a)
 applyAlg algName displayType =
     let randCellFn = case displayType of
-        --Polar -> PolarGrid.randomCell
+        Polar -> PolarGrid.randomCell
         _ -> Grid.randomCell
     in
         getAlgFn algName randCellFn
@@ -103,14 +103,13 @@ view maze =
             Ascii ->
                 pre [] [text <| Grid.toAscii maze.grid Grid.cellToAscii]
             Colored ->
-                text "foo"
-            --    let root = Grid.center maze.grid
-            --        coloredGrid = ColoredGrid.createColoredGrid maze.grid root
-            --    in
-            --       fromElement <| Grid.toElement coloredGrid Grid.painter ColoredGrid.cellBackgroundColor cellSize
+                let root = Grid.center maze.grid
+                    coloredGrid = ColoredGrid.createGrid maze.grid root
+                in
+                   fromElement <| Grid.toElement coloredGrid Grid.painter ColoredGrid.cellBackgroundColor cellSize
             Polar ->
-                text "foo"
-            --    fromElement <| Grid.toElement maze.grid PolarGrid.painter Grid.cellBackgroundColor cellSize
+                --text "foo"
+                fromElement <| Grid.toElement maze.grid PolarGrid.painter Grid.cellBackgroundColor cellSize
     in
        div [] [
            text <| (algToString maze.alg) ++ " algorithm"
@@ -119,6 +118,8 @@ view maze =
            , br [] []
            , text <| (toString <| List.length (Grid.deadEnds maze.grid)) ++ " deadends"
            , gridHtml
+           , br [] []
+           --, viewDistances maze
            ]
 
 --viewDistances : Maze a -> Html
@@ -126,7 +127,7 @@ viewDistances maze =
     let --root = toValidCell <| getCell maze.grid 1 1
         root = Grid.center maze.grid
         --goal = toValidCell <| getCell maze.grid maze.grid.rows 1
-        --dgrid = DistanceGrid.createDistanceGrid maze.grid root
+        dgrid = DistanceGrid.createGrid maze.grid root
         --pathDistances = DistanceGrid.pathTo maze.grid root goal
         --pathGrid = {dgrid | dists = pathDistances}
         --longDistances = DistanceGrid.longestPath maze.grid root
@@ -136,7 +137,7 @@ viewDistances maze =
        div [] [
           br [] [] 
            --, text <| "Cell distances from " ++ rootStr ++ ":"
-           --, pre [] [text <| DistanceGrid.viewDistances dgrid]
+           , pre [] [text <| DistanceGrid.viewDistances dgrid]
            --, text <| "Shortest path from " ++ rootStr ++ " to SW corner:"
            --, pre [] [text <| DistanceGrid.viewDistances pathGrid]
 --           , text "Longest path:"

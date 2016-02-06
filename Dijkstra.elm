@@ -2,6 +2,7 @@ module Dijkstra where
 
 import Distances exposing (Distances)
 import Cell exposing (Cell)
+import GridCell exposing (..)
 import Grid exposing (Grid)
 
 type alias DijkstraIter a = {
@@ -32,7 +33,10 @@ cellDistances grid cell =
         -- iterate over each cell link
         scanCellLinks : Cell -> DijkstraIter a -> DijkstraIter a
         scanCellLinks cell diter =
-            List.foldl (scanCell cell) diter <| Grid.linkedCells diter.grid cell
+            -- force a cell to a gridcell for linkedCells to work
+            List.foldl (scanCell cell) diter <|
+            Grid.gridCellsToBaseCells <|
+            Grid.linkedCells diter.grid (RectCellTag cell)
 
         -- iterate over each frontier
         scanFrontier : DijkstraIter a -> DijkstraIter a

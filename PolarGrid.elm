@@ -127,7 +127,7 @@ neighbors grid cell =
                List.append (List.concat [cw, ccw, inward]) outward
         _ -> []
 
-painter :  (Grid a -> BaseCell -> Color) -> Grid a -> Int -> GE.Element
+painter :  (Grid a -> GridCell -> Color) -> Grid a -> Int -> GE.Element
 painter cellPainter grid cellSize =
     let imgSize = 2 * grid.rows * cellSize
         background = Color.white
