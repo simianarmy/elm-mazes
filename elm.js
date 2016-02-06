@@ -10665,6 +10665,25 @@ Elm.Cell.make = function (_elm) {
                              ,hasLinks: hasLinks
                              ,cellToString: cellToString};
 };
+Elm.GridCell = Elm.GridCell || {};
+Elm.GridCell.make = function (_elm) {
+   "use strict";
+   _elm.GridCell = _elm.GridCell || {};
+   if (_elm.GridCell.values) return _elm.GridCell.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var id = function (gc) {    var _p0 = gc;if (_p0.ctor === "RectCellTag") {    return _p0._0.id;} else {    return _p0._0._0.id;}};
+   var PolarCellTag = function (a) {    return {ctor: "PolarCellTag",_0: a};};
+   var RectCellTag = function (a) {    return {ctor: "RectCellTag",_0: a};};
+   return _elm.GridCell.values = {_op: _op,RectCellTag: RectCellTag,PolarCellTag: PolarCellTag,id: id};
+};
 Elm.ListUtils = Elm.ListUtils || {};
 Elm.ListUtils.make = function (_elm) {
    "use strict";
@@ -10699,8 +10718,8 @@ Elm.GridUtils.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $GridCell = Elm.GridCell.make(_elm),
    $List = Elm.List.make(_elm),
    $ListUtils = Elm.ListUtils.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
@@ -10709,7 +10728,7 @@ Elm.GridUtils.make = function (_elm) {
    $Rnd = Elm.Rnd.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var indexOfCell = F2(function (cell,cells) {    return A2($ListUtils.firstIndexOf,cell.id,A2($List.map,function (_) {    return _.id;},cells));});
+   var indexOfCell = F2(function (cell,cells) {    var id = $GridCell.id(cell);return A2($ListUtils.firstIndexOf,id,A2($List.map,$GridCell.id,cells));});
    var sampleCell = F2(function (sample,rnd) {
       var _p0 = A2($Random.generate,A2($Random.$int,0,$List.length(sample) - 1),rnd.seed);
       var rand = _p0._0;
@@ -10815,25 +10834,6 @@ Elm.Mask.make = function (_elm) {
                              ,getRandomLoc: getRandomLoc
                              ,fromTxt: fromTxt
                              ,fromImage: fromImage};
-};
-Elm.GridCell = Elm.GridCell || {};
-Elm.GridCell.make = function (_elm) {
-   "use strict";
-   _elm.GridCell = _elm.GridCell || {};
-   if (_elm.GridCell.values) return _elm.GridCell.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var id = function (gc) {    var _p0 = gc;if (_p0.ctor === "RectCellTag") {    return _p0._0.id;} else {    return _p0._0._0.id;}};
-   var PolarCellTag = function (a) {    return {ctor: "PolarCellTag",_0: a};};
-   var RectCellTag = function (a) {    return {ctor: "RectCellTag",_0: a};};
-   return _elm.GridCell.values = {_op: _op,RectCellTag: RectCellTag,PolarCellTag: PolarCellTag,id: id};
 };
 Elm.Grid = Elm.Grid || {};
 Elm.Grid.make = function (_elm) {
@@ -11552,6 +11552,54 @@ Elm.PolarGrid.make = function (_elm) {
                                   ,neighbors: neighbors
                                   ,painter: painter};
 };
+Elm.Sidewinder = Elm.Sidewinder || {};
+Elm.Sidewinder.make = function (_elm) {
+   "use strict";
+   _elm.Sidewinder = _elm.Sidewinder || {};
+   if (_elm.Sidewinder.values) return _elm.Sidewinder.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridCell = Elm.GridCell.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var on = F2(function (startCellFn,grid) {
+      var processCell = F2(function (cell,rowState) {
+         var grid$ = $Grid.updateRnd(rowState.grid);
+         var basecell = $Grid.toRectCell(cell);
+         var atEasternBoundary = $Basics.not($Grid.isValidCell(A2($Grid.east,rowState.grid,basecell)));
+         var atNorthernBoundary = $Basics.not($Grid.isValidCell(A2($Grid.north,rowState.grid,basecell)));
+         var shouldCloseOut = atEasternBoundary || $Basics.not(atNorthernBoundary) && grid$.rnd.heads;
+         var run$ = A2($List._op["::"],cell,rowState.run);
+         if (shouldCloseOut) {
+               var grid$$ = $Grid.updateRnd(grid$);
+               var member = $Grid.maybeGridCellToCell(A2($GridUtils.sampleCell,run$,grid$.rnd));
+               var northern = A2($Grid.north,grid$,member);
+               return $Grid.isValidCell(northern) ? {run: _U.list([])
+                                                    ,grid: A4($Grid.linkCells,
+                                                    grid$$,
+                                                    $GridCell.RectCellTag(member),
+                                                    $GridCell.RectCellTag($Grid.toValidCell(northern)),
+                                                    true)} : {run: _U.list([]),grid: grid$$};
+            } else return _U.update(rowState,
+            {run: run$,grid: A4($Grid.linkCells,grid$,cell,$GridCell.RectCellTag($Grid.toValidCell(A2($Grid.east,grid$,basecell))),true)});
+      });
+      var processRow = F2(function (row,curGrid) {
+         var state = {run: _U.list([]),grid: curGrid};
+         return function (_) {
+            return _.grid;
+         }(A3($List.foldl,processCell,state,A2($Grid.rowCells,curGrid,row)));
+      });
+      return A3($List.foldl,processRow,grid,$List.reverse(_U.range(1,grid.rows)));
+   });
+   var RowState = F2(function (a,b) {    return {run: a,grid: b};});
+   return _elm.Sidewinder.values = {_op: _op,RowState: RowState,on: on};
+};
 Elm.Maze = Elm.Maze || {};
 Elm.Maze.make = function (_elm) {
    "use strict";
@@ -11570,16 +11618,22 @@ Elm.Maze.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $PolarGrid = Elm.PolarGrid.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var algToString = function (algType) {    var _p0 = algType;if (_p0.ctor === "NoOp") {    return "None";} else {    return "Binary Tree";}};
+   var algToString = function (algType) {
+      var _p0 = algType;
+      switch (_p0.ctor)
+      {case "NoOp": return "None";
+         case "BinaryTree": return "Binary Tree";
+         default: return "Sidewinder";}
+   };
    var getAlgFn = F2(function (algType,randCellFn) {
       var _p1 = algType;
-      if (_p1.ctor === "NoOp") {
-            return $Basics.identity;
-         } else {
-            return $BinaryTree.on(randCellFn);
-         }
+      switch (_p1.ctor)
+      {case "NoOp": return $Basics.identity;
+         case "BinaryTree": return $BinaryTree.on(randCellFn);
+         default: return $Sidewinder.on(randCellFn);}
    });
    var viewDistances = function (maze) {
       var root = $Grid.center(maze.grid);
@@ -11640,15 +11694,26 @@ Elm.Maze.make = function (_elm) {
    var Colored = {ctor: "Colored"};
    var Ascii = {ctor: "Ascii"};
    var AlgAttr = F2(function (a,b) {    return {alg: a,name: b};});
+   var Sidewinder = {ctor: "Sidewinder"};
    var BinaryTree = {ctor: "BinaryTree"};
    var defaultAlgorithm = BinaryTree;
    var NoOp = {ctor: "NoOp"};
-   var algorithms = _U.list([{alg: NoOp,name: algToString(NoOp)},{alg: BinaryTree,name: algToString(BinaryTree)}]);
+   var algorithms = function (display) {
+      var allAlgs = _U.list([]);
+      var rectAlgs = _U.list([{alg: BinaryTree,name: algToString(BinaryTree)},{alg: Sidewinder,name: algToString(Sidewinder)}]);
+      var algs = _U.list([{alg: NoOp,name: algToString(NoOp)}]);
+      var _p7 = display;
+      if (_p7.ctor === "Polar") {
+            return $List.concat(_U.list([algs,allAlgs]));
+         } else {
+            return $List.concat(_U.list([algs,rectAlgs,allAlgs]));
+         }
+   };
    var algByName = function (str) {
-      var res = $List.head(A2($List.filter,function (a) {    return _U.eq(a.name,str);},algorithms));
-      var _p7 = res;
-      if (_p7.ctor === "Just") {
-            return _p7._0.alg;
+      var res = $List.head(A2($List.filter,function (a) {    return _U.eq(a.name,str);},algorithms(Ascii)));
+      var _p8 = res;
+      if (_p8.ctor === "Just") {
+            return _p8._0.alg;
          } else {
             return BinaryTree;
          }
@@ -11656,6 +11721,7 @@ Elm.Maze.make = function (_elm) {
    return _elm.Maze.values = {_op: _op
                              ,NoOp: NoOp
                              ,BinaryTree: BinaryTree
+                             ,Sidewinder: Sidewinder
                              ,AlgAttr: AlgAttr
                              ,Ascii: Ascii
                              ,Colored: Colored
@@ -11797,7 +11863,7 @@ Elm.Main.make = function (_elm) {
                       ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (_p3) {    return A2($Signal.message,address,UpdateHeight(_p3));})]),
               _U.list([]))
               ,A2($Html.br,_U.list([]),_U.list([]))
-              ,A2($Html.select,_U.list([selectAlg]),A2($List.map,algToOptions,$Maze.algorithms))
+              ,A2($Html.select,_U.list([selectAlg]),A2($List.map,algToOptions,$Maze.algorithms(maze.display)))
               ,A2($Html.select,_U.list([selectView]),viewOptions)
               ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Refresh)]),_U.list([$Html.text("REFRESH")]))
               ,A2($Html.br,_U.list([]),_U.list([]))

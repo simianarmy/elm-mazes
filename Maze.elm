@@ -8,7 +8,7 @@ import PolarGrid
 import Rnd
 import GridCell exposing (GridCell)
 import BinaryTree
---import Sidewinder
+import Sidewinder
 --import AldousBroder
 --import Wilsons
 --import HuntAndKill
@@ -20,7 +20,7 @@ import Html.Attributes exposing (..)
 
 type Algorithm = NoOp
                | BinaryTree
-               --| Sidewinder
+               | Sidewinder
                --| AldousBroder
                --| Wilsons
                --| HuntAndKill
@@ -144,23 +144,30 @@ viewDistances maze =
 --           , pre [] [text <| DistanceGrid.viewDistances longGrid]
            ]
 
---TODO: Be smarter about this
-algorithms : List AlgAttr
-algorithms =
-    [ {alg = NoOp, name = algToString NoOp}
-    , {alg = BinaryTree, name = algToString BinaryTree}
-    --, {alg = Sidewinder, name = algToString Sidewinder}
-    --, {alg = AldousBroder, name = algToString AldousBroder}
-    --, {alg = Wilsons, name = algToString Wilsons}
-    --, {alg = HuntAndKill, name = algToString HuntAndKill}
-    --, {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
-    ]
+--TODO: returns available maze algorithms for the given display type
+algorithms : Display -> List AlgAttr
+algorithms display =
+    let algs = [ {alg = NoOp, name = algToString NoOp}]
+        rectAlgs = [
+            {alg = BinaryTree, name = algToString BinaryTree}
+            , {alg = Sidewinder, name = algToString Sidewinder}
+        --, {alg = HuntAndKill, name = algToString HuntAndKill}
+        ]
+        allAlgs = [
+        --, {alg = AldousBroder, name = algToString AldousBroder}
+        --, {alg = Wilsons, name = algToString Wilsons}
+        --, {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
+        ]
+    in
+       case display of
+           Polar -> List.concat [algs, allAlgs]
+           _ -> List.concat [algs, rectAlgs, allAlgs]
 
 getAlgFn algType randCellFn =
     case algType of
         NoOp -> identity
         BinaryTree -> BinaryTree.on randCellFn
-        --Sidewinder -> Sidewinder.on Grid.randomCell
+        Sidewinder -> Sidewinder.on randCellFn
         --AldousBroder -> AldousBroder.on Grid.randomCell
         --Wilsons -> Wilsons.on Grid.randomCell
         --HuntAndKill -> HuntAndKill.on Grid.randomCell
@@ -171,7 +178,7 @@ algToString algType =
     case algType of
         NoOp -> "None"
         BinaryTree -> "Binary Tree"
-        --Sidewinder -> "Sidewinder"
+        Sidewinder -> "Sidewinder"
         --AldousBroder -> "Aldous-Broder"
         --Wilsons -> "Wilsons"
         --HuntAndKill -> "Hunt - Kill"
@@ -179,7 +186,7 @@ algToString algType =
 
 algByName : String -> Algorithm
 algByName str =
-    let res = List.head <| List.filter (\a -> a.name == str) algorithms
+    let res = List.head <| List.filter (\a -> a.name == str) (algorithms Ascii)
     in
        case res of
            Just a -> a.alg

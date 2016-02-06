@@ -119,7 +119,7 @@ view address model =
         , input [ class "sizeInput", value (toString maze.grid.rows)
               , on "input" targetValue (Signal.message address << UpdateHeight)] []
         , br [] []
-        , select [ selectAlg ] (List.map algToOptions Maze.algorithms)
+        , select [ selectAlg ] (List.map algToOptions <| Maze.algorithms maze.display)
         , select [ selectView ] (viewOptions)
         , button [ onClick address Refresh ] [ text "REFRESH" ]
         , br [] []
