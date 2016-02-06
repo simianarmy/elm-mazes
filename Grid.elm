@@ -274,13 +274,12 @@ neighbors grid cell =
                 res = List.concat [(cellToList n), (cellToList s), (cellToList w), (cellToList e)]
             in
                 List.map (\e -> RectCellTag e) res
-        -- TOOD: Implement for PolarCelTag
         _ -> []
 
 -- returns all cells with only 1 link
 --deadEnds : Grid a -> List GridCell
 deadEnds grid =
-    List.filter (\c -> (List.length (Set.toList c.links)) == 1) grid.cells
+    List.filter (\c -> (List.length (Set.toList c.links)) == 1) (gridCellsToBaseCells grid.cells)
 
 -- sometimes useful to filter the neighbors of a cell by some criteria
 filterNeighbors : (GridCell -> Bool) -> Grid a -> GridCell -> List GridCell

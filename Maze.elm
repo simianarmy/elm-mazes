@@ -1,10 +1,10 @@
 module Maze where
 
 import Grid exposing (..)
-import DistanceGrid
-import ColoredGrid
+--import DistanceGrid
+--import ColoredGrid
 import Mask
-import PolarGrid
+--import PolarGrid
 import Rnd
 import GridCell exposing (GridCell)
 import BinaryTree
@@ -56,12 +56,13 @@ gridMaker (width, height) mask display seed =
 init algType width height seed display =
     let mask = Mask.createMask width height
         cellGenFn = case display of
-            Polar -> PolarGrid.makeCells
+            --Polar -> PolarGrid.makeCells
             _ -> Grid.makeCells
         grid' = Grid.createGridFromMask mask seed cellGenFn
     in
        {
-           grid = applyAlg algType display <| grid', alg = algType,
+           grid = applyAlg algType display <| grid',
+           alg = algType,
            display = display
        }
 
@@ -70,17 +71,18 @@ init algType width height seed display =
 applyAlg : Algorithm -> Display -> (Grid a -> Grid a)
 applyAlg algName displayType =
     let randCellFn = case displayType of
-        Polar -> PolarGrid.randomCell
+        --Polar -> PolarGrid.randomCell
         _ -> Grid.randomCell
     in
         getAlgFn algName randCellFn
 
 --update : Maze a -> Maze a
 update maze =
-    let grid = Grid.update maze.grid
-        grid' = (applyAlg maze.alg maze.display) grid
+    let grid' = Grid.update maze.grid
     in
-       {maze | grid = grid'}
+       {
+           maze | grid = applyAlg maze.alg maze.display <| grid'
+       }
 
 -- INVALIDATES MASK, SO REFRESH MAZE
 --updateSize : Maze a -> Int -> Int -> Maze a
@@ -89,26 +91,26 @@ updateSize maze width height =
 
 -- setMask : Maze a -> Mask -> Maze a
 setMask maze mask =
-    let grid = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker
+    let grid' = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker
     in
        {maze |
-           grid = (applyAlg maze.alg maze.display) grid
+           grid = applyAlg maze.alg maze.display <| grid'
        }
 
 --view : Maze a -> Html
 view maze =
-    let root = center maze.grid
-        -- Ideally all view operations look like this:
-        -- Grid.view maze.grid <Painter> cellSize
-        gridHtml = case maze.display of
+    let gridHtml = case maze.display of
             Ascii ->
                 pre [] [text <| Grid.toAscii maze.grid Grid.cellToAscii]
             Colored ->
-                let coloredGrid = ColoredGrid.createColoredGrid maze.grid root
-                in
-                   fromElement <| Grid.toElement coloredGrid Grid.painter ColoredGrid.cellBackgroundColor cellSize
+                text "foo"
+            --    let root = Grid.center maze.grid
+            --        coloredGrid = ColoredGrid.createColoredGrid maze.grid root
+            --    in
+            --       fromElement <| Grid.toElement coloredGrid Grid.painter ColoredGrid.cellBackgroundColor cellSize
             Polar ->
-                fromElement <| Grid.toElement maze.grid PolarGrid.painter ColoredGrid.cellBackgroundColor cellSize
+                text "foo"
+            --    fromElement <| Grid.toElement maze.grid PolarGrid.painter Grid.cellBackgroundColor cellSize
     in
        div [] [
            text <| (algToString maze.alg) ++ " algorithm"
@@ -119,11 +121,11 @@ view maze =
            , gridHtml
            ]
 
-viewDistances : Maze a -> Html
+--viewDistances : Maze a -> Html
 viewDistances maze =
     let --root = toValidCell <| getCell maze.grid 1 1
-        root = center maze.grid
-        goal = toValidCell <| getCell maze.grid maze.grid.rows 1
+        root = Grid.center maze.grid
+        --goal = toValidCell <| getCell maze.grid maze.grid.rows 1
         --dgrid = DistanceGrid.createDistanceGrid maze.grid root
         --pathDistances = DistanceGrid.pathTo maze.grid root goal
         --pathGrid = {dgrid | dists = pathDistances}

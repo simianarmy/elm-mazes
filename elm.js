@@ -6520,426 +6520,6 @@ Elm.Set.make = function (_elm) {
                             ,toList: toList
                             ,fromList: fromList};
 };
-Elm.List = Elm.List || {};
-Elm.List.Extra = Elm.List.Extra || {};
-Elm.List.Extra.make = function (_elm) {
-   "use strict";
-   _elm.List = _elm.List || {};
-   _elm.List.Extra = _elm.List.Extra || {};
-   if (_elm.List.Extra.values) return _elm.List.Extra.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Set = Elm.Set.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var zip5 = $List.map5(F5(function (v0,v1,v2,v3,v4) {    return {ctor: "_Tuple5",_0: v0,_1: v1,_2: v2,_3: v3,_4: v4};}));
-   var zip4 = $List.map4(F4(function (v0,v1,v2,v3) {    return {ctor: "_Tuple4",_0: v0,_1: v1,_2: v2,_3: v3};}));
-   var zip3 = $List.map3(F3(function (v0,v1,v2) {    return {ctor: "_Tuple3",_0: v0,_1: v1,_2: v2};}));
-   var zip = $List.map2(F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}));
-   var isPrefixOf = function (prefix) {
-      return function (_p0) {
-         return A2($List.all,$Basics.identity,A3($List.map2,F2(function (x,y) {    return _U.eq(x,y);}),prefix,_p0));
-      };
-   };
-   var isSuffixOf = F2(function (suffix,xs) {    return A2(isPrefixOf,$List.reverse(suffix),$List.reverse(xs));});
-   var selectSplit = function (xs) {
-      var _p1 = xs;
-      if (_p1.ctor === "[]") {
-            return _U.list([]);
-         } else {
-            var _p5 = _p1._1;
-            var _p4 = _p1._0;
-            return A2($List._op["::"],
-            {ctor: "_Tuple3",_0: _U.list([]),_1: _p4,_2: _p5},
-            A2($List.map,
-            function (_p2) {
-               var _p3 = _p2;
-               return {ctor: "_Tuple3",_0: A2($List._op["::"],_p4,_p3._0),_1: _p3._1,_2: _p3._2};
-            },
-            selectSplit(_p5)));
-         }
-   };
-   var select = function (xs) {
-      var _p6 = xs;
-      if (_p6.ctor === "[]") {
-            return _U.list([]);
-         } else {
-            var _p10 = _p6._1;
-            var _p9 = _p6._0;
-            return A2($List._op["::"],
-            {ctor: "_Tuple2",_0: _p9,_1: _p10},
-            A2($List.map,function (_p7) {    var _p8 = _p7;return {ctor: "_Tuple2",_0: _p8._0,_1: A2($List._op["::"],_p9,_p8._1)};},select(_p10)));
-         }
-   };
-   var tailsHelp = F2(function (e,list) {
-      var _p11 = list;
-      if (_p11.ctor === "::") {
-            var _p12 = _p11._0;
-            return A2($List._op["::"],A2($List._op["::"],e,_p12),A2($List._op["::"],_p12,_p11._1));
-         } else {
-            return _U.list([]);
-         }
-   });
-   var tails = A2($List.foldr,tailsHelp,_U.list([_U.list([])]));
-   var isInfixOf = F2(function (infix,xs) {    return A2($List.any,isPrefixOf(infix),tails(xs));});
-   var inits = A2($List.foldr,
-   F2(function (e,acc) {    return A2($List._op["::"],_U.list([]),A2($List.map,F2(function (x,y) {    return A2($List._op["::"],x,y);})(e),acc));}),
-   _U.list([_U.list([])]));
-   var groupByTransitive = F2(function (cmp,xs$) {
-      var _p13 = xs$;
-      if (_p13.ctor === "[]") {
-            return _U.list([]);
-         } else {
-            if (_p13._1.ctor === "[]") {
-                  return _U.list([_U.list([_p13._0])]);
-               } else {
-                  var _p15 = _p13._0;
-                  var _p14 = A2(groupByTransitive,cmp,_p13._1);
-                  if (_p14.ctor === "::") {
-                        return A2(cmp,_p15,_p13._1._0) ? A2($List._op["::"],A2($List._op["::"],_p15,_p14._0),_p14._1) : A2($List._op["::"],
-                        _U.list([_p15]),
-                        _p14);
-                     } else {
-                        return _U.list([]);
-                     }
-               }
-         }
-   });
-   var stripPrefix = F2(function (prefix,xs) {
-      var step = F2(function (e,m) {
-         var _p16 = m;
-         if (_p16.ctor === "Nothing") {
-               return $Maybe.Nothing;
-            } else {
-               if (_p16._0.ctor === "[]") {
-                     return $Maybe.Nothing;
-                  } else {
-                     return _U.eq(e,_p16._0._0) ? $Maybe.Just(_p16._0._1) : $Maybe.Nothing;
-                  }
-            }
-      });
-      return A3($List.foldl,step,$Maybe.Just(xs),prefix);
-   });
-   var dropWhileEnd = function (p) {
-      return A2($List.foldr,F2(function (x,xs) {    return p(x) && $List.isEmpty(xs) ? _U.list([]) : A2($List._op["::"],x,xs);}),_U.list([]));
-   };
-   var takeWhileEnd = function (p) {
-      var step = F2(function (x,_p17) {
-         var _p18 = _p17;
-         var _p19 = _p18._0;
-         return p(x) && _p18._1 ? {ctor: "_Tuple2",_0: A2($List._op["::"],x,_p19),_1: true} : {ctor: "_Tuple2",_0: _p19,_1: false};
-      });
-      return function (_p20) {
-         return $Basics.fst(A3($List.foldr,step,{ctor: "_Tuple2",_0: _U.list([]),_1: true},_p20));
-      };
-   };
-   var splitAt = F2(function (n,xs) {    return {ctor: "_Tuple2",_0: A2($List.take,n,xs),_1: A2($List.drop,n,xs)};});
-   var unfoldr = F2(function (f,seed) {
-      var _p21 = f(seed);
-      if (_p21.ctor === "Nothing") {
-            return _U.list([]);
-         } else {
-            return A2($List._op["::"],_p21._0._0,A2(unfoldr,f,_p21._0._1));
-         }
-   });
-   var scanr1 = F2(function (f,xs$) {
-      var _p22 = xs$;
-      if (_p22.ctor === "[]") {
-            return _U.list([]);
-         } else {
-            if (_p22._1.ctor === "[]") {
-                  return _U.list([_p22._0]);
-               } else {
-                  var _p23 = A2(scanr1,f,_p22._1);
-                  if (_p23.ctor === "::") {
-                        return A2($List._op["::"],A2(f,_p22._0,_p23._0),_p23);
-                     } else {
-                        return _U.list([]);
-                     }
-               }
-         }
-   });
-   var scanr = F3(function (f,acc,xs$) {
-      var _p24 = xs$;
-      if (_p24.ctor === "[]") {
-            return _U.list([acc]);
-         } else {
-            var _p25 = A3(scanr,f,acc,_p24._1);
-            if (_p25.ctor === "::") {
-                  return A2($List._op["::"],A2(f,_p24._0,_p25._0),_p25);
-               } else {
-                  return _U.list([]);
-               }
-         }
-   });
-   var scanl1 = F2(function (f,xs$) {
-      var _p26 = xs$;
-      if (_p26.ctor === "[]") {
-            return _U.list([]);
-         } else {
-            return A3($List.scanl,f,_p26._0,_p26._1);
-         }
-   });
-   var foldr1 = F2(function (f,xs) {
-      var mf = F2(function (x,m) {
-         return $Maybe.Just(function () {    var _p27 = m;if (_p27.ctor === "Nothing") {    return x;} else {    return A2(f,x,_p27._0);}}());
-      });
-      return A3($List.foldr,mf,$Maybe.Nothing,xs);
-   });
-   var foldl1 = F2(function (f,xs) {
-      var mf = F2(function (x,m) {
-         return $Maybe.Just(function () {    var _p28 = m;if (_p28.ctor === "Nothing") {    return x;} else {    return A2(f,_p28._0,x);}}());
-      });
-      return A3($List.foldl,mf,$Maybe.Nothing,xs);
-   });
-   var permutations = function (xs$) {
-      var _p29 = xs$;
-      if (_p29.ctor === "[]") {
-            return _U.list([_U.list([])]);
-         } else {
-            var f = function (_p30) {
-               var _p31 = _p30;
-               return A2($List.map,F2(function (x,y) {    return A2($List._op["::"],x,y);})(_p31._0),permutations(_p31._1));
-            };
-            return A2($List.concatMap,f,select(_p29));
-         }
-   };
-   var isPermutationOf = F2(function (permut,xs) {    return A2($List.member,permut,permutations(xs));});
-   var subsequencesNonEmpty = function (xs) {
-      var _p32 = xs;
-      if (_p32.ctor === "[]") {
-            return _U.list([]);
-         } else {
-            var _p33 = _p32._0;
-            var f = F2(function (ys,r) {    return A2($List._op["::"],ys,A2($List._op["::"],A2($List._op["::"],_p33,ys),r));});
-            return A2($List._op["::"],_U.list([_p33]),A3($List.foldr,f,_U.list([]),subsequencesNonEmpty(_p32._1)));
-         }
-   };
-   var subsequences = function (xs) {    return A2($List._op["::"],_U.list([]),subsequencesNonEmpty(xs));};
-   var isSubsequenceOf = F2(function (subseq,xs) {    return A2($List.member,subseq,subsequences(xs));});
-   var transpose = function (ll) {
-      transpose: while (true) {
-         var _p34 = ll;
-         if (_p34.ctor === "[]") {
-               return _U.list([]);
-            } else {
-               if (_p34._0.ctor === "[]") {
-                     var _v21 = _p34._1;
-                     ll = _v21;
-                     continue transpose;
-                  } else {
-                     var _p35 = _p34._1;
-                     var tails = A2($List.filterMap,$List.tail,_p35);
-                     var heads = A2($List.filterMap,$List.head,_p35);
-                     return A2($List._op["::"],A2($List._op["::"],_p34._0._0,heads),transpose(A2($List._op["::"],_p34._0._1,tails)));
-                  }
-            }
-      }
-   };
-   var intercalate = function (xs) {    return function (_p36) {    return $List.concat(A2($List.intersperse,xs,_p36));};};
-   var singleton = function (x) {    return _U.list([x]);};
-   var replaceIf = F3(function (predicate,replacement,list) {
-      return A2($List.map,function (item) {    return predicate(item) ? replacement : item;},list);
-   });
-   var findIndices = function (p) {
-      return function (_p37) {
-         return A2($List.map,
-         $Basics.fst,
-         A2($List.filter,
-         function (_p38) {
-            var _p39 = _p38;
-            return p(_p39._1);
-         },
-         A2($List.indexedMap,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),_p37)));
-      };
-   };
-   var findIndex = function (p) {    return function (_p40) {    return $List.head(A2(findIndices,p,_p40));};};
-   var elemIndices = function (x) {    return findIndices(F2(function (x,y) {    return _U.eq(x,y);})(x));};
-   var elemIndex = function (x) {    return findIndex(F2(function (x,y) {    return _U.eq(x,y);})(x));};
-   var find = F2(function (predicate,list) {
-      find: while (true) {
-         var _p41 = list;
-         if (_p41.ctor === "[]") {
-               return $Maybe.Nothing;
-            } else {
-               var _p42 = _p41._0;
-               if (predicate(_p42)) return $Maybe.Just(_p42); else {
-                     var _v24 = predicate,_v25 = _p41._1;
-                     predicate = _v24;
-                     list = _v25;
-                     continue find;
-                  }
-            }
-      }
-   });
-   var notMember = function (x) {    return function (_p43) {    return $Basics.not(A2($List.member,x,_p43));};};
-   var andThen = $Basics.flip($List.concatMap);
-   var lift2 = F3(function (f,la,lb) {    return A2(andThen,la,function (a) {    return A2(andThen,lb,function (b) {    return _U.list([A2(f,a,b)]);});});});
-   var lift3 = F4(function (f,la,lb,lc) {
-      return A2(andThen,
-      la,
-      function (a) {
-         return A2(andThen,lb,function (b) {    return A2(andThen,lc,function (c) {    return _U.list([A3(f,a,b,c)]);});});
-      });
-   });
-   var lift4 = F5(function (f,la,lb,lc,ld) {
-      return A2(andThen,
-      la,
-      function (a) {
-         return A2(andThen,
-         lb,
-         function (b) {
-            return A2(andThen,lc,function (c) {    return A2(andThen,ld,function (d) {    return _U.list([A4(f,a,b,c,d)]);});});
-         });
-      });
-   });
-   var andMap = F2(function (fl,l) {    return A3($List.map2,F2(function (x,y) {    return x(y);}),fl,l);});
-   var dropDuplicates = function (list) {
-      var step = F2(function (next,_p44) {
-         var _p45 = _p44;
-         var _p47 = _p45._0;
-         var _p46 = _p45._1;
-         return A2($Set.member,next,_p47) ? {ctor: "_Tuple2",_0: _p47,_1: _p46} : {ctor: "_Tuple2"
-                                                                                  ,_0: A2($Set.insert,next,_p47)
-                                                                                  ,_1: A2($List._op["::"],next,_p46)};
-      });
-      return $List.reverse($Basics.snd(A3($List.foldl,step,{ctor: "_Tuple2",_0: $Set.empty,_1: _U.list([])},list)));
-   };
-   var dropWhile = F2(function (predicate,list) {
-      dropWhile: while (true) {
-         var _p48 = list;
-         if (_p48.ctor === "[]") {
-               return _U.list([]);
-            } else {
-               if (predicate(_p48._0)) {
-                     var _v28 = predicate,_v29 = _p48._1;
-                     predicate = _v28;
-                     list = _v29;
-                     continue dropWhile;
-                  } else return list;
-            }
-      }
-   });
-   var takeWhile = F2(function (predicate,list) {
-      var _p49 = list;
-      if (_p49.ctor === "[]") {
-            return _U.list([]);
-         } else {
-            var _p50 = _p49._0;
-            return predicate(_p50) ? A2($List._op["::"],_p50,A2(takeWhile,predicate,_p49._1)) : _U.list([]);
-         }
-   });
-   var span = F2(function (p,xs) {    return {ctor: "_Tuple2",_0: A2(takeWhile,p,xs),_1: A2(dropWhile,p,xs)};});
-   var $break = function (p) {    return span(function (_p51) {    return $Basics.not(p(_p51));});};
-   var groupBy = F2(function (eq,xs$) {
-      var _p52 = xs$;
-      if (_p52.ctor === "[]") {
-            return _U.list([]);
-         } else {
-            var _p54 = _p52._0;
-            var _p53 = A2(span,eq(_p54),_p52._1);
-            var ys = _p53._0;
-            var zs = _p53._1;
-            return A2($List._op["::"],A2($List._op["::"],_p54,ys),A2(groupBy,eq,zs));
-         }
-   });
-   var group = groupBy(F2(function (x,y) {    return _U.eq(x,y);}));
-   var minimumBy = F2(function (f,ls) {
-      var minBy = F3(function (f,x,y) {    return _U.cmp(f(x),f(y)) < 0 ? x : y;});
-      var _p55 = ls;
-      if (_p55.ctor === "::") {
-            return $Maybe.Just(A3($List.foldl,minBy(f),_p55._0,_p55._1));
-         } else {
-            return $Maybe.Nothing;
-         }
-   });
-   var maximumBy = F2(function (f,ls) {
-      var maxBy = F3(function (f,x,y) {    return _U.cmp(f(x),f(y)) > 0 ? x : y;});
-      var _p56 = ls;
-      if (_p56.ctor === "::") {
-            return $Maybe.Just(A3($List.foldl,maxBy(f),_p56._0,_p56._1));
-         } else {
-            return $Maybe.Nothing;
-         }
-   });
-   var uncons = function (xs) {
-      var _p57 = xs;
-      if (_p57.ctor === "[]") {
-            return $Maybe.Nothing;
-         } else {
-            return $Maybe.Just({ctor: "_Tuple2",_0: _p57._0,_1: _p57._1});
-         }
-   };
-   var init = function () {
-      var maybe = F2(function (d,f) {    return function (_p58) {    return A2($Maybe.withDefault,d,A2($Maybe.map,f,_p58));};});
-      return A2($List.foldr,
-      function (_p59) {
-         return A2(F2(function (x,y) {    return function (_p60) {    return x(y(_p60));};}),
-         $Maybe.Just,
-         A2(maybe,_U.list([]),F2(function (x,y) {    return A2($List._op["::"],x,y);})(_p59)));
-      },
-      $Maybe.Nothing);
-   }();
-   var last = foldl1($Basics.flip($Basics.always));
-   return _elm.List.Extra.values = {_op: _op
-                                   ,last: last
-                                   ,init: init
-                                   ,uncons: uncons
-                                   ,minimumBy: minimumBy
-                                   ,maximumBy: maximumBy
-                                   ,andMap: andMap
-                                   ,andThen: andThen
-                                   ,takeWhile: takeWhile
-                                   ,dropWhile: dropWhile
-                                   ,dropDuplicates: dropDuplicates
-                                   ,replaceIf: replaceIf
-                                   ,singleton: singleton
-                                   ,intercalate: intercalate
-                                   ,transpose: transpose
-                                   ,subsequences: subsequences
-                                   ,permutations: permutations
-                                   ,foldl1: foldl1
-                                   ,foldr1: foldr1
-                                   ,scanl1: scanl1
-                                   ,scanr: scanr
-                                   ,scanr1: scanr1
-                                   ,unfoldr: unfoldr
-                                   ,splitAt: splitAt
-                                   ,takeWhileEnd: takeWhileEnd
-                                   ,dropWhileEnd: dropWhileEnd
-                                   ,span: span
-                                   ,$break: $break
-                                   ,stripPrefix: stripPrefix
-                                   ,group: group
-                                   ,groupBy: groupBy
-                                   ,groupByTransitive: groupByTransitive
-                                   ,inits: inits
-                                   ,tails: tails
-                                   ,select: select
-                                   ,selectSplit: selectSplit
-                                   ,isPrefixOf: isPrefixOf
-                                   ,isSuffixOf: isSuffixOf
-                                   ,isInfixOf: isInfixOf
-                                   ,isSubsequenceOf: isSubsequenceOf
-                                   ,isPermutationOf: isPermutationOf
-                                   ,notMember: notMember
-                                   ,find: find
-                                   ,elemIndex: elemIndex
-                                   ,elemIndices: elemIndices
-                                   ,findIndex: findIndex
-                                   ,findIndices: findIndices
-                                   ,zip: zip
-                                   ,zip3: zip3
-                                   ,zip4: zip4
-                                   ,zip5: zip5
-                                   ,lift2: lift2
-                                   ,lift3: lift3
-                                   ,lift4: lift4};
-};
 Elm.Native.Json = {};
 
 Elm.Native.Json.make = function(localRuntime) {
@@ -8598,29 +8178,6 @@ Elm.Json.Decode.make = function (_elm) {
                                     ,andThen: andThen
                                     ,value: value
                                     ,customDecoder: customDecoder};
-};
-Elm.Trampoline = Elm.Trampoline || {};
-Elm.Trampoline.make = function (_elm) {
-   "use strict";
-   _elm.Trampoline = _elm.Trampoline || {};
-   if (_elm.Trampoline.values) return _elm.Trampoline.values;
-   var _U = Elm.Native.Utils.make(_elm);
-   var _op = {};
-   var trampoline = function (tramp) {
-      trampoline: while (true) {
-         var _p0 = tramp;
-         if (_p0.ctor === "Done") {
-               return _p0._0;
-            } else {
-               var _v1 = _p0._0({ctor: "_Tuple0"});
-               tramp = _v1;
-               continue trampoline;
-            }
-      }
-   };
-   var Continue = function (a) {    return {ctor: "Continue",_0: a};};
-   var Done = function (a) {    return {ctor: "Done",_0: a};};
-   return _elm.Trampoline.values = {_op: _op,trampoline: trampoline,Done: Done,Continue: Continue};
 };
 Elm.Random = Elm.Random || {};
 Elm.Random.make = function (_elm) {
@@ -11064,6 +10621,103 @@ Elm.Rnd.make = function (_elm) {
                             ,refreshRow: refreshRow
                             ,refreshCol: refreshCol};
 };
+Elm.Cell = Elm.Cell || {};
+Elm.Cell.make = function (_elm) {
+   "use strict";
+   _elm.Cell = _elm.Cell || {};
+   if (_elm.Cell.values) return _elm.Cell.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Set = Elm.Set.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var cellToString = function (cell) {
+      return A2($Basics._op["++"],
+      "(",
+      A2($Basics._op["++"],$Basics.toString(cell.row),A2($Basics._op["++"],", ",A2($Basics._op["++"],$Basics.toString(cell.col),")"))));
+   };
+   var hasLinks = function (cell) {    return $Basics.not($Set.isEmpty(cell.links));};
+   var isLinked = F2(function (cell1,cell2) {    return A2($Set.member,cell2.id,cell1.links);});
+   var isMasked = function (cell) {    var _p0 = cell;if (_p0.ctor === "Nothing") {    return true;} else {    return _p0._0.masked;}};
+   var linked = function (cell) {    return cell.links;};
+   var isNilCell = function (cell) {    return _U.eq(cell.row,-1) && _U.eq(cell.col,-1);};
+   var isNilCellID = function (_p1) {    var _p2 = _p1;return _U.eq(_p2._0,-1) && _U.eq(_p2._1,-1);};
+   var createCellID = F2(function (a,b) {    return {ctor: "_Tuple2",_0: a,_1: b};});
+   var createCell = F2(function (row,col) {    return {id: A2(createCellID,row,col),row: row,col: col,masked: false,links: $Set.empty};});
+   var createMaskedCell = F2(function (row,col) {    var cell = A2(createCell,row,col);return _U.update(cell,{masked: true});});
+   var createNilCell = A2(createCell,-1,-1);
+   var BaseCell = F5(function (a,b,c,d,e) {    return {id: a,row: b,col: c,masked: d,links: e};});
+   return _elm.Cell.values = {_op: _op
+                             ,BaseCell: BaseCell
+                             ,createCell: createCell
+                             ,createMaskedCell: createMaskedCell
+                             ,createNilCell: createNilCell
+                             ,createCellID: createCellID
+                             ,isNilCellID: isNilCellID
+                             ,isNilCell: isNilCell
+                             ,linked: linked
+                             ,isMasked: isMasked
+                             ,isLinked: isLinked
+                             ,hasLinks: hasLinks
+                             ,cellToString: cellToString};
+};
+Elm.ListUtils = Elm.ListUtils || {};
+Elm.ListUtils.make = function (_elm) {
+   "use strict";
+   _elm.ListUtils = _elm.ListUtils || {};
+   if (_elm.ListUtils.values) return _elm.ListUtils.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var indicesOf = F2(function (thing,things) {
+      return A2($List.map,
+      $Basics.fst,
+      A2($List.filter,
+      function (_p0) {
+         var _p1 = _p0;
+         return _U.eq(_p1._1,thing);
+      },
+      A2($List.indexedMap,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),things)));
+   });
+   var firstIndexOf = F2(function (thing,things) {    return A2($Maybe.withDefault,-1,$List.minimum(A2(indicesOf,thing,things)));});
+   return _elm.ListUtils.values = {_op: _op,indicesOf: indicesOf,firstIndexOf: firstIndexOf};
+};
+Elm.GridUtils = Elm.GridUtils || {};
+Elm.GridUtils.make = function (_elm) {
+   "use strict";
+   _elm.GridUtils = _elm.GridUtils || {};
+   if (_elm.GridUtils.values) return _elm.GridUtils.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $ListUtils = Elm.ListUtils.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Rnd = Elm.Rnd.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var indexOfCell = F2(function (cell,cells) {    return A2($ListUtils.firstIndexOf,cell.id,A2($List.map,function (_) {    return _.id;},cells));});
+   var sampleCell = F2(function (sample,rnd) {
+      var _p0 = A2($Random.generate,A2($Random.$int,0,$List.length(sample) - 1),rnd.seed);
+      var rand = _p0._0;
+      var seed = _p0._1;
+      return A2($Array.get,rand,$Array.fromList(sample));
+   });
+   return _elm.GridUtils.values = {_op: _op,sampleCell: sampleCell,indexOfCell: indexOfCell};
+};
 Elm.Mask = Elm.Mask || {};
 Elm.Mask.make = function (_elm) {
    "use strict";
@@ -11162,43 +10816,24 @@ Elm.Mask.make = function (_elm) {
                              ,fromTxt: fromTxt
                              ,fromImage: fromImage};
 };
-Elm.Cell = Elm.Cell || {};
-Elm.Cell.make = function (_elm) {
+Elm.GridCell = Elm.GridCell || {};
+Elm.GridCell.make = function (_elm) {
    "use strict";
-   _elm.Cell = _elm.Cell || {};
-   if (_elm.Cell.values) return _elm.Cell.values;
+   _elm.GridCell = _elm.GridCell || {};
+   if (_elm.GridCell.values) return _elm.GridCell.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Set = Elm.Set.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var cellToString = function (cell) {
-      return A2($Basics._op["++"],
-      "(",
-      A2($Basics._op["++"],$Basics.toString(cell.row),A2($Basics._op["++"],", ",A2($Basics._op["++"],$Basics.toString(cell.col),")"))));
-   };
-   var hasLinks = function (cell) {    return $Basics.not($Set.isEmpty(cell.links));};
-   var isLinked = F2(function (cell1,cell2) {    return A2($Set.member,cell2.id,cell1.links);});
-   var isMasked = function (cell) {    var _p0 = cell;if (_p0.ctor === "Nothing") {    return true;} else {    return _p0._0.masked;}};
-   var linked = function (cell) {    return cell.links;};
-   var createCellID = F2(function (a,b) {    return {ctor: "_Tuple2",_0: a,_1: b};});
-   var createCell = F2(function (row,col) {    return {id: A2(createCellID,row,col),row: row,col: col,masked: false,links: $Set.empty};});
-   var createMaskedCell = F2(function (row,col) {    var cell = A2(createCell,row,col);return _U.update(cell,{masked: true});});
-   var Cell = F5(function (a,b,c,d,e) {    return {id: a,row: b,col: c,masked: d,links: e};});
-   return _elm.Cell.values = {_op: _op
-                             ,Cell: Cell
-                             ,createCell: createCell
-                             ,createMaskedCell: createMaskedCell
-                             ,createCellID: createCellID
-                             ,linked: linked
-                             ,isMasked: isMasked
-                             ,isLinked: isLinked
-                             ,hasLinks: hasLinks
-                             ,cellToString: cellToString};
+   var id = function (gc) {    var _p0 = gc;if (_p0.ctor === "RectCellTag") {    return _p0._0.id;} else {    return _p0._0._0.id;}};
+   var PolarCellTag = function (a) {    return {ctor: "PolarCellTag",_0: a};};
+   var RectCellTag = function (a) {    return {ctor: "RectCellTag",_0: a};};
+   return _elm.GridCell.values = {_op: _op,RectCellTag: RectCellTag,PolarCellTag: PolarCellTag,id: id};
 };
 Elm.Grid = Elm.Grid || {};
 Elm.Grid.make = function (_elm) {
@@ -11213,6 +10848,7 @@ Elm.Grid.make = function (_elm) {
    $Debug = Elm.Debug.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $GridCell = Elm.GridCell.make(_elm),
    $List = Elm.List.make(_elm),
    $Mask = Elm.Mask.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
@@ -11222,7 +10858,6 @@ Elm.Grid.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
    var _op = {};
-   var RowAscii = F2(function (a,b) {    return {top: a,bottom: b};});
    var cellBackgroundColor = F2(function (grid,cell) {    return $Color.white;});
    var cellToAscii = F2(function (grid,cell) {    return cell.masked ? "M" : " ";});
    var toTitle = function (grid) {
@@ -11230,76 +10865,131 @@ Elm.Grid.make = function (_elm) {
    };
    var cellToList = function (cell) {    var _p0 = cell;if (_p0.ctor === "Just") {    return _U.list([_p0._0]);} else {    return _U.list([]);}};
    var gridIndex = F3(function (grid,row,col) {    return grid.cols * (row - 1) + col;});
-   var cellIndex = F2(function (grid,cell) {    return grid.cols * (cell.row - 1) + cell.col;});
    var size = function (grid) {    return $Mask.count(grid.mask);};
-   var rowCells = F2(function (grid,row) {    return A2($List.filter,function (c) {    return _U.eq(c.row,row);},grid.cells);});
-   var unlinkCells = F4(function (grid,cell,cellToUnlink,bidi) {
-      var unlinkCell = F2(function (cell1,cell2) {    return _U.update(cell1,{links: A2($Set.remove,cell2.id,cell1.links)});});
-      var unlinkMatched = function (c) {    return _U.eq(c.id,cell.id) ? A2(unlinkCell,c,cellToUnlink) : bidi ? A2(unlinkCell,cellToUnlink,cell) : c;};
-      return _U.update(grid,{cells: A2($List.map,unlinkMatched,grid.cells)});
+   var rowCells = F2(function (grid,row) {
+      var rowMatcher = function (cell) {
+         var _p1 = cell;
+         if (_p1.ctor === "RectCellTag") {
+               return _U.eq(_p1._0.row,row);
+            } else {
+               return _U.eq(_p1._0._0.row,row);
+            }
+      };
+      return A2($List.filter,rowMatcher,grid.cells);
    });
-   var linkCells = F4(function (grid,cell,cellToLink,bidi) {
-      var linkCell = F2(function (cell1,cell2) {    return _U.update(cell1,{links: A2($Set.insert,cell2.id,cell1.links)});});
+   var linkCellsHelper = F4(function (grid,cell,cellToLinkId,bidi) {
+      var linkCell = F2(function (cell1,id) {    return _U.update(cell1,{links: A2($Set.insert,id,cell1.links)});});
+      var linker = function (c) {    return _U.eq(c.id,cell.id) ? A2(linkCell,c,cellToLinkId) : bidi && _U.eq(c.id,cellToLinkId) ? A2(linkCell,c,cell.id) : c;};
       var linkMatched = function (c) {
-         return _U.eq(c.id,cell.id) ? A2(linkCell,c,cellToLink) : bidi && _U.eq(c.id,cellToLink.id) ? A2(linkCell,c,cell) : c;
+         var _p2 = c;
+         if (_p2.ctor === "RectCellTag") {
+               return $GridCell.RectCellTag(linker(_p2._0));
+            } else {
+               return $GridCell.PolarCellTag({ctor: "_Tuple2",_0: linker(_p2._0._0),_1: _p2._0._1});
+            }
       };
       return _U.update(grid,{cells: A2($List.map,linkMatched,grid.cells)});
    });
-   var deadEnds = function (grid) {    return A2($List.filter,function (c) {    return _U.eq($List.length($Set.toList(c.links)),1);},grid.cells);};
-   var isValidCell = function (cell) {    var _p1 = cell;if (_p1.ctor === "Nothing") {    return false;} else {    return true;}};
-   var toValidCell = function (cell) {    var _p2 = cell;if (_p2.ctor === "Nothing") {    return A2($Cell.createCell,-1,-1);} else {    return _p2._0;}};
+   var gridCellID = function (gc) {    var _p3 = gc;if (_p3.ctor === "RectCellTag") {    return _p3._0.id;} else {    return _p3._0._0.id;}};
+   var linkCells = F4(function (grid,cell,cell2,bidi) {
+      var c2Id = gridCellID(cell2);
+      var _p4 = cell;
+      if (_p4.ctor === "RectCellTag") {
+            return A4(linkCellsHelper,grid,_p4._0,c2Id,bidi);
+         } else {
+            return A4(linkCellsHelper,grid,_p4._0._0,c2Id,bidi);
+         }
+   });
+   var isValidCell = function (cell) {    var _p5 = cell;if (_p5.ctor === "Nothing") {    return false;} else {    return true;}};
+   var maybeGridCellToGridCell = function (cell) {
+      var _p6 = cell;
+      if (_p6.ctor === "Nothing") {
+            return $GridCell.RectCellTag($Cell.createNilCell);
+         } else {
+            if (_p6._0.ctor === "RectCellTag") {
+                  return $GridCell.RectCellTag(_p6._0._0);
+               } else {
+                  return $GridCell.PolarCellTag(_p6._0._0);
+               }
+         }
+   };
+   var maybeGridCellToCell = function (cell) {
+      var _p7 = cell;
+      if (_p7.ctor === "Nothing") {
+            return $Cell.createNilCell;
+         } else {
+            if (_p7._0.ctor === "RectCellTag") {
+                  return _p7._0._0;
+               } else {
+                  return _p7._0._0._0;
+               }
+         }
+   };
+   var toRectCell = function (cell) {    var _p8 = cell;if (_p8.ctor === "RectCellTag") {    return _p8._0;} else {    return _p8._0._0;}};
+   var maybeGridCellToMaybeCell = function (cell) {    return A2($Maybe.map,toRectCell,cell);};
+   var gridCellsToBaseCells = function (gridcells) {    return A2($List.map,toRectCell,gridcells);};
+   var deadEnds = function (grid) {
+      return A2($List.filter,function (c) {    return _U.eq($List.length($Set.toList(c.links)),1);},gridCellsToBaseCells(grid.cells));
+   };
+   var cellIndex = F2(function (grid,cell) {    var rc = toRectCell(cell);return grid.cols * (rc.row - 1) + rc.col;});
+   var toValidCell = function (cell) {    var _p9 = cell;if (_p9.ctor === "Just") {    return _p9._0;} else {    return $Cell.createNilCell;}};
    var getCell = F3(function (grid,row,col) {
       if (_U.cmp(row,grid.rows) > 0 || (_U.cmp(col,grid.cols) > 0 || (_U.cmp(row,0) < 1 || _U.cmp(col,0) < 1))) return $Maybe.Nothing; else {
             var cell = A2($Array.get,A3(gridIndex,grid,row,col) - 1,$Array.fromList(grid.cells));
-            return $Cell.isMasked(cell) ? $Maybe.Nothing : cell;
+            var _p10 = cell;
+            if (_p10.ctor === "Just") {
+                  if (_p10._0.ctor === "RectCellTag") {
+                        var _p11 = _p10._0._0;
+                        return _p11.masked ? $Maybe.Nothing : $Maybe.Just($GridCell.RectCellTag(_p11));
+                     } else {
+                        var _p12 = _p10._0._0._0;
+                        return _p12.masked ? $Maybe.Nothing : $Maybe.Just($GridCell.PolarCellTag({ctor: "_Tuple2",_0: _p12,_1: _p10._0._0._1}));
+                     }
+               } else {
+                  return $Maybe.Nothing;
+               }
          }
    });
-   var north = F2(function (grid,cell) {    return A3(getCell,grid,cell.row - 1,cell.col);});
-   var south = F2(function (grid,cell) {    return A3(getCell,grid,cell.row + 1,cell.col);});
-   var west = F2(function (grid,cell) {    return A3(getCell,grid,cell.row,cell.col - 1);});
-   var east = F2(function (grid,cell) {    return A3(getCell,grid,cell.row,cell.col + 1);});
+   var north = F2(function (grid,cell) {    return maybeGridCellToMaybeCell(A3(getCell,grid,cell.row - 1,cell.col));});
+   var south = F2(function (grid,cell) {    return maybeGridCellToMaybeCell(A3(getCell,grid,cell.row + 1,cell.col));});
+   var west = F2(function (grid,cell) {    return maybeGridCellToMaybeCell(A3(getCell,grid,cell.row,cell.col - 1));});
+   var east = F2(function (grid,cell) {    return maybeGridCellToMaybeCell(A3(getCell,grid,cell.row,cell.col + 1));});
    var neighbors = F2(function (grid,cell) {
-      var e = A2(east,grid,cell);
-      var w = A2(west,grid,cell);
-      var s = A2(south,grid,cell);
-      var n = A2(north,grid,cell);
-      return $List.concat(_U.list([cellToList(n),cellToList(s),cellToList(w),cellToList(e)]));
+      var _p13 = cell;
+      if (_p13.ctor === "RectCellTag") {
+            var _p14 = _p13._0;
+            var e = A2(east,grid,_p14);
+            var w = A2(west,grid,_p14);
+            var s = A2(south,grid,_p14);
+            var n = A2(north,grid,_p14);
+            var res = $List.concat(_U.list([cellToList(n),cellToList(s),cellToList(w),cellToList(e)]));
+            return A2($List.map,function (e) {    return $GridCell.RectCellTag(e);},res);
+         } else {
+            return _U.list([]);
+         }
    });
    var filterNeighbors = F3(function (pred,grid,cell) {    return A2($List.filter,pred,A2(neighbors,grid,cell));});
-   var toAscii = F2(function (cellViewer,grid) {
-      var cellToString = F2(function (cell,ascii) {
-         var curbottom = ascii.bottom;
-         var curtop = ascii.top;
-         var south_boundary = A2($Cell.isLinked,cell,toValidCell(A2(south,grid,cell))) ? "   " : "---";
-         var east_boundary = A2($Cell.isLinked,cell,toValidCell(A2(east,grid,cell))) ? " " : "|";
-         var body = A2($Basics._op["++"]," ",A2($Basics._op["++"],A2(cellViewer,grid,cell)," "));
-         return _U.update(ascii,
-         {top: A2($Basics._op["++"],curtop,A2($Basics._op["++"],body,east_boundary))
-         ,bottom: A2($Basics._op["++"],curbottom,A2($Basics._op["++"],south_boundary,"+"))});
-      });
-      var rowToStrings = function (row) {
-         var rowascii = {top: "|",bottom: "+"};
-         var finalascii = A3($List.foldl,cellToString,rowascii,A2(rowCells,grid,row));
-         return A2($Basics._op["++"],finalascii.top,A2($Basics._op["++"],"\n",A2($Basics._op["++"],finalascii.bottom,"\n")));
-      };
-      return A2($Basics._op["++"],
-      "+",
-      A2($Basics._op["++"],A2($String.repeat,grid.cols,"---+"),A2($Basics._op["++"],"\n",$String.concat(A2($List.map,rowToStrings,_U.range(1,grid.rows))))));
-   });
-   var center = function (grid) {    return toValidCell(A3(getCell,grid,grid.rows / 2 | 0,grid.cols / 2 | 0));};
+   var center = function (grid) {    return maybeGridCellToCell(A3(getCell,grid,grid.rows / 2 | 0,grid.cols / 2 | 0));};
    var randomCell = function (grid) {
-      var _p3 = A2($Mask.randomLocation,grid.mask,grid.rnd);
-      var row = _p3._0;
-      var col = _p3._1;
-      return toValidCell(A3(getCell,grid,row,col));
+      var _p15 = A2($Mask.randomLocation,grid.mask,grid.rnd);
+      var row = _p15._0;
+      var col = _p15._1;
+      return A3(getCell,grid,row,col);
    };
    var cellIdToCell = F2(function (grid,cellid) {
       var col = $Basics.snd(cellid);
       var row = $Basics.fst(cellid);
-      return toValidCell(A3(getCell,grid,row,col));
+      return maybeGridCellToGridCell(A3(getCell,grid,row,col));
    });
-   var linkedCells = F2(function (grid,cell) {    return A2($List.map,cellIdToCell(grid),$Set.toList(cell.links));});
-   var view = F3(function (cellPainter,grid,cellSize) {
+   var linkedCells = F2(function (grid,cell) {
+      var _p16 = cell;
+      if (_p16.ctor === "RectCellTag") {
+            return A2($List.map,cellIdToCell(grid),$Set.toList(_p16._0.links));
+         } else {
+            return A2($List.map,cellIdToCell(grid),$Set.toList(_p16._0._0.links));
+         }
+   });
+   var painter = F3(function (cellPainter,grid,cellSize) {
       var cellToRect = function (cell) {    return $Graphics$Collage.square($Basics.toFloat(cellSize));};
       var cellBackground = F2(function (style,cell) {
          var halfSize = $Basics.toFloat(cellSize) / 2.0;
@@ -11308,7 +10998,10 @@ Elm.Grid.make = function (_elm) {
          var bgRect = A2($Graphics$Collage.filled,A2(cellPainter,grid,cell),cellToRect(cell));
          return A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: cx,_1: cy},bgRect);
       });
-      var maybeVisibleLine = F2(function (style,_p4) {    var _p5 = _p4;return _p5._0 ? _U.list([A2($Graphics$Collage.traced,style,_p5._1)]) : _U.list([]);});
+      var maybeVisibleLine = F2(function (style,_p17) {
+         var _p18 = _p17;
+         return _p18._0 ? _U.list([A2($Graphics$Collage.traced,style,_p18._1)]) : _U.list([]);
+      });
       var cellWalls = F2(function (style,cell) {
          var y2 = $Basics.toFloat($Basics.negate(cell.row) * cellSize);
          var x2 = $Basics.toFloat(cell.col * cellSize);
@@ -11333,7 +11026,7 @@ Elm.Grid.make = function (_elm) {
          var style = _U.update($Graphics$Collage.defaultLine,{width: 2});
          return $Graphics$Collage.group(A2($List._op["::"],A2(cellBackground,style,cell),A2(cellWalls,style,cell)));
       };
-      var drawables = A2($List.map,paintCell,grid.cells);
+      var drawables = A2($List.map,paintCell,gridCellsToBaseCells(grid.cells));
       var imgHeight = cellSize * grid.rows;
       var oy = $Basics.toFloat(imgHeight) / 2.0;
       var imgWidth = cellSize * grid.cols;
@@ -11343,6 +11036,35 @@ Elm.Grid.make = function (_elm) {
       imgHeight,
       _U.list([A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: ox,_1: oy},$Graphics$Collage.group(drawables))]));
    });
+   var toAscii = F2(function (grid,cellViewer) {
+      var cellToString = F2(function (cell,ascii) {
+         var curbottom = ascii.bottom;
+         var curtop = ascii.top;
+         var south_boundary = A2($Cell.isLinked,cell,toValidCell(A2(south,grid,cell))) ? "   " : "---";
+         var east_boundary = A2($Cell.isLinked,cell,toValidCell(A2(east,grid,cell))) ? " " : "|";
+         var body = A2($Basics._op["++"]," ",A2($Basics._op["++"],A2(cellViewer,grid,cell)," "));
+         return _U.update(ascii,
+         {top: A2($Basics._op["++"],curtop,A2($Basics._op["++"],body,east_boundary))
+         ,bottom: A2($Basics._op["++"],curbottom,A2($Basics._op["++"],south_boundary,"+"))});
+      });
+      var rowToStrings = function (row) {
+         var baseCells = gridCellsToBaseCells(A2(rowCells,grid,row));
+         var rowascii = {top: "|",bottom: "+"};
+         var finalascii = A3($List.foldl,cellToString,rowascii,baseCells);
+         return A2($Basics._op["++"],finalascii.top,A2($Basics._op["++"],"\n",A2($Basics._op["++"],finalascii.bottom,"\n")));
+      };
+      return A2($Basics._op["++"],
+      "+",
+      A2($Basics._op["++"],A2($String.repeat,grid.cols,"---+"),A2($Basics._op["++"],"\n",$String.concat(A2($List.map,rowToStrings,_U.range(1,grid.rows))))));
+   });
+   var toElement = F4(function (grid,gridPainter,cellPainter,cellSize) {    return A3(gridPainter,cellPainter,grid,cellSize);});
+   var makeCells = function (mask) {
+      var createMaskedCell = F2(function (row,col) {
+         return A3($Mask.get,mask,row,col) ? $GridCell.RectCellTag(A2($Cell.createCell,row,col)) : $GridCell.RectCellTag(A2($Cell.createMaskedCell,row,col));
+      });
+      var makeRow = F2(function (cols,row) {    return A2($List.map,createMaskedCell(row),_U.range(1,mask.cols));});
+      return A2($List.concatMap,makeRow(mask.cols),_U.range(1,mask.rows));
+   };
    var update = function (grid) {    return _U.update(grid,{cells: grid.cellMaker(grid.mask)});};
    var updateRnd = function (grid) {    return _U.update(grid,{rnd: $Rnd.refresh(grid.rnd)});};
    var createGridFromMask = F3(function (mask,initSeed,cellMaker) {
@@ -11359,22 +11081,23 @@ Elm.Grid.make = function (_elm) {
       var mask$ = A2($Mask.createMask,rows,cols);
       return {rows: rows,cols: cols,cells: cellMaker(mask$),rnd: A3($Rnd.createGridRnd,rows,cols,initSeed),mask: mask$};
    });
-   var makeCells = function (mask) {
-      var createMaskedCell = F2(function (row,col) {
-         return A3($Mask.get,mask,row,col) ? A2($Cell.createCell,row,col) : A2($Cell.createMaskedCell,row,col);
-      });
-      var makeRow = F2(function (cols,row) {    return A2($List.map,createMaskedCell(row),_U.range(1,mask.cols));});
-      return A2($List.concatMap,makeRow(mask.cols),_U.range(1,mask.rows));
-   };
+   var RowAscii = F2(function (a,b) {    return {top: a,bottom: b};});
    return _elm.Grid.values = {_op: _op
-                             ,makeCells: makeCells
+                             ,RowAscii: RowAscii
                              ,createGrid: createGrid
                              ,createGridFromMask: createGridFromMask
                              ,updateRnd: updateRnd
                              ,update: update
-                             ,view: view
+                             ,makeCells: makeCells
+                             ,toElement: toElement
+                             ,toAscii: toAscii
+                             ,painter: painter
                              ,getCell: getCell
                              ,toValidCell: toValidCell
+                             ,toRectCell: toRectCell
+                             ,maybeGridCellToCell: maybeGridCellToCell
+                             ,maybeGridCellToMaybeCell: maybeGridCellToMaybeCell
+                             ,maybeGridCellToGridCell: maybeGridCellToGridCell
                              ,isValidCell: isValidCell
                              ,north: north
                              ,south: south
@@ -11385,10 +11108,12 @@ Elm.Grid.make = function (_elm) {
                              ,neighbors: neighbors
                              ,deadEnds: deadEnds
                              ,filterNeighbors: filterNeighbors
+                             ,gridCellID: gridCellID
+                             ,linkCellsHelper: linkCellsHelper
                              ,linkCells: linkCells
-                             ,unlinkCells: unlinkCells
                              ,linkedCells: linkedCells
                              ,rowCells: rowCells
+                             ,gridCellsToBaseCells: gridCellsToBaseCells
                              ,size: size
                              ,cellIndex: cellIndex
                              ,gridIndex: gridIndex
@@ -11396,95 +11121,7 @@ Elm.Grid.make = function (_elm) {
                              ,cellToList: cellToList
                              ,toTitle: toTitle
                              ,cellToAscii: cellToAscii
-                             ,cellBackgroundColor: cellBackgroundColor
-                             ,RowAscii: RowAscii
-                             ,toAscii: toAscii};
-};
-Elm.ListUtils = Elm.ListUtils || {};
-Elm.ListUtils.make = function (_elm) {
-   "use strict";
-   _elm.ListUtils = _elm.ListUtils || {};
-   if (_elm.ListUtils.values) return _elm.ListUtils.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var indicesOf = F2(function (thing,things) {
-      return A2($List.map,
-      $Basics.fst,
-      A2($List.filter,
-      function (_p0) {
-         var _p1 = _p0;
-         return _U.eq(_p1._1,thing);
-      },
-      A2($List.indexedMap,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),things)));
-   });
-   var firstIndexOf = F2(function (thing,things) {    return A2($Maybe.withDefault,-1,$List.minimum(A2(indicesOf,thing,things)));});
-   return _elm.ListUtils.values = {_op: _op,indicesOf: indicesOf,firstIndexOf: firstIndexOf};
-};
-Elm.GridUtils = Elm.GridUtils || {};
-Elm.GridUtils.make = function (_elm) {
-   "use strict";
-   _elm.GridUtils = _elm.GridUtils || {};
-   if (_elm.GridUtils.values) return _elm.GridUtils.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Array = Elm.Array.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $ListUtils = Elm.ListUtils.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Random = Elm.Random.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Rnd = Elm.Rnd.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var indexOfCell = F2(function (cell,cells) {    return A2($ListUtils.firstIndexOf,cell.id,A2($List.map,function (_) {    return _.id;},cells));});
-   var sampleCell = F2(function (sample,rnd) {
-      var _p0 = A2($Random.generate,A2($Random.$int,0,$List.length(sample) - 1),rnd.seed);
-      var rand = _p0._0;
-      var seed = _p0._1;
-      return A2($Array.get,rand,$Array.fromList(sample));
-   });
-   return _elm.GridUtils.values = {_op: _op,sampleCell: sampleCell,indexOfCell: indexOfCell};
-};
-Elm.AldousBroder = Elm.AldousBroder || {};
-Elm.AldousBroder.make = function (_elm) {
-   "use strict";
-   _elm.AldousBroder = _elm.AldousBroder || {};
-   if (_elm.AldousBroder.values) return _elm.AldousBroder.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
-   $GridUtils = Elm.GridUtils.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Trampoline = Elm.Trampoline.make(_elm);
-   var _op = {};
-   var walkRandomly = F3(function (grid,cell,unvisited) {
-      if (_U.eq(unvisited,0)) return $Trampoline.Done(grid); else {
-            var sample = A2($Grid.neighbors,grid,cell);
-            var neighbor = $Grid.toValidCell(A2($GridUtils.sampleCell,sample,grid.rnd));
-            if ($Basics.not($Cell.hasLinks(neighbor))) {
-                  var grid$ = $Grid.updateRnd(A4($Grid.linkCells,grid,cell,neighbor,true));
-                  return $Trampoline.Continue(function (_p0) {    var _p1 = _p0;return A3(walkRandomly,grid$,neighbor,unvisited - 1);});
-               } else return $Trampoline.Continue(function (_p2) {    var _p3 = _p2;return A3(walkRandomly,$Grid.updateRnd(grid),neighbor,unvisited);});
-         }
-   });
-   var on = F2(function (startCellFn,grid) {
-      var grid$ = $Grid.updateRnd(grid);
-      return $Trampoline.trampoline(A3(walkRandomly,grid$,startCellFn(grid),$Grid.size(grid) - 1));
-   });
-   return _elm.AldousBroder.values = {_op: _op,on: on};
+                             ,cellBackgroundColor: cellBackgroundColor};
 };
 Elm.BinaryTree = Elm.BinaryTree || {};
 Elm.BinaryTree.make = function (_elm) {
@@ -11493,9 +11130,9 @@ Elm.BinaryTree.make = function (_elm) {
    if (_elm.BinaryTree.values) return _elm.BinaryTree.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Grid = Elm.Grid.make(_elm),
+   $GridCell = Elm.GridCell.make(_elm),
    $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
@@ -11504,423 +11141,30 @@ Elm.BinaryTree.make = function (_elm) {
    var _op = {};
    var on = F2(function (startCellFn,grid) {
       var getRandomNeighbor = F2(function (grid$,cell) {
-         var northandeast = $List.concat(_U.list([$Grid.cellToList(A2($Grid.north,grid$,cell)),$Grid.cellToList(A2($Grid.east,grid$,cell))]));
-         return $List.isEmpty(northandeast) ? $Maybe.Nothing : A2($GridUtils.sampleCell,northandeast,grid$.rnd);
+         var acell = $Grid.toRectCell(cell);
+         var northandeast = $List.concat(_U.list([$Grid.cellToList(A2($Grid.north,grid$,acell)),$Grid.cellToList(A2($Grid.east,grid$,acell))]));
+         if ($List.isEmpty(northandeast)) return $Maybe.Nothing; else {
+               var _p0 = A2($GridUtils.sampleCell,northandeast,grid$.rnd);
+               if (_p0.ctor === "Nothing") {
+                     return $Maybe.Nothing;
+                  } else {
+                     return $Maybe.Just($GridCell.RectCellTag(_p0._0));
+                  }
+            }
       });
       var processCell = F2(function (cell,grid) {
          var grid$ = $Grid.updateRnd(grid);
          var neighbor = A2(getRandomNeighbor,grid,cell);
-         var _p0 = neighbor;
-         if (_p0.ctor === "Nothing") {
+         var _p1 = neighbor;
+         if (_p1.ctor === "Nothing") {
                return grid$;
             } else {
-               return A4($Grid.linkCells,grid$,cell,_p0._0,true);
+               return A4($Grid.linkCells,grid$,cell,_p1._0,true);
             }
       });
       return A3($List.foldl,processCell,grid,grid.cells);
    });
    return _elm.BinaryTree.values = {_op: _op,on: on};
-};
-Elm.Distances = Elm.Distances || {};
-Elm.Distances.make = function (_elm) {
-   "use strict";
-   _elm.Distances = _elm.Distances || {};
-   if (_elm.Distances.values) return _elm.Distances.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Dict = Elm.Dict.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var cells = function (dists) {    return $Dict.keys(dists.cells);};
-   var max = function (dists) {
-      var maxDist = $List.reverse(A2($List.sortBy,$Basics.snd,$Dict.toList(dists.cells)));
-      var _p0 = $List.head(maxDist);
-      if (_p0.ctor === "Just") {
-            return _p0._0;
-         } else {
-            return {ctor: "_Tuple2",_0: dists.root.id,_1: 0};
-         }
-   };
-   var add = F3(function (dists,cell,dist) {    return _U.update(dists,{cells: A3($Dict.insert,cell.id,dist,dists.cells)});});
-   var lookup = F2(function (dists,cell) {    return A2($Maybe.withDefault,-1,A2($Dict.get,cell.id,dists.cells));});
-   var init = function (cell) {    return {root: cell,cells: A2($Dict.singleton,cell.id,0)};};
-   var Distances = F2(function (a,b) {    return {root: a,cells: b};});
-   return _elm.Distances.values = {_op: _op,Distances: Distances,init: init,lookup: lookup,add: add,max: max,cells: cells};
-};
-Elm.Dijkstra = Elm.Dijkstra || {};
-Elm.Dijkstra.make = function (_elm) {
-   "use strict";
-   _elm.Dijkstra = _elm.Dijkstra || {};
-   if (_elm.Dijkstra.values) return _elm.Dijkstra.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Distances = Elm.Distances.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var cellDistances = F2(function (grid,cell) {
-      var acc = {grid: grid,dists: $Distances.init(cell),frontier: _U.list([cell]),newFrontier: _U.list([])};
-      var scanCell = F3(function (cell,linked,diter) {
-         if ($Basics.not(_U.eq(A2($Distances.lookup,diter.dists,linked),-1))) return diter; else {
-               var curDist = A2($Distances.lookup,diter.dists,cell);
-               return _U.update(diter,
-               {newFrontier: A2($List.append,diter.newFrontier,_U.list([linked])),dists: A3($Distances.add,diter.dists,linked,curDist + 1)});
-            }
-      });
-      var scanCellLinks = F2(function (cell,diter) {    return A3($List.foldl,scanCell(cell),diter,A2($Grid.linkedCells,diter.grid,cell));});
-      var scanFrontier = function (diter) {    var res = A3($List.foldl,scanCellLinks,diter,diter.frontier);return _U.update(res,{frontier: res.newFrontier});};
-      var frontierAcc = function (diter) {
-         frontierAcc: while (true) if ($List.isEmpty(diter.frontier)) return diter; else {
-               var acc = _U.update(diter,{newFrontier: _U.list([])});
-               var _v0 = scanFrontier(acc);
-               diter = _v0;
-               continue frontierAcc;
-            }
-      };
-      return function (_) {
-         return _.dists;
-      }(frontierAcc(acc));
-   });
-   var DijkstraIter = F4(function (a,b,c,d) {    return {dists: a,grid: b,frontier: c,newFrontier: d};});
-   return _elm.Dijkstra.values = {_op: _op,DijkstraIter: DijkstraIter,cellDistances: cellDistances};
-};
-Elm.IntToBaseX = Elm.IntToBaseX || {};
-Elm.IntToBaseX.make = function (_elm) {
-   "use strict";
-   _elm.IntToBaseX = _elm.IntToBaseX || {};
-   if (_elm.IntToBaseX.values) return _elm.IntToBaseX.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $String = Elm.String.make(_elm);
-   var _op = {};
-   var digitMap = "0123456789abcdefghijklmnopqrstuvwxyz";
-   var lookupDigitChar = function (n) {    return A3($String.slice,n,n + 1,digitMap);};
-   var toBaseX = F2(function (num,base) {
-      var convert = F2(function (str,v) {
-         convert: while (true) if (_U.eq(v,0)) return str; else {
-               var c = A2($Basics._op["++"],lookupDigitChar(A2($Basics._op["%"],v,base)),str);
-               var _v0 = c,_v1 = v / base | 0;
-               str = _v0;
-               v = _v1;
-               continue convert;
-            }
-      });
-      if (_U.cmp(base,2) < 0 || _U.cmp(36,base) < 0) return A2($Basics._op["++"],"illegal radix ",$Basics.toString(base)); else if (_U.eq(num,0)) return "0";
-         else {
-               var num$ = _U.cmp(num,0) < 0 ? $Basics.negate(num) : num;
-               var res = A2(convert,"",num$);
-               return _U.cmp(num,0) < 0 ? A2($Basics._op["++"],"-",res) : res;
-            }
-   });
-   return _elm.IntToBaseX.values = {_op: _op,digitMap: digitMap,lookupDigitChar: lookupDigitChar,toBaseX: toBaseX};
-};
-Elm.DistanceGrid = Elm.DistanceGrid || {};
-Elm.DistanceGrid.make = function (_elm) {
-   "use strict";
-   _elm.DistanceGrid = _elm.DistanceGrid || {};
-   if (_elm.DistanceGrid.values) return _elm.DistanceGrid.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Dijkstra = Elm.Dijkstra.make(_elm),
-   $Distances = Elm.Distances.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
-   $IntToBaseX = Elm.IntToBaseX.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var cellToAscii = F2(function (dgrid,cell) {
-      var dist = A2($Distances.lookup,dgrid.dists,cell);
-      return _U.eq(dist,-1) ? A2($Grid.cellToAscii,dgrid,cell) : A2($IntToBaseX.toBaseX,dist,36);
-   });
-   var viewDistances = function (dgrid) {    return A2($Grid.toAscii,cellToAscii,dgrid);};
-   var distances = F2(function (grid,root) {    return A2($Dijkstra.cellDistances,grid,root);});
-   var createDistanceGrid = F2(function (grid,root) {    return _U.update(grid,{dists: A2(distances,grid,root)});});
-   var pathTo = F3(function (grid,root,goal) {
-      var current = goal;
-      var dgrid = A2(createDistanceGrid,grid,root);
-      var breadcrumbs = A3($Distances.add,$Distances.init(root),current,A2($Distances.lookup,dgrid.dists,current));
-      var walkPath = F2(function (xpbreadcrumbs,xpcurrent) {
-         walkPath: while (true) if (_U.eq(xpcurrent.id,root.id)) return xpbreadcrumbs; else {
-               var currentDistance = A2($Distances.lookup,dgrid.dists,xpcurrent);
-               var links = A2($Grid.linkedCells,grid,xpcurrent);
-               var res = A2($List.filter,function (neighbor) {    return _U.cmp(A2($Distances.lookup,dgrid.dists,neighbor),currentDistance) < 0;},links);
-               if ($List.isEmpty(res)) return xpbreadcrumbs; else {
-                     var neighbor = $Grid.toValidCell($List.head(res));
-                     var ixpbreadcrumbs = A3($Distances.add,xpbreadcrumbs,neighbor,A2($Distances.lookup,dgrid.dists,neighbor));
-                     var _v0 = ixpbreadcrumbs,_v1 = neighbor;
-                     xpbreadcrumbs = _v0;
-                     xpcurrent = _v1;
-                     continue walkPath;
-                  }
-            }
-      });
-      return A2(walkPath,breadcrumbs,current);
-   });
-   var longestPath = F2(function (grid,root) {
-      var dgrid = A2(createDistanceGrid,grid,root);
-      var _p0 = $Distances.max(dgrid.dists);
-      var cellId = _p0._0;
-      var foo = _p0._1;
-      var newStartCell = A2($Grid.cellIdToCell,grid,cellId);
-      var dgrid$ = A2(createDistanceGrid,grid,newStartCell);
-      var _p1 = $Distances.max(dgrid$.dists);
-      var goalId = _p1._0;
-      var foo$ = _p1._1;
-      var goal = A2($Grid.cellIdToCell,grid,goalId);
-      return A3(pathTo,grid,newStartCell,goal);
-   });
-   return _elm.DistanceGrid.values = {_op: _op
-                                     ,createDistanceGrid: createDistanceGrid
-                                     ,distances: distances
-                                     ,cellToAscii: cellToAscii
-                                     ,viewDistances: viewDistances
-                                     ,pathTo: pathTo
-                                     ,longestPath: longestPath};
-};
-Elm.ColoredGrid = Elm.ColoredGrid || {};
-Elm.ColoredGrid.make = function (_elm) {
-   "use strict";
-   _elm.ColoredGrid = _elm.ColoredGrid || {};
-   if (_elm.ColoredGrid.values) return _elm.ColoredGrid.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Color = Elm.Color.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $DistanceGrid = Elm.DistanceGrid.make(_elm),
-   $Distances = Elm.Distances.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var cellBackgroundColor = F2(function (grid,cell) {
-      var distance = A2($Distances.lookup,grid.dists,cell);
-      var intensity = $Basics.toFloat(grid.maximum - distance) / $Basics.toFloat(grid.maximum);
-      var dark = $Basics.round(255 * intensity);
-      var bright = $Basics.round(128 + 127 * intensity);
-      return A3($Color.rgb,dark,bright,dark);
-   });
-   var view = F2(function (grid,cellSize) {    return A3($Grid.view,cellBackgroundColor,grid,cellSize);});
-   var createColoredGrid = F2(function (grid,root) {
-      var grid$ = A2($DistanceGrid.createDistanceGrid,grid,root);
-      var _p0 = $Distances.max(grid$.dists);
-      var farthest = _p0._0;
-      var max = _p0._1;
-      return _U.update(grid$,{maximum: max});
-   });
-   return _elm.ColoredGrid.values = {_op: _op,createColoredGrid: createColoredGrid,view: view,cellBackgroundColor: cellBackgroundColor};
-};
-Elm.HuntAndKill = Elm.HuntAndKill || {};
-Elm.HuntAndKill.make = function (_elm) {
-   "use strict";
-   _elm.HuntAndKill = _elm.HuntAndKill || {};
-   if (_elm.HuntAndKill.values) return _elm.HuntAndKill.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
-   $GridUtils = Elm.GridUtils.make(_elm),
-   $List = Elm.List.make(_elm),
-   $List$Extra = Elm.List.Extra.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Trampoline = Elm.Trampoline.make(_elm);
-   var _op = {};
-   var hunt = function (grid) {
-      var visitedNeighbors = function (cell) {    return A3($Grid.filterNeighbors,function (c) {    return $Cell.hasLinks(c);},grid,cell);};
-      var huntUnvisitedNeighbor = function (cell) {    return $Basics.not($List.isEmpty(visitedNeighbors(cell))) && $Basics.not($Cell.hasLinks(cell));};
-      var huntedCell = A2($List$Extra.find,huntUnvisitedNeighbor,grid.cells);
-      var _p0 = huntedCell;
-      if (_p0.ctor === "Nothing") {
-            return {ctor: "_Tuple2",_0: grid,_1: A2($Cell.createCell,-1,-1)};
-         } else {
-            var _p1 = _p0._0;
-            var linked = $Grid.toValidCell(A2($GridUtils.sampleCell,visitedNeighbors(_p1),grid.rnd));
-            return {ctor: "_Tuple2",_0: A4($Grid.linkCells,$Grid.updateRnd(grid),_p1,linked,true),_1: _p1};
-         }
-   };
-   var walkRandomly = F2(function (grid,cell) {
-      if (_U.eq(cell.row,-1)) return $Trampoline.Done(grid); else {
-            var unvisitedNeighbors = A3($Grid.filterNeighbors,function (c) {    return $Basics.not($Cell.hasLinks(c));},grid,cell);
-            if ($Basics.not($List.isEmpty(unvisitedNeighbors))) {
-                  var neighbor = $Grid.toValidCell(A2($GridUtils.sampleCell,unvisitedNeighbors,grid.rnd));
-                  var grid$ = A4($Grid.linkCells,grid,cell,neighbor,true);
-                  var grid$$ = $Grid.updateRnd(grid$);
-                  return $Trampoline.Continue(function (_p2) {    var _p3 = _p2;return A2(walkRandomly,grid$$,neighbor);});
-               } else {
-                  var _p4 = hunt(grid);
-                  var grid$ = _p4._0;
-                  var current = _p4._1;
-                  return $Trampoline.Continue(function (_p5) {    var _p6 = _p5;return A2(walkRandomly,grid$,current);});
-               }
-         }
-   });
-   var on = F2(function (startCellFn,grid) {    var grid$ = $Grid.updateRnd(grid);return $Trampoline.trampoline(A2(walkRandomly,grid$,startCellFn(grid)));});
-   return _elm.HuntAndKill.values = {_op: _op,on: on};
-};
-Elm.Sidewinder = Elm.Sidewinder || {};
-Elm.Sidewinder.make = function (_elm) {
-   "use strict";
-   _elm.Sidewinder = _elm.Sidewinder || {};
-   if (_elm.Sidewinder.values) return _elm.Sidewinder.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
-   $GridUtils = Elm.GridUtils.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var on = F2(function (startCellFn,grid) {
-      var processCell = F2(function (cell,rowState) {
-         var grid$ = $Grid.updateRnd(rowState.grid);
-         var atNorthernBoundary = $Basics.not($Grid.isValidCell(A2($Grid.north,rowState.grid,cell)));
-         var atEasternBoundary = $Basics.not($Grid.isValidCell(A2($Grid.east,rowState.grid,cell)));
-         var shouldCloseOut = atEasternBoundary || $Basics.not(atNorthernBoundary) && grid$.rnd.heads;
-         var run$ = A2($List._op["::"],cell,rowState.run);
-         if (shouldCloseOut) {
-               var grid$$ = $Grid.updateRnd(grid$);
-               var member = $Grid.toValidCell(A2($GridUtils.sampleCell,run$,grid$.rnd));
-               var northern = A2($Grid.north,grid$,member);
-               return $Grid.isValidCell(northern) ? {run: _U.list([])
-                                                    ,grid: A4($Grid.linkCells,grid$$,member,$Grid.toValidCell(northern),true)} : {run: _U.list([])
-                                                                                                                                 ,grid: grid$$};
-            } else return _U.update(rowState,{run: run$,grid: A4($Grid.linkCells,grid$,cell,$Grid.toValidCell(A2($Grid.east,grid$,cell)),true)});
-      });
-      var processRow = F2(function (row,curGrid) {
-         var state = {run: _U.list([]),grid: curGrid};
-         var result = A3($List.foldl,processCell,state,A2($Grid.rowCells,curGrid,row));
-         return result.grid;
-      });
-      var bottomLeftToTopRightCells = A2($List.concatMap,$Grid.rowCells(grid),$List.reverse(_U.range(1,grid.rows)));
-      return A3($List.foldl,processRow,grid,$List.reverse(_U.range(1,grid.rows)));
-   });
-   var RowState = F2(function (a,b) {    return {run: a,grid: b};});
-   return _elm.Sidewinder.values = {_op: _op,RowState: RowState,on: on};
-};
-Elm.Wilsons = Elm.Wilsons || {};
-Elm.Wilsons.make = function (_elm) {
-   "use strict";
-   _elm.Wilsons = _elm.Wilsons || {};
-   if (_elm.Wilsons.values) return _elm.Wilsons.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Array = Elm.Array.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
-   $GridUtils = Elm.GridUtils.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Trampoline = Elm.Trampoline.make(_elm);
-   var _op = {};
-   var carvePassage = function (rwp) {
-      var pathArr = $Array.fromList(rwp.path);
-      var carve = F2(function (index,rwp) {
-         var nextcell = $Grid.toValidCell(A2($Array.get,index + 1,pathArr));
-         var icell = $Grid.toValidCell(A2($Array.get,index,pathArr));
-         var grid$ = A4($Grid.linkCells,rwp.grid,icell,nextcell,true);
-         var unvisited$ = A2($List.filter,function (e) {    return $Basics.not(_U.eq(e.id,icell.id));},rwp.unvisited);
-         return _U.update(rwp,{grid: grid$,unvisited: unvisited$});
-      });
-      return A3($List.foldl,carve,rwp,_U.range(0,$List.length(rwp.path) - 2));
-   };
-   var loopErasedRandomWalk = function (rwp) {
-      loopErasedRandomWalk: while (true) if ($Basics.not(A2($List.member,rwp.cell,rwp.unvisited))) return carvePassage(rwp); else {
-            var grid = $Grid.updateRnd(rwp.grid);
-            var cell$ = $Grid.toValidCell(A2($GridUtils.sampleCell,A2($Grid.neighbors,rwp.grid,rwp.cell),rwp.grid.rnd));
-            var position = A2($GridUtils.indexOfCell,cell$,rwp.path);
-            if (_U.cmp(position,0) > -1) {
-                  var _v0 = _U.update(rwp,{grid: grid,cell: cell$,path: A2($List.take,position + 1,rwp.path)});
-                  rwp = _v0;
-                  continue loopErasedRandomWalk;
-               } else {
-                  var _v1 = _U.update(rwp,{grid: grid,cell: cell$,path: $List.concat(_U.list([rwp.path,_U.list([cell$])]))});
-                  rwp = _v1;
-                  continue loopErasedRandomWalk;
-               }
-         }
-   };
-   var work = F2(function (grid,unvisited) {
-      if ($List.isEmpty(unvisited)) return $Trampoline.Done(grid); else {
-            var cell = $Grid.toValidCell(A2($GridUtils.sampleCell,unvisited,grid.rnd));
-            var rwp = loopErasedRandomWalk({grid: $Grid.updateRnd(grid),cell: cell,path: _U.list([cell]),unvisited: unvisited});
-            return $Trampoline.Continue(function (_p0) {    var _p1 = _p0;return A2(work,rwp.grid,rwp.unvisited);});
-         }
-   });
-   var on = F2(function (startCellFn,grid) {
-      var grid$ = $Grid.updateRnd(grid);
-      var startCell = startCellFn(grid);
-      var unvisited = A2($List.filter,function (e) {    return $Basics.not(_U.eq(e.id,startCell.id));},grid.cells);
-      return $Trampoline.trampoline(A2(work,grid$,unvisited));
-   });
-   var RandomWalkPath = F4(function (a,b,c,d) {    return {grid: a,cell: b,path: c,unvisited: d};});
-   return _elm.Wilsons.values = {_op: _op,on: on};
-};
-Elm.RecursiveBacktracker = Elm.RecursiveBacktracker || {};
-Elm.RecursiveBacktracker.make = function (_elm) {
-   "use strict";
-   _elm.RecursiveBacktracker = _elm.RecursiveBacktracker || {};
-   if (_elm.RecursiveBacktracker.values) return _elm.RecursiveBacktracker.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Cell = Elm.Cell.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Grid = Elm.Grid.make(_elm),
-   $GridUtils = Elm.GridUtils.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Trampoline = Elm.Trampoline.make(_elm);
-   var _op = {};
-   var walkRandomly = F2(function (grid,stack) {
-      if ($List.isEmpty(stack)) return $Trampoline.Done(grid); else {
-            var current = $Grid.toValidCell($List.head(stack));
-            var neighbors = A3($Grid.filterNeighbors,function (c) {    return $Basics.not($Cell.hasLinks(c));},grid,current);
-            if ($List.isEmpty(neighbors)) return $Trampoline.Continue(function (_p0) {
-                  var _p1 = _p0;
-                  return A2(walkRandomly,grid,A2($Maybe.withDefault,_U.list([]),$List.tail(stack)));
-               }); else {
-                  var neighbor = $Grid.toValidCell(A2($GridUtils.sampleCell,neighbors,grid.rnd));
-                  var grid$ = A4($Grid.linkCells,grid,current,neighbor,true);
-                  var grid$$ = $Grid.updateRnd(grid$);
-                  return $Trampoline.Continue(function (_p2) {    var _p3 = _p2;return A2(walkRandomly,grid$$,A2($List._op["::"],neighbor,stack));});
-               }
-         }
-   });
-   var on = F2(function (startCellFn,grid) {
-      var grid$ = $Grid.updateRnd(grid);
-      return $Trampoline.trampoline(A2(walkRandomly,grid$,_U.list([startCellFn(grid)])));
-   });
-   return _elm.RecursiveBacktracker.values = {_op: _op,on: on};
 };
 Elm.Maze = Elm.Maze || {};
 Elm.Maze.make = function (_elm) {
@@ -11928,74 +11172,37 @@ Elm.Maze.make = function (_elm) {
    _elm.Maze = _elm.Maze || {};
    if (_elm.Maze.values) return _elm.Maze.values;
    var _U = Elm.Native.Utils.make(_elm),
-   $AldousBroder = Elm.AldousBroder.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $BinaryTree = Elm.BinaryTree.make(_elm),
-   $ColoredGrid = Elm.ColoredGrid.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $Html = Elm.Html.make(_elm),
-   $HuntAndKill = Elm.HuntAndKill.make(_elm),
    $List = Elm.List.make(_elm),
    $Mask = Elm.Mask.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $RecursiveBacktracker = Elm.RecursiveBacktracker.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Sidewinder = Elm.Sidewinder.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Wilsons = Elm.Wilsons.make(_elm);
+   $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var algToString = function (algType) {
-      var _p0 = algType;
-      switch (_p0.ctor)
-      {case "NoOp": return "None";
-         case "BinaryTree": return "Binary Tree";
-         case "Sidewinder": return "Sidewinder";
-         case "AldousBroder": return "Aldous-Broder";
-         case "Wilsons": return "Wilsons";
-         case "HuntAndKill": return "Hunt - Kill";
-         default: return "Recursive Backtracker";}
-   };
-   var getAlgFn = function (algType) {
+   var algToString = function (algType) {    var _p0 = algType;if (_p0.ctor === "NoOp") {    return "None";} else {    return "Binary Tree";}};
+   var getAlgFn = F2(function (algType,randCellFn) {
       var _p1 = algType;
-      switch (_p1.ctor)
-      {case "NoOp": return $Basics.identity;
-         case "BinaryTree": return $BinaryTree.on($Grid.randomCell);
-         case "Sidewinder": return $Sidewinder.on($Grid.randomCell);
-         case "AldousBroder": return $AldousBroder.on($Grid.randomCell);
-         case "Wilsons": return $Wilsons.on($Grid.randomCell);
-         case "HuntAndKill": return $HuntAndKill.on($Grid.randomCell);
-         default: return $RecursiveBacktracker.on($Grid.randomCell);}
-   };
+      if (_p1.ctor === "NoOp") {
+            return $Basics.identity;
+         } else {
+            return $BinaryTree.on(randCellFn);
+         }
+   });
    var viewDistances = function (maze) {
-      var goal = $Grid.toValidCell(A3($Grid.getCell,maze.grid,maze.grid.rows,1));
       var root = $Grid.center(maze.grid);
       return A2($Html.div,_U.list([]),_U.list([A2($Html.br,_U.list([]),_U.list([]))]));
    };
-   var setMask = F2(function (maze,mask) {
-      var grid = A3($Grid.createGridFromMask,mask,maze.grid.rnd.seed,$Grid.makeCells);
-      return _U.update(maze,{grid: A2(getAlgFn,maze.alg,grid)});
-   });
-   var update = function (maze) {    var grid = $Grid.update(maze.grid);var grid$ = A2(getAlgFn,maze.alg,grid);return _U.update(maze,{grid: grid$});};
-   var init = F5(function (algType,width,height,seed,display) {
-      var mask = A2($Mask.createMask,width,height);
-      var grid$ = function () {    var _p2 = display;return A3($Grid.createGridFromMask,mask,seed,$Grid.makeCells);}();
-      return {grid: A2(getAlgFn,algType,grid$),alg: algType,display: display};
-   });
-   var updateSize = F3(function (maze,width,height) {
-      return A5(init,maze.alg,A2($Debug.log,"width: ",width),A2($Debug.log,"height: ",height),maze.grid.rnd.seed,maze.display);
-   });
-   var gridMaker = F4(function (_p3,mask,display,seed) {    var _p4 = _p3;return true;});
-   var cellSize = 20;
    var view = function (maze) {
-      var root = $Grid.center(maze.grid);
       var gridHtml = function () {
-         var _p5 = maze.display;
-         switch (_p5.ctor)
-         {case "Ascii": return A2($Html.pre,_U.list([]),_U.list([$Html.text(A2($Grid.toAscii,$Grid.cellToAscii,maze.grid))]));
-            case "Colored": var coloredGrid = A2($ColoredGrid.createColoredGrid,maze.grid,root);
-              return $Html.fromElement(A2($ColoredGrid.view,coloredGrid,cellSize));
-            default: return A2($Html.pre,_U.list([]),_U.list([$Html.text(A2($Grid.toAscii,$Grid.cellToAscii,maze.grid))]));}
+         var _p2 = maze.display;
+         switch (_p2.ctor)
+         {case "Ascii": return A2($Html.pre,_U.list([]),_U.list([$Html.text(A2($Grid.toAscii,maze.grid,$Grid.cellToAscii))]));
+            case "Colored": return $Html.text("foo");
+            default: return $Html.text("foo");}
       }();
       return A2($Html.div,
       _U.list([]),
@@ -12006,43 +11213,47 @@ Elm.Maze.make = function (_elm) {
               ,$Html.text(A2($Basics._op["++"],$Basics.toString($List.length($Grid.deadEnds(maze.grid)))," deadends"))
               ,gridHtml]));
    };
+   var applyAlg = F2(function (algName,displayType) {
+      var randCellFn = function () {    var _p3 = displayType;return $Grid.randomCell;}();
+      return A2(getAlgFn,algName,randCellFn);
+   });
+   var update = function (maze) {    var grid$ = $Grid.update(maze.grid);return _U.update(maze,{grid: A3(applyAlg,maze.alg,maze.display,grid$)});};
+   var setMask = F2(function (maze,mask) {
+      var grid$ = A3($Grid.createGridFromMask,mask,maze.grid.rnd.seed,maze.grid.cellMaker);
+      return _U.update(maze,{grid: A3(applyAlg,maze.alg,maze.display,grid$)});
+   });
+   var init = F5(function (algType,width,height,seed,display) {
+      var cellGenFn = function () {    var _p4 = display;return $Grid.makeCells;}();
+      var mask = A2($Mask.createMask,width,height);
+      var grid$ = A3($Grid.createGridFromMask,mask,seed,cellGenFn);
+      return {grid: A3(applyAlg,algType,display,grid$),alg: algType,display: display};
+   });
+   var updateSize = F3(function (maze,width,height) {
+      return A5(init,maze.alg,A2($Debug.log,"width: ",width),A2($Debug.log,"height: ",height),maze.grid.rnd.seed,maze.display);
+   });
+   var gridMaker = F4(function (_p5,mask,display,seed) {    var _p6 = _p5;return true;});
+   var cellSize = 20;
    var Maze = F3(function (a,b,c) {    return {grid: a,alg: b,display: c};});
    var Polar = {ctor: "Polar"};
    var Colored = {ctor: "Colored"};
    var Ascii = {ctor: "Ascii"};
    var AlgAttr = F2(function (a,b) {    return {alg: a,name: b};});
-   var RecursiveBacktracker = {ctor: "RecursiveBacktracker"};
-   var defaultAlgorithm = RecursiveBacktracker;
-   var HuntAndKill = {ctor: "HuntAndKill"};
-   var Wilsons = {ctor: "Wilsons"};
-   var AldousBroder = {ctor: "AldousBroder"};
-   var Sidewinder = {ctor: "Sidewinder"};
    var BinaryTree = {ctor: "BinaryTree"};
+   var defaultAlgorithm = BinaryTree;
    var NoOp = {ctor: "NoOp"};
-   var algorithms = _U.list([{alg: NoOp,name: algToString(NoOp)}
-                            ,{alg: BinaryTree,name: algToString(BinaryTree)}
-                            ,{alg: Sidewinder,name: algToString(Sidewinder)}
-                            ,{alg: AldousBroder,name: algToString(AldousBroder)}
-                            ,{alg: Wilsons,name: algToString(Wilsons)}
-                            ,{alg: HuntAndKill,name: algToString(HuntAndKill)}
-                            ,{alg: RecursiveBacktracker,name: algToString(RecursiveBacktracker)}]);
+   var algorithms = _U.list([{alg: NoOp,name: algToString(NoOp)},{alg: BinaryTree,name: algToString(BinaryTree)}]);
    var algByName = function (str) {
       var res = $List.head(A2($List.filter,function (a) {    return _U.eq(a.name,str);},algorithms));
-      var _p6 = res;
-      if (_p6.ctor === "Just") {
-            return _p6._0.alg;
+      var _p7 = res;
+      if (_p7.ctor === "Just") {
+            return _p7._0.alg;
          } else {
-            return Sidewinder;
+            return BinaryTree;
          }
    };
    return _elm.Maze.values = {_op: _op
                              ,NoOp: NoOp
                              ,BinaryTree: BinaryTree
-                             ,Sidewinder: Sidewinder
-                             ,AldousBroder: AldousBroder
-                             ,Wilsons: Wilsons
-                             ,HuntAndKill: HuntAndKill
-                             ,RecursiveBacktracker: RecursiveBacktracker
                              ,AlgAttr: AlgAttr
                              ,Ascii: Ascii
                              ,Colored: Colored
@@ -12052,6 +11263,7 @@ Elm.Maze.make = function (_elm) {
                              ,cellSize: cellSize
                              ,gridMaker: gridMaker
                              ,init: init
+                             ,applyAlg: applyAlg
                              ,update: update
                              ,updateSize: updateSize
                              ,setMask: setMask

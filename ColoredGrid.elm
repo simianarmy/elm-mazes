@@ -2,7 +2,9 @@
 module ColoredGrid where
 
 import Distances exposing (Distances)
-import DistanceGrid exposing (createDistanceGrid)
+import DistanceGrid exposing (CellDistances, createDistanceGrid)
+import Cell exposing (Cell)
+import Grid exposing (Grid)
 
 import Color exposing (Color, rgb)
 
