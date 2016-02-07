@@ -1,41 +1,48 @@
 -- Module defining the Aldous-Broder maze creation algorithm
 module AldousBroder (on) where
 
-import Grid exposing (..)
+import Grid exposing (Grid)
+import PolarGrid
+import GridCell exposing (..)
 import Cell exposing (Cell)
 import GridUtils
 
 import Random
-import List exposing (..)
+import List
 import Array
 import Trampoline exposing (..)
 import Debug exposing (log)
 
-on : (Grid a -> Cell) -> Grid a -> Grid a
+on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
 on startCellFn grid =
     let grid' = Grid.updateRnd grid
+        startCell = Grid.maybeGridCellToGridCell <| startCellFn grid
     in
-       trampoline (walkRandomly grid' (startCellFn grid) ((size grid) - 1))
+       trampoline (walkRandomly grid' startCell ((Grid.size grid) - 1))
 
 -- Breaking out to try trampoline
-walkRandomly : Grid a -> Cell -> Int -> Trampoline (Grid a)
+walkRandomly : Grid a -> GridCell -> Int -> Trampoline (Grid a)
 walkRandomly grid cell unvisited =
     if unvisited == 0
        then Done grid
        else
        -- Pick a random neighbor of cell
-       -- TODO: Make it a utility function
-       let sample = neighbors grid cell
-           neighbor = toValidCell <| GridUtils.sampleCell sample grid.rnd
+       let sample = case cell of
+               RectCellTag rc -> Grid.neighbors grid cell
+               PolarCellTag pc -> PolarGrid.neighbors grid cell
+           -- gridcell
+           gcneighbor = Grid.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd
+           -- basecell
+           neighbor = Grid.toRectCell gcneighbor
        in
           -- if neighbor has no links
           if not <| Cell.hasLinks neighbor
              then
              -- link cell to neighbor and move to the neighbor
-             let grid' = updateRnd <| linkCells grid cell neighbor True
+             let grid' = Grid.updateRnd <| Grid.linkCells grid cell gcneighbor True
              in
-                Continue (\() -> walkRandomly grid' neighbor (unvisited - 1))
+                Continue (\() -> walkRandomly grid' gcneighbor (unvisited - 1))
              else
              -- move to the neighbor w/out linking
-             Continue (\() -> walkRandomly (updateRnd grid) neighbor unvisited)
+             Continue (\() -> walkRandomly (Grid.updateRnd grid) gcneighbor unvisited)
 

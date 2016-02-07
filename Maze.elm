@@ -9,7 +9,7 @@ import Rnd
 import GridCell exposing (GridCell)
 import BinaryTree
 import Sidewinder
---import AldousBroder
+import AldousBroder
 --import Wilsons
 --import HuntAndKill
 --import RecursiveBacktracker
@@ -21,7 +21,7 @@ import Html.Attributes exposing (..)
 type Algorithm = NoOp
                | BinaryTree
                | Sidewinder
-               --| AldousBroder
+               | AldousBroder
                --| Wilsons
                --| HuntAndKill
                --| RecursiveBacktracker
@@ -154,7 +154,7 @@ algorithms display =
         --, {alg = HuntAndKill, name = algToString HuntAndKill}
         ]
         allAlgs = [
-        --, {alg = AldousBroder, name = algToString AldousBroder}
+            {alg = AldousBroder, name = algToString AldousBroder}
         --, {alg = Wilsons, name = algToString Wilsons}
         --, {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
         ]
@@ -168,7 +168,7 @@ getAlgFn algType randCellFn =
         NoOp -> identity
         BinaryTree -> BinaryTree.on randCellFn
         Sidewinder -> Sidewinder.on randCellFn
-        --AldousBroder -> AldousBroder.on Grid.randomCell
+        AldousBroder -> AldousBroder.on randCellFn
         --Wilsons -> Wilsons.on Grid.randomCell
         --HuntAndKill -> HuntAndKill.on Grid.randomCell
         --RecursiveBacktracker -> RecursiveBacktracker.on Grid.randomCell
@@ -179,7 +179,7 @@ algToString algType =
         NoOp -> "None"
         BinaryTree -> "Binary Tree"
         Sidewinder -> "Sidewinder"
-        --AldousBroder -> "Aldous-Broder"
+        AldousBroder -> "Aldous-Broder"
         --Wilsons -> "Wilsons"
         --HuntAndKill -> "Hunt - Kill"
         --RecursiveBacktracker -> "Recursive Backtracker"
