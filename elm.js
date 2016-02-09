@@ -11667,6 +11667,76 @@ Elm.Sidewinder.make = function (_elm) {
    var RowState = F2(function (a,b) {    return {run: a,grid: b};});
    return _elm.Sidewinder.values = {_op: _op,RowState: RowState,on: on};
 };
+Elm.Wilsons = Elm.Wilsons || {};
+Elm.Wilsons.make = function (_elm) {
+   "use strict";
+   _elm.Wilsons = _elm.Wilsons || {};
+   if (_elm.Wilsons.values) return _elm.Wilsons.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridCell = Elm.GridCell.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Trampoline = Elm.Trampoline.make(_elm);
+   var _op = {};
+   var filterGridCells = F2(function (fn,cells) {
+      var filterFn = function (e) {
+         var cell = function () {    var _p0 = e;if (_p0.ctor === "RectCellTag") {    return _p0._0;} else {    return _p0._0._0;}}();
+         return fn(cell);
+      };
+      return A2($List.filter,filterFn,cells);
+   });
+   var carvePassage = function (rwp) {
+      var pathArr = $Array.fromList(rwp.path);
+      var carve = F2(function (index,rwp) {
+         var nextcell = $Grid.maybeGridCellToGridCell(A2($Array.get,index + 1,pathArr));
+         var icell = $Grid.maybeGridCellToGridCell(A2($Array.get,index,pathArr));
+         var grid$ = A4($Grid.linkCells,rwp.grid,icell,nextcell,true);
+         var icellId = $GridCell.id(icell);
+         var unvisited$ = A2(filterGridCells,function (e) {    return $Basics.not(_U.eq(e.id,icellId));},rwp.unvisited);
+         return _U.update(rwp,{grid: grid$,unvisited: unvisited$});
+      });
+      return A3($List.foldl,carve,rwp,_U.range(0,$List.length(rwp.path) - 2));
+   };
+   var loopErasedRandomWalk = function (rwp) {
+      loopErasedRandomWalk: while (true) if ($Basics.not(A2($List.member,rwp.cell,rwp.unvisited))) return carvePassage(rwp); else {
+            var grid = $Grid.updateRnd(rwp.grid);
+            var gccell = $Grid.maybeGridCellToGridCell(A2($GridUtils.sampleCell,A2($Grid.neighbors,rwp.grid,rwp.cell),rwp.grid.rnd));
+            var position = A2($GridUtils.indexOfCell,gccell,rwp.path);
+            if (_U.cmp(position,0) > -1) {
+                  var _v1 = _U.update(rwp,{grid: grid,cell: gccell,path: A2($List.take,position + 1,rwp.path)});
+                  rwp = _v1;
+                  continue loopErasedRandomWalk;
+               } else {
+                  var _v2 = _U.update(rwp,{grid: grid,cell: gccell,path: $List.concat(_U.list([rwp.path,_U.list([gccell])]))});
+                  rwp = _v2;
+                  continue loopErasedRandomWalk;
+               }
+         }
+   };
+   var work = F2(function (grid,unvisited) {
+      if ($List.isEmpty(unvisited)) return $Trampoline.Done(grid); else {
+            var cell = $Grid.maybeGridCellToGridCell(A2($GridUtils.sampleCell,unvisited,grid.rnd));
+            var rwp = loopErasedRandomWalk({grid: $Grid.updateRnd(grid),cell: cell,path: _U.list([cell]),unvisited: unvisited});
+            return $Trampoline.Continue(function (_p1) {    var _p2 = _p1;return A2(work,rwp.grid,rwp.unvisited);});
+         }
+   });
+   var on = F2(function (startCellFn,grid) {
+      var grid$ = $Grid.updateRnd(grid);
+      var startCell = $Grid.maybeGridCellToGridCell(startCellFn(grid));
+      var unvisited = A2(filterGridCells,function (e) {    return $Basics.not(_U.eq(e.id,$GridCell.id(startCell)));},grid.cells);
+      return $Trampoline.trampoline(A2(work,grid$,unvisited));
+   });
+   var RandomWalkPath = F4(function (a,b,c,d) {    return {grid: a,cell: b,path: c,unvisited: d};});
+   return _elm.Wilsons.values = {_op: _op,on: on};
+};
 Elm.Maze = Elm.Maze || {};
 Elm.Maze.make = function (_elm) {
    "use strict";
@@ -11687,7 +11757,8 @@ Elm.Maze.make = function (_elm) {
    $PolarGrid = Elm.PolarGrid.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $Wilsons = Elm.Wilsons.make(_elm);
    var _op = {};
    var algToString = function (algType) {
       var _p0 = algType;
@@ -11695,7 +11766,8 @@ Elm.Maze.make = function (_elm) {
       {case "NoOp": return "None";
          case "BinaryTree": return "Binary Tree";
          case "Sidewinder": return "Sidewinder";
-         default: return "Aldous-Broder";}
+         case "AldousBroder": return "Aldous-Broder";
+         default: return "Wilsons";}
    };
    var getAlgFn = F2(function (algType,randCellFn) {
       var _p1 = algType;
@@ -11703,7 +11775,8 @@ Elm.Maze.make = function (_elm) {
       {case "NoOp": return $Basics.identity;
          case "BinaryTree": return $BinaryTree.on(randCellFn);
          case "Sidewinder": return $Sidewinder.on(randCellFn);
-         default: return $AldousBroder.on(randCellFn);}
+         case "AldousBroder": return $AldousBroder.on(randCellFn);
+         default: return $Wilsons.on(randCellFn);}
    });
    var viewDistances = function (maze) {
       var root = $Grid.center(maze.grid);
@@ -11764,13 +11837,14 @@ Elm.Maze.make = function (_elm) {
    var Colored = {ctor: "Colored"};
    var Ascii = {ctor: "Ascii"};
    var AlgAttr = F2(function (a,b) {    return {alg: a,name: b};});
+   var Wilsons = {ctor: "Wilsons"};
    var AldousBroder = {ctor: "AldousBroder"};
    var Sidewinder = {ctor: "Sidewinder"};
    var BinaryTree = {ctor: "BinaryTree"};
    var defaultAlgorithm = BinaryTree;
    var NoOp = {ctor: "NoOp"};
    var algorithms = function (display) {
-      var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)}]);
+      var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)},{alg: Wilsons,name: algToString(Wilsons)}]);
       var rectAlgs = _U.list([{alg: BinaryTree,name: algToString(BinaryTree)},{alg: Sidewinder,name: algToString(Sidewinder)}]);
       var algs = _U.list([{alg: NoOp,name: algToString(NoOp)}]);
       var _p7 = display;
@@ -11794,6 +11868,7 @@ Elm.Maze.make = function (_elm) {
                              ,BinaryTree: BinaryTree
                              ,Sidewinder: Sidewinder
                              ,AldousBroder: AldousBroder
+                             ,Wilsons: Wilsons
                              ,AlgAttr: AlgAttr
                              ,Ascii: Ascii
                              ,Colored: Colored

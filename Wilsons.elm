@@ -21,10 +21,12 @@ type alias RandomWalkPath a = {
 
 on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
 on startCellFn grid =
-    let startCell = startCellFn grid
+    let startCell = Grid.maybeGridCellToGridCell <| startCellFn grid
         grid' = Grid.updateRnd grid
         -- get all cells but the sampled one
-        unvisited = filter (\e -> not <| e.id == startCell.id) grid.cells
+        unvisited = filterGridCells (\e ->
+            not <| e.id == (GridCell.id startCell)
+        ) grid.cells
     in
        trampoline (work grid' unvisited)
 
@@ -33,7 +35,7 @@ work grid unvisited =
     if isEmpty unvisited
        then Done grid
        else
-       let (cell) = Grid.toValidCell <| GridUtils.sampleCell unvisited grid.rnd
+       let (cell) = Grid.maybeGridCellToGridCell <| GridUtils.sampleCell unvisited grid.rnd
            rwp = loopErasedRandomWalk {
                grid = Grid.updateRnd grid,
                cell = cell,
@@ -49,16 +51,16 @@ loopErasedRandomWalk rwp =
     if not <| member rwp.cell rwp.unvisited
        then carvePassage rwp
        else
-       let cell' = Grid.toValidCell
+       let gccell = Grid.maybeGridCellToGridCell
            <| GridUtils.sampleCell (Grid.neighbors rwp.grid rwp.cell) rwp.grid.rnd
-           position = GridUtils.indexOfCell cell' rwp.path
+           position = GridUtils.indexOfCell gccell rwp.path
            grid = Grid.updateRnd rwp.grid
        in
           if position >= 0
              then
-             loopErasedRandomWalk {rwp | grid = grid, cell = cell', path = take (position + 1) rwp.path}
+             loopErasedRandomWalk {rwp | grid = grid, cell = gccell, path = take (position + 1) rwp.path}
              else
-             loopErasedRandomWalk {rwp | grid = grid, cell = cell', path = List.concat [rwp.path, [cell']]}
+             loopErasedRandomWalk {rwp | grid = grid, cell = gccell, path = List.concat [rwp.path, [gccell]]}
 
 carvePassage : RandomWalkPath a -> RandomWalkPath a
 carvePassage rwp =
@@ -72,7 +74,7 @@ carvePassage rwp =
                 grid' = Grid.linkCells rwp.grid icell nextcell True
                 icellId = GridCell.id icell
                 -- delete icell from unvisited
-                unvisited' = filter (\e -> not <| e.id == icellId) rwp.unvisited
+                unvisited' = filterGridCells (\e -> not <| e.id == icellId) rwp.unvisited
             in
                {rwp |
                    grid = grid',
@@ -80,4 +82,16 @@ carvePassage rwp =
                }
     in
        foldl carve rwp [0..((length rwp.path) - 2)]
+
+-- Helper to apply filter to list of gridcells
+filterGridCells : (BaseCell -> Bool) -> List GridCell -> List GridCell
+filterGridCells fn cells =
+    let filterFn = (\e ->
+        let cell = case e of 
+            RectCellTag c -> c
+            PolarCellTag (c, _) -> c
+        in
+           fn cell)
+    in
+        List.filter filterFn cells
 
