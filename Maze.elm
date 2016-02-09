@@ -11,7 +11,7 @@ import BinaryTree
 import Sidewinder
 import AldousBroder
 import Wilsons
---import HuntAndKill
+import HuntAndKill
 --import RecursiveBacktracker
 
 import Random exposing (Seed)
@@ -23,7 +23,7 @@ type Algorithm = NoOp
                | Sidewinder
                | AldousBroder
                | Wilsons
-               --| HuntAndKill
+               | HuntAndKill
                --| RecursiveBacktracker
 
 type alias AlgAttr = {
@@ -151,7 +151,7 @@ algorithms display =
         rectAlgs = [
             {alg = BinaryTree, name = algToString BinaryTree}
             , {alg = Sidewinder, name = algToString Sidewinder}
-        --, {alg = HuntAndKill, name = algToString HuntAndKill}
+            , {alg = HuntAndKill, name = algToString HuntAndKill}
         ]
         allAlgs = [
             {alg = AldousBroder, name = algToString AldousBroder}
@@ -170,7 +170,7 @@ getAlgFn algType randCellFn =
         Sidewinder -> Sidewinder.on randCellFn
         AldousBroder -> AldousBroder.on randCellFn
         Wilsons -> Wilsons.on randCellFn
-        --HuntAndKill -> HuntAndKill.on Grid.randomCell
+        HuntAndKill -> HuntAndKill.on randCellFn
         --RecursiveBacktracker -> RecursiveBacktracker.on Grid.randomCell
 
 algToString : Algorithm -> String
@@ -181,7 +181,7 @@ algToString algType =
         Sidewinder -> "Sidewinder"
         AldousBroder -> "Aldous-Broder"
         Wilsons -> "Wilsons"
-        --HuntAndKill -> "Hunt - Kill"
+        HuntAndKill -> "Hunt - Kill"
         --RecursiveBacktracker -> "Recursive Backtracker"
 
 algByName : String -> Algorithm

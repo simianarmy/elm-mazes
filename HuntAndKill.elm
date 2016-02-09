@@ -2,6 +2,7 @@
 module HuntAndKill (on) where
 
 import Grid exposing (Grid)
+import GridCell exposing (..)
 import Cell exposing (Cell)
 import GridUtils
 
@@ -12,52 +13,54 @@ import List.Extra as LE
 import Trampoline exposing (..)
 import Debug exposing (log)
 
-on : (Grid a -> Cell) -> Grid a -> Grid a
+on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
 on startCellFn grid =
     let grid' = Grid.updateRnd grid
     in
-       trampoline (walkRandomly grid' (startCellFn grid))
+       trampoline (walkRandomly grid' <| Grid.maybeGridCellToGridCell (startCellFn grid))
 
 -- Breaking out to try trampoline
-walkRandomly : Grid a -> Cell -> Trampoline (Grid a)
-walkRandomly grid cell =
-    if cell.row == -1
-       then Done grid
-       else
-       let unvisitedNeighbors = Grid.filterNeighbors (\c -> not <| Cell.hasLinks c) grid cell
-       in
-          if not <| isEmpty unvisitedNeighbors
-             then
-             -- random walk phase
-             let neighbor = GridUtils.sampleCell unvisitedNeighbors grid.rnd
-                 |> Grid.toValidCell
-                 grid' = Grid.linkCells grid cell neighbor True
-                 grid'' = Grid.updateRnd grid'
-             in
-                Continue (\() -> walkRandomly grid'' neighbor)
+walkRandomly : Grid a -> GridCell -> Trampoline (Grid a)
+walkRandomly grid gcell =
+    let cell = Grid.toRectCell gcell
+    in
+       if cell.row == -1
+          then Done grid
           else
-          -- hunt phase
-          let (grid', current) = hunt grid
+          let unvisitedNeighbors = Grid.filterNeighbors (\c -> not <| Cell.hasLinks (Grid.toRectCell c)) grid gcell
           in
-             Continue (\() -> walkRandomly grid' current)
+             if not <| isEmpty unvisitedNeighbors
+                then
+                -- random walk phase
+                let neighbor = GridUtils.sampleCell unvisitedNeighbors grid.rnd
+                    |> Grid.maybeGridCellToGridCell
+                    grid' = Grid.linkCells grid gcell neighbor True
+                    grid'' = Grid.updateRnd grid'
+                in
+                   Continue (\() -> walkRandomly grid'' neighbor)
+                   else
+                   -- hunt phase
+                   let (grid', current) = hunt grid
+                   in
+                      Continue (\() -> walkRandomly grid' current)
 
 
-hunt : Grid a -> (Grid a, Cell)
+hunt : Grid a -> (Grid a, GridCell)
 hunt grid =
-    let visitedNeighbors cell = Grid.filterNeighbors (\c -> Cell.hasLinks c) grid cell
+    let visitedNeighbors cell = Grid.filterNeighbors (\c -> Cell.hasLinks (Grid.toRectCell c)) grid cell
 
-        huntUnvisitedNeighbor : Cell -> Bool
-        huntUnvisitedNeighbor cell =
-            (not <| isEmpty (visitedNeighbors cell)) && (not <| Cell.hasLinks cell)
+        huntUnvisitedNeighbor : GridCell -> Bool
+        huntUnvisitedNeighbor gcell =
+            (not <| isEmpty (visitedNeighbors gcell)) && (not <| Cell.hasLinks (Grid.toRectCell gcell))
 
         huntedCell = LE.find huntUnvisitedNeighbor grid.cells
     in
        case huntedCell of
           -- no results, return an invalid cell
-          Nothing -> (grid, (Cell.createCell -1 -1))
+          Nothing -> (grid, (RectCellTag Cell.createNilCell))
           Just a ->
               let linked = GridUtils.sampleCell (visitedNeighbors a) grid.rnd
-                         |> Grid.toValidCell
+                         |> Grid.maybeGridCellToGridCell
               in
                  ((Grid.linkCells (Grid.updateRnd grid) a linked True), a)
 

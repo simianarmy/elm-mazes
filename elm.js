@@ -6520,6 +6520,426 @@ Elm.Set.make = function (_elm) {
                             ,toList: toList
                             ,fromList: fromList};
 };
+Elm.List = Elm.List || {};
+Elm.List.Extra = Elm.List.Extra || {};
+Elm.List.Extra.make = function (_elm) {
+   "use strict";
+   _elm.List = _elm.List || {};
+   _elm.List.Extra = _elm.List.Extra || {};
+   if (_elm.List.Extra.values) return _elm.List.Extra.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Set = Elm.Set.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var zip5 = $List.map5(F5(function (v0,v1,v2,v3,v4) {    return {ctor: "_Tuple5",_0: v0,_1: v1,_2: v2,_3: v3,_4: v4};}));
+   var zip4 = $List.map4(F4(function (v0,v1,v2,v3) {    return {ctor: "_Tuple4",_0: v0,_1: v1,_2: v2,_3: v3};}));
+   var zip3 = $List.map3(F3(function (v0,v1,v2) {    return {ctor: "_Tuple3",_0: v0,_1: v1,_2: v2};}));
+   var zip = $List.map2(F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}));
+   var isPrefixOf = function (prefix) {
+      return function (_p0) {
+         return A2($List.all,$Basics.identity,A3($List.map2,F2(function (x,y) {    return _U.eq(x,y);}),prefix,_p0));
+      };
+   };
+   var isSuffixOf = F2(function (suffix,xs) {    return A2(isPrefixOf,$List.reverse(suffix),$List.reverse(xs));});
+   var selectSplit = function (xs) {
+      var _p1 = xs;
+      if (_p1.ctor === "[]") {
+            return _U.list([]);
+         } else {
+            var _p5 = _p1._1;
+            var _p4 = _p1._0;
+            return A2($List._op["::"],
+            {ctor: "_Tuple3",_0: _U.list([]),_1: _p4,_2: _p5},
+            A2($List.map,
+            function (_p2) {
+               var _p3 = _p2;
+               return {ctor: "_Tuple3",_0: A2($List._op["::"],_p4,_p3._0),_1: _p3._1,_2: _p3._2};
+            },
+            selectSplit(_p5)));
+         }
+   };
+   var select = function (xs) {
+      var _p6 = xs;
+      if (_p6.ctor === "[]") {
+            return _U.list([]);
+         } else {
+            var _p10 = _p6._1;
+            var _p9 = _p6._0;
+            return A2($List._op["::"],
+            {ctor: "_Tuple2",_0: _p9,_1: _p10},
+            A2($List.map,function (_p7) {    var _p8 = _p7;return {ctor: "_Tuple2",_0: _p8._0,_1: A2($List._op["::"],_p9,_p8._1)};},select(_p10)));
+         }
+   };
+   var tailsHelp = F2(function (e,list) {
+      var _p11 = list;
+      if (_p11.ctor === "::") {
+            var _p12 = _p11._0;
+            return A2($List._op["::"],A2($List._op["::"],e,_p12),A2($List._op["::"],_p12,_p11._1));
+         } else {
+            return _U.list([]);
+         }
+   });
+   var tails = A2($List.foldr,tailsHelp,_U.list([_U.list([])]));
+   var isInfixOf = F2(function (infix,xs) {    return A2($List.any,isPrefixOf(infix),tails(xs));});
+   var inits = A2($List.foldr,
+   F2(function (e,acc) {    return A2($List._op["::"],_U.list([]),A2($List.map,F2(function (x,y) {    return A2($List._op["::"],x,y);})(e),acc));}),
+   _U.list([_U.list([])]));
+   var groupByTransitive = F2(function (cmp,xs$) {
+      var _p13 = xs$;
+      if (_p13.ctor === "[]") {
+            return _U.list([]);
+         } else {
+            if (_p13._1.ctor === "[]") {
+                  return _U.list([_U.list([_p13._0])]);
+               } else {
+                  var _p15 = _p13._0;
+                  var _p14 = A2(groupByTransitive,cmp,_p13._1);
+                  if (_p14.ctor === "::") {
+                        return A2(cmp,_p15,_p13._1._0) ? A2($List._op["::"],A2($List._op["::"],_p15,_p14._0),_p14._1) : A2($List._op["::"],
+                        _U.list([_p15]),
+                        _p14);
+                     } else {
+                        return _U.list([]);
+                     }
+               }
+         }
+   });
+   var stripPrefix = F2(function (prefix,xs) {
+      var step = F2(function (e,m) {
+         var _p16 = m;
+         if (_p16.ctor === "Nothing") {
+               return $Maybe.Nothing;
+            } else {
+               if (_p16._0.ctor === "[]") {
+                     return $Maybe.Nothing;
+                  } else {
+                     return _U.eq(e,_p16._0._0) ? $Maybe.Just(_p16._0._1) : $Maybe.Nothing;
+                  }
+            }
+      });
+      return A3($List.foldl,step,$Maybe.Just(xs),prefix);
+   });
+   var dropWhileEnd = function (p) {
+      return A2($List.foldr,F2(function (x,xs) {    return p(x) && $List.isEmpty(xs) ? _U.list([]) : A2($List._op["::"],x,xs);}),_U.list([]));
+   };
+   var takeWhileEnd = function (p) {
+      var step = F2(function (x,_p17) {
+         var _p18 = _p17;
+         var _p19 = _p18._0;
+         return p(x) && _p18._1 ? {ctor: "_Tuple2",_0: A2($List._op["::"],x,_p19),_1: true} : {ctor: "_Tuple2",_0: _p19,_1: false};
+      });
+      return function (_p20) {
+         return $Basics.fst(A3($List.foldr,step,{ctor: "_Tuple2",_0: _U.list([]),_1: true},_p20));
+      };
+   };
+   var splitAt = F2(function (n,xs) {    return {ctor: "_Tuple2",_0: A2($List.take,n,xs),_1: A2($List.drop,n,xs)};});
+   var unfoldr = F2(function (f,seed) {
+      var _p21 = f(seed);
+      if (_p21.ctor === "Nothing") {
+            return _U.list([]);
+         } else {
+            return A2($List._op["::"],_p21._0._0,A2(unfoldr,f,_p21._0._1));
+         }
+   });
+   var scanr1 = F2(function (f,xs$) {
+      var _p22 = xs$;
+      if (_p22.ctor === "[]") {
+            return _U.list([]);
+         } else {
+            if (_p22._1.ctor === "[]") {
+                  return _U.list([_p22._0]);
+               } else {
+                  var _p23 = A2(scanr1,f,_p22._1);
+                  if (_p23.ctor === "::") {
+                        return A2($List._op["::"],A2(f,_p22._0,_p23._0),_p23);
+                     } else {
+                        return _U.list([]);
+                     }
+               }
+         }
+   });
+   var scanr = F3(function (f,acc,xs$) {
+      var _p24 = xs$;
+      if (_p24.ctor === "[]") {
+            return _U.list([acc]);
+         } else {
+            var _p25 = A3(scanr,f,acc,_p24._1);
+            if (_p25.ctor === "::") {
+                  return A2($List._op["::"],A2(f,_p24._0,_p25._0),_p25);
+               } else {
+                  return _U.list([]);
+               }
+         }
+   });
+   var scanl1 = F2(function (f,xs$) {
+      var _p26 = xs$;
+      if (_p26.ctor === "[]") {
+            return _U.list([]);
+         } else {
+            return A3($List.scanl,f,_p26._0,_p26._1);
+         }
+   });
+   var foldr1 = F2(function (f,xs) {
+      var mf = F2(function (x,m) {
+         return $Maybe.Just(function () {    var _p27 = m;if (_p27.ctor === "Nothing") {    return x;} else {    return A2(f,x,_p27._0);}}());
+      });
+      return A3($List.foldr,mf,$Maybe.Nothing,xs);
+   });
+   var foldl1 = F2(function (f,xs) {
+      var mf = F2(function (x,m) {
+         return $Maybe.Just(function () {    var _p28 = m;if (_p28.ctor === "Nothing") {    return x;} else {    return A2(f,_p28._0,x);}}());
+      });
+      return A3($List.foldl,mf,$Maybe.Nothing,xs);
+   });
+   var permutations = function (xs$) {
+      var _p29 = xs$;
+      if (_p29.ctor === "[]") {
+            return _U.list([_U.list([])]);
+         } else {
+            var f = function (_p30) {
+               var _p31 = _p30;
+               return A2($List.map,F2(function (x,y) {    return A2($List._op["::"],x,y);})(_p31._0),permutations(_p31._1));
+            };
+            return A2($List.concatMap,f,select(_p29));
+         }
+   };
+   var isPermutationOf = F2(function (permut,xs) {    return A2($List.member,permut,permutations(xs));});
+   var subsequencesNonEmpty = function (xs) {
+      var _p32 = xs;
+      if (_p32.ctor === "[]") {
+            return _U.list([]);
+         } else {
+            var _p33 = _p32._0;
+            var f = F2(function (ys,r) {    return A2($List._op["::"],ys,A2($List._op["::"],A2($List._op["::"],_p33,ys),r));});
+            return A2($List._op["::"],_U.list([_p33]),A3($List.foldr,f,_U.list([]),subsequencesNonEmpty(_p32._1)));
+         }
+   };
+   var subsequences = function (xs) {    return A2($List._op["::"],_U.list([]),subsequencesNonEmpty(xs));};
+   var isSubsequenceOf = F2(function (subseq,xs) {    return A2($List.member,subseq,subsequences(xs));});
+   var transpose = function (ll) {
+      transpose: while (true) {
+         var _p34 = ll;
+         if (_p34.ctor === "[]") {
+               return _U.list([]);
+            } else {
+               if (_p34._0.ctor === "[]") {
+                     var _v21 = _p34._1;
+                     ll = _v21;
+                     continue transpose;
+                  } else {
+                     var _p35 = _p34._1;
+                     var tails = A2($List.filterMap,$List.tail,_p35);
+                     var heads = A2($List.filterMap,$List.head,_p35);
+                     return A2($List._op["::"],A2($List._op["::"],_p34._0._0,heads),transpose(A2($List._op["::"],_p34._0._1,tails)));
+                  }
+            }
+      }
+   };
+   var intercalate = function (xs) {    return function (_p36) {    return $List.concat(A2($List.intersperse,xs,_p36));};};
+   var singleton = function (x) {    return _U.list([x]);};
+   var replaceIf = F3(function (predicate,replacement,list) {
+      return A2($List.map,function (item) {    return predicate(item) ? replacement : item;},list);
+   });
+   var findIndices = function (p) {
+      return function (_p37) {
+         return A2($List.map,
+         $Basics.fst,
+         A2($List.filter,
+         function (_p38) {
+            var _p39 = _p38;
+            return p(_p39._1);
+         },
+         A2($List.indexedMap,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),_p37)));
+      };
+   };
+   var findIndex = function (p) {    return function (_p40) {    return $List.head(A2(findIndices,p,_p40));};};
+   var elemIndices = function (x) {    return findIndices(F2(function (x,y) {    return _U.eq(x,y);})(x));};
+   var elemIndex = function (x) {    return findIndex(F2(function (x,y) {    return _U.eq(x,y);})(x));};
+   var find = F2(function (predicate,list) {
+      find: while (true) {
+         var _p41 = list;
+         if (_p41.ctor === "[]") {
+               return $Maybe.Nothing;
+            } else {
+               var _p42 = _p41._0;
+               if (predicate(_p42)) return $Maybe.Just(_p42); else {
+                     var _v24 = predicate,_v25 = _p41._1;
+                     predicate = _v24;
+                     list = _v25;
+                     continue find;
+                  }
+            }
+      }
+   });
+   var notMember = function (x) {    return function (_p43) {    return $Basics.not(A2($List.member,x,_p43));};};
+   var andThen = $Basics.flip($List.concatMap);
+   var lift2 = F3(function (f,la,lb) {    return A2(andThen,la,function (a) {    return A2(andThen,lb,function (b) {    return _U.list([A2(f,a,b)]);});});});
+   var lift3 = F4(function (f,la,lb,lc) {
+      return A2(andThen,
+      la,
+      function (a) {
+         return A2(andThen,lb,function (b) {    return A2(andThen,lc,function (c) {    return _U.list([A3(f,a,b,c)]);});});
+      });
+   });
+   var lift4 = F5(function (f,la,lb,lc,ld) {
+      return A2(andThen,
+      la,
+      function (a) {
+         return A2(andThen,
+         lb,
+         function (b) {
+            return A2(andThen,lc,function (c) {    return A2(andThen,ld,function (d) {    return _U.list([A4(f,a,b,c,d)]);});});
+         });
+      });
+   });
+   var andMap = F2(function (fl,l) {    return A3($List.map2,F2(function (x,y) {    return x(y);}),fl,l);});
+   var dropDuplicates = function (list) {
+      var step = F2(function (next,_p44) {
+         var _p45 = _p44;
+         var _p47 = _p45._0;
+         var _p46 = _p45._1;
+         return A2($Set.member,next,_p47) ? {ctor: "_Tuple2",_0: _p47,_1: _p46} : {ctor: "_Tuple2"
+                                                                                  ,_0: A2($Set.insert,next,_p47)
+                                                                                  ,_1: A2($List._op["::"],next,_p46)};
+      });
+      return $List.reverse($Basics.snd(A3($List.foldl,step,{ctor: "_Tuple2",_0: $Set.empty,_1: _U.list([])},list)));
+   };
+   var dropWhile = F2(function (predicate,list) {
+      dropWhile: while (true) {
+         var _p48 = list;
+         if (_p48.ctor === "[]") {
+               return _U.list([]);
+            } else {
+               if (predicate(_p48._0)) {
+                     var _v28 = predicate,_v29 = _p48._1;
+                     predicate = _v28;
+                     list = _v29;
+                     continue dropWhile;
+                  } else return list;
+            }
+      }
+   });
+   var takeWhile = F2(function (predicate,list) {
+      var _p49 = list;
+      if (_p49.ctor === "[]") {
+            return _U.list([]);
+         } else {
+            var _p50 = _p49._0;
+            return predicate(_p50) ? A2($List._op["::"],_p50,A2(takeWhile,predicate,_p49._1)) : _U.list([]);
+         }
+   });
+   var span = F2(function (p,xs) {    return {ctor: "_Tuple2",_0: A2(takeWhile,p,xs),_1: A2(dropWhile,p,xs)};});
+   var $break = function (p) {    return span(function (_p51) {    return $Basics.not(p(_p51));});};
+   var groupBy = F2(function (eq,xs$) {
+      var _p52 = xs$;
+      if (_p52.ctor === "[]") {
+            return _U.list([]);
+         } else {
+            var _p54 = _p52._0;
+            var _p53 = A2(span,eq(_p54),_p52._1);
+            var ys = _p53._0;
+            var zs = _p53._1;
+            return A2($List._op["::"],A2($List._op["::"],_p54,ys),A2(groupBy,eq,zs));
+         }
+   });
+   var group = groupBy(F2(function (x,y) {    return _U.eq(x,y);}));
+   var minimumBy = F2(function (f,ls) {
+      var minBy = F3(function (f,x,y) {    return _U.cmp(f(x),f(y)) < 0 ? x : y;});
+      var _p55 = ls;
+      if (_p55.ctor === "::") {
+            return $Maybe.Just(A3($List.foldl,minBy(f),_p55._0,_p55._1));
+         } else {
+            return $Maybe.Nothing;
+         }
+   });
+   var maximumBy = F2(function (f,ls) {
+      var maxBy = F3(function (f,x,y) {    return _U.cmp(f(x),f(y)) > 0 ? x : y;});
+      var _p56 = ls;
+      if (_p56.ctor === "::") {
+            return $Maybe.Just(A3($List.foldl,maxBy(f),_p56._0,_p56._1));
+         } else {
+            return $Maybe.Nothing;
+         }
+   });
+   var uncons = function (xs) {
+      var _p57 = xs;
+      if (_p57.ctor === "[]") {
+            return $Maybe.Nothing;
+         } else {
+            return $Maybe.Just({ctor: "_Tuple2",_0: _p57._0,_1: _p57._1});
+         }
+   };
+   var init = function () {
+      var maybe = F2(function (d,f) {    return function (_p58) {    return A2($Maybe.withDefault,d,A2($Maybe.map,f,_p58));};});
+      return A2($List.foldr,
+      function (_p59) {
+         return A2(F2(function (x,y) {    return function (_p60) {    return x(y(_p60));};}),
+         $Maybe.Just,
+         A2(maybe,_U.list([]),F2(function (x,y) {    return A2($List._op["::"],x,y);})(_p59)));
+      },
+      $Maybe.Nothing);
+   }();
+   var last = foldl1($Basics.flip($Basics.always));
+   return _elm.List.Extra.values = {_op: _op
+                                   ,last: last
+                                   ,init: init
+                                   ,uncons: uncons
+                                   ,minimumBy: minimumBy
+                                   ,maximumBy: maximumBy
+                                   ,andMap: andMap
+                                   ,andThen: andThen
+                                   ,takeWhile: takeWhile
+                                   ,dropWhile: dropWhile
+                                   ,dropDuplicates: dropDuplicates
+                                   ,replaceIf: replaceIf
+                                   ,singleton: singleton
+                                   ,intercalate: intercalate
+                                   ,transpose: transpose
+                                   ,subsequences: subsequences
+                                   ,permutations: permutations
+                                   ,foldl1: foldl1
+                                   ,foldr1: foldr1
+                                   ,scanl1: scanl1
+                                   ,scanr: scanr
+                                   ,scanr1: scanr1
+                                   ,unfoldr: unfoldr
+                                   ,splitAt: splitAt
+                                   ,takeWhileEnd: takeWhileEnd
+                                   ,dropWhileEnd: dropWhileEnd
+                                   ,span: span
+                                   ,$break: $break
+                                   ,stripPrefix: stripPrefix
+                                   ,group: group
+                                   ,groupBy: groupBy
+                                   ,groupByTransitive: groupByTransitive
+                                   ,inits: inits
+                                   ,tails: tails
+                                   ,select: select
+                                   ,selectSplit: selectSplit
+                                   ,isPrefixOf: isPrefixOf
+                                   ,isSuffixOf: isSuffixOf
+                                   ,isInfixOf: isInfixOf
+                                   ,isSubsequenceOf: isSubsequenceOf
+                                   ,isPermutationOf: isPermutationOf
+                                   ,notMember: notMember
+                                   ,find: find
+                                   ,elemIndex: elemIndex
+                                   ,elemIndices: elemIndices
+                                   ,findIndex: findIndex
+                                   ,findIndices: findIndices
+                                   ,zip: zip
+                                   ,zip3: zip3
+                                   ,zip4: zip4
+                                   ,zip5: zip5
+                                   ,lift2: lift2
+                                   ,lift3: lift3
+                                   ,lift4: lift4};
+};
 Elm.Native.Json = {};
 
 Elm.Native.Json.make = function(localRuntime) {
@@ -11619,6 +12039,63 @@ Elm.ColoredGrid.make = function (_elm) {
    });
    return _elm.ColoredGrid.values = {_op: _op,createGrid: createGrid,cellBackgroundColor: cellBackgroundColor};
 };
+Elm.HuntAndKill = Elm.HuntAndKill || {};
+Elm.HuntAndKill.make = function (_elm) {
+   "use strict";
+   _elm.HuntAndKill = _elm.HuntAndKill || {};
+   if (_elm.HuntAndKill.values) return _elm.HuntAndKill.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridCell = Elm.GridCell.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
+   $List = Elm.List.make(_elm),
+   $List$Extra = Elm.List.Extra.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Trampoline = Elm.Trampoline.make(_elm);
+   var _op = {};
+   var hunt = function (grid) {
+      var visitedNeighbors = function (cell) {    return A3($Grid.filterNeighbors,function (c) {    return $Cell.hasLinks($Grid.toRectCell(c));},grid,cell);};
+      var huntUnvisitedNeighbor = function (gcell) {
+         return $Basics.not($List.isEmpty(visitedNeighbors(gcell))) && $Basics.not($Cell.hasLinks($Grid.toRectCell(gcell)));
+      };
+      var huntedCell = A2($List$Extra.find,huntUnvisitedNeighbor,grid.cells);
+      var _p0 = huntedCell;
+      if (_p0.ctor === "Nothing") {
+            return {ctor: "_Tuple2",_0: grid,_1: $GridCell.RectCellTag($Cell.createNilCell)};
+         } else {
+            var _p1 = _p0._0;
+            var linked = $Grid.maybeGridCellToGridCell(A2($GridUtils.sampleCell,visitedNeighbors(_p1),grid.rnd));
+            return {ctor: "_Tuple2",_0: A4($Grid.linkCells,$Grid.updateRnd(grid),_p1,linked,true),_1: _p1};
+         }
+   };
+   var walkRandomly = F2(function (grid,gcell) {
+      var cell = $Grid.toRectCell(gcell);
+      if (_U.eq(cell.row,-1)) return $Trampoline.Done(grid); else {
+            var unvisitedNeighbors = A3($Grid.filterNeighbors,function (c) {    return $Basics.not($Cell.hasLinks($Grid.toRectCell(c)));},grid,gcell);
+            if ($Basics.not($List.isEmpty(unvisitedNeighbors))) {
+                  var neighbor = $Grid.maybeGridCellToGridCell(A2($GridUtils.sampleCell,unvisitedNeighbors,grid.rnd));
+                  var grid$ = A4($Grid.linkCells,grid,gcell,neighbor,true);
+                  var grid$$ = $Grid.updateRnd(grid$);
+                  return $Trampoline.Continue(function (_p2) {    var _p3 = _p2;return A2(walkRandomly,grid$$,neighbor);});
+               } else {
+                  var _p4 = hunt(grid);
+                  var grid$ = _p4._0;
+                  var current = _p4._1;
+                  return $Trampoline.Continue(function (_p5) {    var _p6 = _p5;return A2(walkRandomly,grid$,current);});
+               }
+         }
+   });
+   var on = F2(function (startCellFn,grid) {
+      var grid$ = $Grid.updateRnd(grid);
+      return $Trampoline.trampoline(A2(walkRandomly,grid$,$Grid.maybeGridCellToGridCell(startCellFn(grid))));
+   });
+   return _elm.HuntAndKill.values = {_op: _op,on: on};
+};
 Elm.Sidewinder = Elm.Sidewinder || {};
 Elm.Sidewinder.make = function (_elm) {
    "use strict";
@@ -11751,6 +12228,7 @@ Elm.Maze.make = function (_elm) {
    $DistanceGrid = Elm.DistanceGrid.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $Html = Elm.Html.make(_elm),
+   $HuntAndKill = Elm.HuntAndKill.make(_elm),
    $List = Elm.List.make(_elm),
    $Mask = Elm.Mask.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
@@ -11767,7 +12245,8 @@ Elm.Maze.make = function (_elm) {
          case "BinaryTree": return "Binary Tree";
          case "Sidewinder": return "Sidewinder";
          case "AldousBroder": return "Aldous-Broder";
-         default: return "Wilsons";}
+         case "Wilsons": return "Wilsons";
+         default: return "Hunt - Kill";}
    };
    var getAlgFn = F2(function (algType,randCellFn) {
       var _p1 = algType;
@@ -11776,7 +12255,8 @@ Elm.Maze.make = function (_elm) {
          case "BinaryTree": return $BinaryTree.on(randCellFn);
          case "Sidewinder": return $Sidewinder.on(randCellFn);
          case "AldousBroder": return $AldousBroder.on(randCellFn);
-         default: return $Wilsons.on(randCellFn);}
+         case "Wilsons": return $Wilsons.on(randCellFn);
+         default: return $HuntAndKill.on(randCellFn);}
    });
    var viewDistances = function (maze) {
       var root = $Grid.center(maze.grid);
@@ -11837,6 +12317,7 @@ Elm.Maze.make = function (_elm) {
    var Colored = {ctor: "Colored"};
    var Ascii = {ctor: "Ascii"};
    var AlgAttr = F2(function (a,b) {    return {alg: a,name: b};});
+   var HuntAndKill = {ctor: "HuntAndKill"};
    var Wilsons = {ctor: "Wilsons"};
    var AldousBroder = {ctor: "AldousBroder"};
    var Sidewinder = {ctor: "Sidewinder"};
@@ -11845,7 +12326,9 @@ Elm.Maze.make = function (_elm) {
    var NoOp = {ctor: "NoOp"};
    var algorithms = function (display) {
       var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)},{alg: Wilsons,name: algToString(Wilsons)}]);
-      var rectAlgs = _U.list([{alg: BinaryTree,name: algToString(BinaryTree)},{alg: Sidewinder,name: algToString(Sidewinder)}]);
+      var rectAlgs = _U.list([{alg: BinaryTree,name: algToString(BinaryTree)}
+                             ,{alg: Sidewinder,name: algToString(Sidewinder)}
+                             ,{alg: HuntAndKill,name: algToString(HuntAndKill)}]);
       var algs = _U.list([{alg: NoOp,name: algToString(NoOp)}]);
       var _p7 = display;
       if (_p7.ctor === "Polar") {
@@ -11869,6 +12352,7 @@ Elm.Maze.make = function (_elm) {
                              ,Sidewinder: Sidewinder
                              ,AldousBroder: AldousBroder
                              ,Wilsons: Wilsons
+                             ,HuntAndKill: HuntAndKill
                              ,AlgAttr: AlgAttr
                              ,Ascii: Ascii
                              ,Colored: Colored
