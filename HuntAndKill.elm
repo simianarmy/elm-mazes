@@ -24,7 +24,7 @@ walkRandomly : Grid a -> GridCell -> Trampoline (Grid a)
 walkRandomly grid gcell =
     let cell = Grid.toRectCell gcell
     in
-       if cell.row == -1
+       if Cell.isNilCell cell
           then Done grid
           else
           let unvisitedNeighbors = Grid.filterNeighbors (\c -> not <| Cell.hasLinks (Grid.toRectCell c)) grid gcell
@@ -38,16 +38,17 @@ walkRandomly grid gcell =
                     grid'' = Grid.updateRnd grid'
                 in
                    Continue (\() -> walkRandomly grid'' neighbor)
-                   else
-                   -- hunt phase
-                   let (grid', current) = hunt grid
-                   in
-                      Continue (\() -> walkRandomly grid' current)
+               else
+               -- hunt phase
+               let (grid', current) = hunt grid
+               in
+                  Continue (\() -> walkRandomly grid' current)
 
 
 hunt : Grid a -> (Grid a, GridCell)
 hunt grid =
-    let visitedNeighbors cell = Grid.filterNeighbors (\c -> Cell.hasLinks (Grid.toRectCell c)) grid cell
+    let visitedNeighbors : GridCell -> List GridCell
+        visitedNeighbors cell = Grid.filterNeighbors (\c -> Cell.hasLinks (Grid.toRectCell c)) grid cell
 
         huntUnvisitedNeighbor : GridCell -> Bool
         huntUnvisitedNeighbor gcell =

@@ -12075,7 +12075,7 @@ Elm.HuntAndKill.make = function (_elm) {
    };
    var walkRandomly = F2(function (grid,gcell) {
       var cell = $Grid.toRectCell(gcell);
-      if (_U.eq(cell.row,-1)) return $Trampoline.Done(grid); else {
+      if ($Cell.isNilCell(cell)) return $Trampoline.Done(grid); else {
             var unvisitedNeighbors = A3($Grid.filterNeighbors,function (c) {    return $Basics.not($Cell.hasLinks($Grid.toRectCell(c)));},grid,gcell);
             if ($Basics.not($List.isEmpty(unvisitedNeighbors))) {
                   var neighbor = $Grid.maybeGridCellToGridCell(A2($GridUtils.sampleCell,unvisitedNeighbors,grid.rnd));
@@ -12214,6 +12214,46 @@ Elm.Wilsons.make = function (_elm) {
    var RandomWalkPath = F4(function (a,b,c,d) {    return {grid: a,cell: b,path: c,unvisited: d};});
    return _elm.Wilsons.values = {_op: _op,on: on};
 };
+Elm.RecursiveBacktracker = Elm.RecursiveBacktracker || {};
+Elm.RecursiveBacktracker.make = function (_elm) {
+   "use strict";
+   _elm.RecursiveBacktracker = _elm.RecursiveBacktracker || {};
+   if (_elm.RecursiveBacktracker.values) return _elm.RecursiveBacktracker.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridCell = Elm.GridCell.make(_elm),
+   $GridUtils = Elm.GridUtils.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Trampoline = Elm.Trampoline.make(_elm);
+   var _op = {};
+   var walkRandomly = F2(function (grid,stack) {
+      if ($List.isEmpty(stack)) return $Trampoline.Done(grid); else {
+            var current = $Grid.maybeGridCellToGridCell($List.head(stack));
+            var neighbors = A3($Grid.filterNeighbors,function (c) {    return $Basics.not($Cell.hasLinks($Grid.toRectCell(c)));},grid,current);
+            if ($List.isEmpty(neighbors)) return $Trampoline.Continue(function (_p0) {
+                  var _p1 = _p0;
+                  return A2(walkRandomly,grid,A2($Maybe.withDefault,_U.list([]),$List.tail(stack)));
+               }); else {
+                  var neighbor = $Grid.maybeGridCellToGridCell(A2($GridUtils.sampleCell,neighbors,grid.rnd));
+                  var grid$ = A4($Grid.linkCells,grid,current,neighbor,true);
+                  var grid$$ = $Grid.updateRnd(grid$);
+                  return $Trampoline.Continue(function (_p2) {    var _p3 = _p2;return A2(walkRandomly,grid$$,A2($List._op["::"],neighbor,stack));});
+               }
+         }
+   });
+   var on = F2(function (startCellFn,grid) {
+      var gcell = $Grid.maybeGridCellToGridCell(startCellFn(grid));
+      var grid$ = $Grid.updateRnd(grid);
+      return $Trampoline.trampoline(A2(walkRandomly,grid$,_U.list([gcell])));
+   });
+   return _elm.RecursiveBacktracker.values = {_op: _op,on: on};
+};
 Elm.Maze = Elm.Maze || {};
 Elm.Maze.make = function (_elm) {
    "use strict";
@@ -12233,6 +12273,7 @@ Elm.Maze.make = function (_elm) {
    $Mask = Elm.Mask.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $PolarGrid = Elm.PolarGrid.make(_elm),
+   $RecursiveBacktracker = Elm.RecursiveBacktracker.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm),
@@ -12246,7 +12287,8 @@ Elm.Maze.make = function (_elm) {
          case "Sidewinder": return "Sidewinder";
          case "AldousBroder": return "Aldous-Broder";
          case "Wilsons": return "Wilsons";
-         default: return "Hunt - Kill";}
+         case "HuntAndKill": return "Hunt - Kill";
+         default: return "Recursive Backtracker";}
    };
    var getAlgFn = F2(function (algType,randCellFn) {
       var _p1 = algType;
@@ -12256,7 +12298,8 @@ Elm.Maze.make = function (_elm) {
          case "Sidewinder": return $Sidewinder.on(randCellFn);
          case "AldousBroder": return $AldousBroder.on(randCellFn);
          case "Wilsons": return $Wilsons.on(randCellFn);
-         default: return $HuntAndKill.on(randCellFn);}
+         case "HuntAndKill": return $HuntAndKill.on(randCellFn);
+         default: return $RecursiveBacktracker.on(randCellFn);}
    });
    var viewDistances = function (maze) {
       var root = $Grid.center(maze.grid);
@@ -12317,6 +12360,7 @@ Elm.Maze.make = function (_elm) {
    var Colored = {ctor: "Colored"};
    var Ascii = {ctor: "Ascii"};
    var AlgAttr = F2(function (a,b) {    return {alg: a,name: b};});
+   var RecursiveBacktracker = {ctor: "RecursiveBacktracker"};
    var HuntAndKill = {ctor: "HuntAndKill"};
    var Wilsons = {ctor: "Wilsons"};
    var AldousBroder = {ctor: "AldousBroder"};
@@ -12325,7 +12369,9 @@ Elm.Maze.make = function (_elm) {
    var defaultAlgorithm = BinaryTree;
    var NoOp = {ctor: "NoOp"};
    var algorithms = function (display) {
-      var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)},{alg: Wilsons,name: algToString(Wilsons)}]);
+      var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)}
+                            ,{alg: Wilsons,name: algToString(Wilsons)}
+                            ,{alg: RecursiveBacktracker,name: algToString(RecursiveBacktracker)}]);
       var rectAlgs = _U.list([{alg: BinaryTree,name: algToString(BinaryTree)}
                              ,{alg: Sidewinder,name: algToString(Sidewinder)}
                              ,{alg: HuntAndKill,name: algToString(HuntAndKill)}]);
@@ -12353,6 +12399,7 @@ Elm.Maze.make = function (_elm) {
                              ,AldousBroder: AldousBroder
                              ,Wilsons: Wilsons
                              ,HuntAndKill: HuntAndKill
+                             ,RecursiveBacktracker: RecursiveBacktracker
                              ,AlgAttr: AlgAttr
                              ,Ascii: Ascii
                              ,Colored: Colored
