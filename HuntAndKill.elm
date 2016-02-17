@@ -22,12 +22,12 @@ on startCellFn grid =
 -- Breaking out to try trampoline
 walkRandomly : Grid a -> GridCell -> Trampoline (Grid a)
 walkRandomly grid gcell =
-    let cell = Grid.toRectCell gcell
+    let cell = GridCell.toRectCell gcell
     in
        if Cell.isNilCell cell
           then Done grid
           else
-          let unvisitedNeighbors = Grid.filterNeighbors (\c -> not <| Cell.hasLinks (Grid.toRectCell c)) grid gcell
+          let unvisitedNeighbors = Grid.filterNeighbors (\c -> not <| Cell.hasLinks (GridCell.toRectCell c)) grid gcell
           in
              if not <| isEmpty unvisitedNeighbors
                 then
@@ -48,11 +48,11 @@ walkRandomly grid gcell =
 hunt : Grid a -> (Grid a, GridCell)
 hunt grid =
     let visitedNeighbors : GridCell -> List GridCell
-        visitedNeighbors cell = Grid.filterNeighbors (\c -> Cell.hasLinks (Grid.toRectCell c)) grid cell
+        visitedNeighbors cell = Grid.filterNeighbors (\c -> Cell.hasLinks (GridCell.toRectCell c)) grid cell
 
         huntUnvisitedNeighbor : GridCell -> Bool
         huntUnvisitedNeighbor gcell =
-            (not <| isEmpty (visitedNeighbors gcell)) && (not <| Cell.hasLinks (Grid.toRectCell gcell))
+            (not <| isEmpty (visitedNeighbors gcell)) && (not <| Cell.hasLinks (GridCell.toRectCell gcell))
 
         huntedCell = LE.find huntUnvisitedNeighbor grid.cells
     in

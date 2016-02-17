@@ -108,7 +108,6 @@ view maze =
                 in
                    fromElement <| Grid.toElement coloredGrid Grid.painter ColoredGrid.cellBackgroundColor cellSize
             Polar ->
-                --text "foo"
                 fromElement <| Grid.toElement maze.grid PolarGrid.painter Grid.cellBackgroundColor cellSize
     in
        div [] [

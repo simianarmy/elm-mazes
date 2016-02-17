@@ -28,7 +28,7 @@ walkRandomly grid stack =
        then Done grid
        else
        let current = head stack |> Grid.maybeGridCellToGridCell
-           neighbors = Grid.filterNeighbors (\c -> not <| Cell.hasLinks (Grid.toRectCell c)) grid current
+           neighbors = Grid.filterNeighbors (\c -> not <| Cell.hasLinks (GridCell.toRectCell c)) grid current
        in
            if isEmpty neighbors
               then Continue (\() -> walkRandomly grid (Maybe.withDefault [] (tail stack)))

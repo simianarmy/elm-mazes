@@ -1,6 +1,7 @@
 module GridCell where
 
 import Cell exposing (BaseCell, CellID, CellLinks)
+import Set
 
 -- Abstract cell list type
 -- type OldGridCell
@@ -17,4 +18,31 @@ id gc =
     case gc of
         RectCellTag bc -> bc.id
         PolarCellTag (bc, _) -> bc.id
+
+toRectCell : GridCell -> BaseCell
+toRectCell cell =
+    case cell of
+        RectCellTag c -> c
+        PolarCellTag (c, _) -> c
+
+toPolarCell : GridCell -> (BaseCell, (CellID, CellLinks))
+toPolarCell cell =
+    case cell of
+        RectCellTag c -> (c, ((-1, -1), Set.empty))
+        PolarCellTag c -> c
+
+setInwardCell : GridCell -> GridCell -> GridCell
+setInwardCell cell inward =
+    let (c, (cid, links)) = toPolarCell cell
+        (ic, (icid, _)) = toPolarCell inward
+    in
+       PolarCellTag (c, (icid, links))
+
+addOutwardLink : GridCell -> GridCell -> GridCell
+addOutwardLink parentCell outwardCell =
+    let (pcell, (pcid, pclinks)) = toPolarCell parentCell
+        (cell, (cid, clinks)) = toPolarCell outwardCell
+        newLinks = Set.insert cid pclinks
+    in
+       PolarCellTag (pcell, (pcid, newLinks))
 

@@ -5,6 +5,7 @@ import Grid exposing (..)
 import Mask exposing (Mask)
 import Cell exposing (Cell, BaseCell, CellID, CellLinks)
 import GridCell exposing (..)
+import GridUtils
 
 import Set
 import Array
@@ -46,14 +47,48 @@ makeCells mask =
            |> Array.toList
            |> List.concat
     in
-       configureCells cellList
+       configureCells nrows ncols cellList
+
+type alias ConfigStep = {
+    cells: List GridCell,
+    rows: Int,
+    cols: Int
+}
 
 -- Performs additional processing on generated cells
 -- Calculates each cell's parent and inward properties
-configureCells : List GridCell -> List GridCell
-configureCells cells =
-    -- map cells to tuple (cell, parent)
-    cells
+configureCells : Int -> Int -> List GridCell -> List GridCell
+configureCells rows cols incells =
+    let res = {
+            cells = incells,
+            rows = rows,
+            cols = cols
+        }
+        ---- recursive worker.  accumulates results in res
+        configurer : GridCell -> ConfigStep -> ConfigStep
+        configurer gc work =
+            let (cell, _) = GridCell.toPolarCell gc
+                rowLen = List.length (Grid.rowCells res cell.row)
+                divLen = List.length (Grid.rowCells res (cell.row - 1))
+                ratio = (toFloat rowLen) / (toFloat divLen)
+                -- parent must be a PolarCellTag
+                parent = Grid.maybeGridCellToGridCell 
+                <| Grid.getCell res (cell.row - 1) (cell.col // (round ratio))
+                -- update the CellLinks of this PolarCellTag
+                parent' = GridCell.addOutwardLink parent gc
+                cell' = GridCell.setInwardCell gc parent'
+                -- Replace cell with cell' in res cells
+                cellIndex = GridUtils.indexOfCell cell' res.cells
+                newCells = List.indexedMap (\idx -> \gcell ->
+                    if (idx == cellIndex)
+                       then cell'
+                       else gcell
+                ) res.cells
+            in
+               {work | cells = newCells}
+    in
+       -- process each cell, saving modified list as we go along
+       .cells <| List.foldl configurer res incells
 
 clockwiseCell : Grid a -> BaseCell -> Maybe (BaseCell, (CellID, CellLinks))
 clockwiseCell grid cell =
@@ -73,7 +108,7 @@ outwardCell grid outward =
 
 gridCellsToPolarCells : List GridCell -> List (BaseCell, (CellID, CellLinks))
 gridCellsToPolarCells gridcells =
-    List.map toPolarCell gridcells
+    List.map GridCell.toPolarCell gridcells
 
 polarCellsToGridCells : List (BaseCell, (CellID, CellLinks)) -> List GridCell
 polarCellsToGridCells cells =
@@ -85,12 +120,6 @@ toValidCell cell =
         Just c -> c
         Nothing -> (Cell.createNilCell, ((-1, -1), Set.empty))
 
-toPolarCell : GridCell -> (BaseCell, (CellID, CellLinks))
-toPolarCell cell =
-    case cell of
-        RectCellTag c -> (c, ((-1, -1), Set.empty))
-        PolarCellTag c -> c
-
 toCellList : Maybe (BaseCell, (CellID, CellLinks)) -> List GridCell
 toCellList cell =
     case cell of
@@ -99,7 +128,7 @@ toCellList cell =
 
 maybeGridCellToMaybePolarCell : Maybe GridCell -> Maybe (BaseCell, (CellID, CellLinks))
 maybeGridCellToMaybePolarCell cell =
-    Maybe.map toPolarCell cell
+    Maybe.map GridCell.toPolarCell cell
 
 randomCell: Grid a -> Maybe GridCell
 randomCell grid =
@@ -152,7 +181,7 @@ painter cellPainter grid cellSize =
                 dx = (center + (outerRadius * (cos thetaCw)))
                 dy = (center + (outerRadius * (sin thetaCw)))
 
-                linkedInward = Cell.isLinked cell (fst <| toPolarCell <| (Grid.cellIdToCell grid inward))
+                linkedInward = Cell.isLinked cell (fst <| GridCell.toPolarCell <| (Grid.cellIdToCell grid inward))
                 linkedCw  = Cell.isLinked cell (fst <| toValidCell (clockwiseCell grid cell))
                 line1 = if not linkedInward
                            then [GC.segment (ax, ay) (cx, cy)]

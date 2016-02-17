@@ -14,18 +14,19 @@ on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
 on startCellFn grid =
     let getRandomNeighbor : Grid a -> GridCell -> Maybe GridCell
         getRandomNeighbor grid' cell =
-            let acell = Grid.toRectCell cell
+            let acell = GridCell.toRectCell cell
                 northandeast = List.concat [
                     Grid.cellToList (north grid' acell),
                     Grid.cellToList (east grid' acell)]
+                gcneighbors = List.map (\e -> (RectCellTag e)) northandeast
             in
                -- TODO: Maybe.andThen here?
-               if isEmpty northandeast
+               if isEmpty gcneighbors
                   then Nothing
                   else
-                  case (GridUtils.sampleCell northandeast grid'.rnd) of
+                  case (GridUtils.sampleCell gcneighbors grid'.rnd) of
                       Nothing -> Nothing
-                      Just c -> Just (RectCellTag c)
+                      Just c -> Just c
 
         processCell : GridCell -> Grid a -> Grid a
         processCell cell grid =

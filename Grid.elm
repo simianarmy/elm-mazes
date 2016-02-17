@@ -36,14 +36,7 @@ type alias RowAscii = {
 --createGrid : Int -> Int -> Seed -> Grid a
 createGrid rows cols initSeed cellMaker =
     let mask' = Mask.createMask rows cols
-    in {
-           rows = rows,
-           cols = cols,
-           -- loop rows times
-           cells = cellMaker mask',
-           rnd = createGridRnd rows cols initSeed,
-           mask = mask'
-       }
+    in createGridFromMask mask' initSeed cellMaker
 
 --createGridFromMask : Mask -> Seed -> Grid a
 createGridFromMask mask initSeed cellMaker =
@@ -146,7 +139,7 @@ painter cellPainter grid cellSize =
 
         cellWalls : LineStyle -> GridCell -> List Form
         cellWalls style gridcell =
-            let cell = toRectCell gridcell
+            let cell = GridCell.toRectCell gridcell
                 x1 = toFloat ((cell.col - 1) * cellSize)
                 y1 = toFloat (negate (cell.row - 1) * cellSize)
                 x2 = toFloat (cell.col * cellSize)
@@ -165,7 +158,7 @@ painter cellPainter grid cellSize =
 
         cellBackground : LineStyle -> GridCell -> Form
         cellBackground style cell =
-            let rectcell = toRectCell cell
+            let rectcell = GridCell.toRectCell cell
                 bgRect = filled (cellPainter grid cell) (cellToRect rectcell)
                 --dbg = outlinedText style (Text.fromString " C ")
                 halfSize = (toFloat cellSize) / 2.0
@@ -191,7 +184,9 @@ painter cellPainter grid cellSize =
 
 -- returns cell at an x,y index.
 -- returns nil cell if the index is invalid or the cell at that location is masked
-getCell : Grid a -> Int -> Int -> Maybe GridCell
+getCell : {a | cells : List GridCell, rows : Int, cols : Int } 
+    -> Int -> Int 
+    -> Maybe GridCell
 getCell grid row col =
     -- validate bounds
     if (row > grid.rows || col > grid.cols || row <= 0 || col <= 0)
@@ -217,12 +212,6 @@ toValidCell cell =
         Just cell -> cell
         Nothing -> Cell.createNilCell
 
-toRectCell : GridCell -> BaseCell
-toRectCell cell =
-    case cell of
-        RectCellTag c -> c
-        PolarCellTag (c, _) -> c
-
 maybeGridCellToCell : Maybe GridCell -> BaseCell
 maybeGridCellToCell cell =
     case cell of
@@ -232,7 +221,7 @@ maybeGridCellToCell cell =
 
 maybeGridCellToMaybeCell : Maybe GridCell -> Maybe Cell
 maybeGridCellToMaybeCell cell =
-    Maybe.map toRectCell cell
+    Maybe.map GridCell.toRectCell cell
 
 -- defaults to RectCellTag
 maybeGridCellToGridCell : Maybe GridCell -> GridCell
@@ -348,20 +337,20 @@ linkedCells grid cell =
         PolarCellTag (c, _)  ->
             List.map (cellIdToCell grid) (Set.toList c.links)
 
+rowMatcher : GridCell -> Int -> Bool
+rowMatcher cell row =
+    case cell of
+        RectCellTag c -> c.row == row
+        PolarCellTag (c, _) -> c.row == row
 
-rowCells : Grid a -> Int -> List GridCell
+rowCells : {a| cells : List GridCell} -> Int -> List GridCell
 rowCells grid row =
-    let rowMatcher cell =
-        case cell of
-            RectCellTag c -> c.row == row
-            PolarCellTag (c, _) -> c.row == row
-    in
-       List.filter rowMatcher grid.cells
+    List.filter (\e -> rowMatcher e row) grid.cells
 
 -- helper to pattern match list of unions
 gridCellsToBaseCells : List GridCell -> List BaseCell
 gridCellsToBaseCells gridcells =
-    List.map toRectCell gridcells
+    List.map GridCell.toRectCell gridcells
 
 size : Grid a -> Int
 size grid =
@@ -370,12 +359,12 @@ size grid =
 -- cardinal index of a cell in a grid (1,1) = 1, etc
 cellIndex : Grid a -> GridCell -> Int
 cellIndex grid cell =
-    let rc = toRectCell cell
+    let rc = GridCell.toRectCell cell
     in
        (grid.cols * (rc.row - 1)) + rc.col
 
 -- cardinal index of row col in a grid (1,1) = 1, etc
-gridIndex : Grid a -> Int -> Int -> Int
+gridIndex : {a | cols : Int } -> Int -> Int -> Int
 gridIndex grid row col =
     grid.cols * (row - 1) + col
 

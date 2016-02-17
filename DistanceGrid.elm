@@ -76,9 +76,9 @@ longestPath : CellDistances (Grid a) -> Cell -> Distances
 longestPath grid root =
     let dgrid = createGrid grid root
         (cellId, foo) = Distances.max dgrid.dists
-        newStartCell = Grid.toRectCell <| Grid.cellIdToCell grid cellId
+        newStartCell = GridCell.toRectCell <| Grid.cellIdToCell grid cellId
         dgrid' = createGrid grid newStartCell
         (goalId, foo') = Distances.max dgrid'.dists
-        goal = Grid.toRectCell <| Grid.cellIdToCell grid goalId
+        goal = GridCell.toRectCell <| Grid.cellIdToCell grid goalId
     in
        pathTo grid newStartCell goal

@@ -18,7 +18,7 @@ on startCellFn grid =
         processCell : GridCell -> RowState a -> RowState a
         processCell cell rowState =
             let run' = cell :: rowState.run
-                basecell = Grid.toRectCell cell
+                basecell = GridCell.toRectCell cell
                 atEasternBoundary = not (Grid.isValidCell (Grid.east rowState.grid basecell))
                 atNorthernBoundary = not (Grid.isValidCell (Grid.north rowState.grid basecell))
                 -- update grid's rnd

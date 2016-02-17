@@ -33,7 +33,7 @@ walkRandomly grid cell unvisited =
            -- gridcell
            gcneighbor = Grid.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd
            -- basecell
-           neighbor = Grid.toRectCell gcneighbor
+           neighbor = GridCell.toRectCell gcneighbor
        in
           -- if neighbor has no links
           if not <| Cell.hasLinks neighbor
