@@ -12,8 +12,8 @@ import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
 
-initWidth = 10 
-initHeight = 10 
+initWidth = 8
+initHeight = 8
 initDisplay = Maze.Ascii
 
 --- MODEL ---

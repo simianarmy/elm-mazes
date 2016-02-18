@@ -19,6 +19,10 @@ id gc =
         RectCellTag bc -> bc.id
         PolarCellTag (bc, _) -> bc.id
 
+cellToPolarCell : BaseCell -> GridCell
+cellToPolarCell base =
+    PolarCellTag (base, ((-1, -1), Set.empty))
+
 toRectCell : GridCell -> BaseCell
 toRectCell cell =
     case cell of

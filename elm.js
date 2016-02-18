@@ -11232,6 +11232,9 @@ Elm.GridCell.make = function (_elm) {
    var toRectCell = function (cell) {    var _p1 = cell;if (_p1.ctor === "RectCellTag") {    return _p1._0;} else {    return _p1._0._0;}};
    var id = function (gc) {    var _p2 = gc;if (_p2.ctor === "RectCellTag") {    return _p2._0.id;} else {    return _p2._0._0.id;}};
    var PolarCellTag = function (a) {    return {ctor: "PolarCellTag",_0: a};};
+   var cellToPolarCell = function (base) {
+      return PolarCellTag({ctor: "_Tuple2",_0: base,_1: {ctor: "_Tuple2",_0: {ctor: "_Tuple2",_0: -1,_1: -1},_1: $Set.empty}});
+   };
    var setInwardCell = F2(function (cell,inward) {
       var _p3 = toPolarCell(inward);
       var ic = _p3._0;
@@ -11259,6 +11262,7 @@ Elm.GridCell.make = function (_elm) {
                                  ,RectCellTag: RectCellTag
                                  ,PolarCellTag: PolarCellTag
                                  ,id: id
+                                 ,cellToPolarCell: cellToPolarCell
                                  ,toRectCell: toRectCell
                                  ,toPolarCell: toPolarCell
                                  ,setInwardCell: setInwardCell
@@ -11653,11 +11657,7 @@ Elm.PolarGrid.make = function (_elm) {
    };
    var polarCellsToGridCells = function (cells) {    return A2($List.map,function (c) {    return $GridCell.PolarCellTag(c);},cells);};
    var gridCellsToPolarCells = function (gridcells) {    return A2($List.map,$GridCell.toPolarCell,gridcells);};
-   var outwardCell = F2(function (grid,outward) {
-      var outwardIds = $Set.toList(outward);
-      var outwardCells = A2($List.map,$Grid.cellIdToCell(grid),outwardIds);
-      return gridCellsToPolarCells(outwardCells);
-   });
+   var outwardCells = F2(function (grid,outward) {    var outwardIds = $Set.toList(outward);return A2($List.map,$Grid.cellIdToCell(grid),outwardIds);});
    var counterClockwiseCell = F2(function (grid,cell) {    return maybeGridCellToMaybePolarCell(A3($Grid.getCell,grid,cell.row,cell.col - 1));});
    var clockwiseCell = F2(function (grid,cell) {    return maybeGridCellToMaybePolarCell(A3($Grid.getCell,grid,cell.row,cell.col + 1));});
    var neighbors = F2(function (grid,cell) {
@@ -11665,7 +11665,7 @@ Elm.PolarGrid.make = function (_elm) {
       if (_p2.ctor === "PolarCellTag" && _p2._0.ctor === "_Tuple2" && _p2._0._1.ctor === "_Tuple2") {
             var _p4 = _p2._0._1._0;
             var _p3 = _p2._0._0;
-            var outward = polarCellsToGridCells(A2(outwardCell,grid,_p2._0._1._1));
+            var outward = A2(outwardCells,grid,_p2._0._1._1);
             var inward = $Cell.isNilCellID(_p4) ? _U.list([]) : _U.list([A2($Grid.cellIdToCell,grid,_p4)]);
             var ccw = toCellList(A2(counterClockwiseCell,grid,_p3));
             var cw = toCellList(A2(clockwiseCell,grid,_p3));
@@ -11707,7 +11707,9 @@ Elm.PolarGrid.make = function (_elm) {
          {ctor: "_Tuple2",_0: dx,_1: dy})]) : _U.list([]);
          return A2($List.map,$Graphics$Collage.traced($Graphics$Collage.defaultLine),$List.concat(_U.list([line1,line2])));
       };
-      var drawables = A2($List.concatMap,cellLines,gridCellsToPolarCells(grid.cells));
+      var drawables = A2($List.concatMap,
+      cellLines,
+      A2($List.filter,function (c) {    return _U.cmp($Basics.fst(c).row,0) > 0;},gridCellsToPolarCells(grid.cells)));
       var forms = A2($List._op["::"],
       circleForm,
       _U.list([A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: $Basics.negate(center),_1: $Basics.negate(center)},$Graphics$Collage.group(drawables))]));
@@ -11721,12 +11723,13 @@ Elm.PolarGrid.make = function (_elm) {
          var rowLen = $List.length(A2($Grid.rowCells,res,cell.row));
          var divLen = $List.length(A2($Grid.rowCells,res,cell.row - 1));
          var ratio = $Basics.toFloat(rowLen) / $Basics.toFloat(divLen);
-         var parent = $Grid.maybeGridCellToGridCell(A3($Grid.getCell,res,cell.row - 1,cell.col / $Basics.round(ratio) | 0));
+         var divisor = $Basics.round($Basics.toFloat(cell.col) / ratio);
+         var parent = $Grid.maybeGridCellToGridCell(A3($Grid.getCell,res,cell.row - 1,divisor));
          var parent$ = A2($GridCell.addOutwardLink,parent,gc);
          var cell$ = A2($GridCell.setInwardCell,gc,parent$);
          var cellIndex = A2($GridUtils.indexOfCell,cell$,res.cells);
          var newCells = A2($List.indexedMap,F2(function (idx,gcell) {    return _U.eq(idx,cellIndex) ? cell$ : gcell;}),res.cells);
-         return _U.update(work,{cells: newCells});
+         return _U.cmp(cell.row,0) > 0 ? _U.update(work,{cells: newCells}) : work;
       });
       return function (_) {
          return _.cells;
@@ -11734,16 +11737,11 @@ Elm.PolarGrid.make = function (_elm) {
    });
    var ConfigStep = F3(function (a,b,c) {    return {cells: a,rows: b,cols: c};});
    var makeCells = function (mask) {
-      var ncols = mask.cols;
+      var ncols = 1;
       var nrows = mask.rows;
       var rowHeight = 1 / $Basics.toFloat(nrows);
       var rows = A2($Array.initialize,nrows,function (r) {    return $Array.empty;});
-      var rows$ = A3($Array.set,
-      0,
-      $Array.fromList(_U.list([$GridCell.PolarCellTag({ctor: "_Tuple2"
-                                                      ,_0: A2($Cell.createCell,0,0)
-                                                      ,_1: {ctor: "_Tuple2",_0: {ctor: "_Tuple2",_0: -1,_1: -1},_1: $Set.empty}})])),
-      rows);
+      var rows$ = A3($Array.set,0,$Array.fromList(_U.list([$GridCell.cellToPolarCell(A2($Cell.createCell,0,0))])),rows);
       var makeCellRows = F2(function (res,row) {
          makeCellRows: while (true) if (_U.cmp(row,nrows) > -1) return res; else {
                var prevCount = $Array.length(A2($Maybe.withDefault,$Array.empty,A2($Array.get,row - 1,res)));
@@ -11752,13 +11750,7 @@ Elm.PolarGrid.make = function (_elm) {
                var estCellWidth = circumference / $Basics.toFloat(prevCount);
                var ratio = $Basics.round(estCellWidth / rowHeight);
                var ncells = prevCount * ratio;
-               var rowCells = A2($Array.initialize,
-               ncells,
-               function (a) {
-                  return $GridCell.PolarCellTag({ctor: "_Tuple2"
-                                                ,_0: A2($Cell.createCell,row,a)
-                                                ,_1: {ctor: "_Tuple2",_0: {ctor: "_Tuple2",_0: -1,_1: -1},_1: $Set.empty}});
-               });
+               var rowCells = A2($Array.initialize,ncells,function (a) {    return $GridCell.cellToPolarCell(A2($Cell.createCell,row,a));});
                var res$ = A3($Array.set,row,rowCells,res);
                var _v4 = res$,_v5 = row + 1;
                res = _v4;
@@ -11776,7 +11768,7 @@ Elm.PolarGrid.make = function (_elm) {
                                   ,configureCells: configureCells
                                   ,clockwiseCell: clockwiseCell
                                   ,counterClockwiseCell: counterClockwiseCell
-                                  ,outwardCell: outwardCell
+                                  ,outwardCells: outwardCells
                                   ,gridCellsToPolarCells: gridCellsToPolarCells
                                   ,polarCellsToGridCells: polarCellsToGridCells
                                   ,toValidCell: toValidCell
@@ -12608,8 +12600,8 @@ Elm.Main.make = function (_elm) {
    var PngData = F3(function (a,b,c) {    return {width: a,height: b,blackFlags: c};});
    var AppState = function (a) {    return {maze: a};};
    var initDisplay = $Maze.Ascii;
-   var initHeight = 10;
-   var initWidth = 10;
+   var initHeight = 8;
+   var initWidth = 8;
    var initialModel = {maze: A5($Maze.init,$Maze.defaultAlgorithm,initWidth,initHeight,startTimeSeed,initDisplay)};
    var model = A3($Signal.foldp,update,initialModel,userInput);
    var main = A2($Signal.map,view(actions.address),model);

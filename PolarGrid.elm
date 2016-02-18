@@ -18,11 +18,11 @@ import Color exposing (Color)
 makeCells : Mask -> List GridCell
 makeCells mask =
     let nrows = mask.rows
-        ncols = mask.cols
+        ncols = 1
         rowHeight = 1 / (toFloat nrows)
         -- rows = 2-D array of Cell that we can convet to list format on return
         rows = Array.initialize nrows (\r -> Array.empty)
-        rows' = Array.set 0 (Array.fromList [PolarCellTag ((Cell.createCell 0 0, ((-1, -1), Set.empty)))]) rows
+        rows' = Array.set 0 (Array.fromList [GridCell.cellToPolarCell (Cell.createCell 0 0)]) rows
 
         makeCellRows res row =
             if row >= nrows
@@ -34,7 +34,7 @@ makeCells mask =
                    estCellWidth = circumference / (toFloat prevCount)
                    ratio = round (estCellWidth / rowHeight)
                    ncells = prevCount * ratio
-                   rowCells = Array.initialize ncells (\a -> PolarCellTag ((Cell.createCell row a), ((-1, -1), Set.empty)))
+                   rowCells = Array.initialize ncells (\a -> GridCell.cellToPolarCell (Cell.createCell row a))
                    res' = Array.set row rowCells res
                in
                   makeCellRows res' (row + 1)
@@ -71,11 +71,13 @@ configureCells rows cols incells =
                 rowLen = List.length (Grid.rowCells res cell.row)
                 divLen = List.length (Grid.rowCells res (cell.row - 1))
                 ratio = (toFloat rowLen) / (toFloat divLen)
+                divisor = round ((toFloat cell.col) / ratio)
                 -- parent must be a PolarCellTag
                 parent = Grid.maybeGridCellToGridCell 
-                <| Grid.getCell res (cell.row - 1) (cell.col // (round ratio))
-                -- update the CellLinks of this PolarCellTag
+                <| Grid.getCell res (cell.row - 1) divisor
+                -- update the CellLinks (outward) of this parent
                 parent' = GridCell.addOutwardLink parent gc
+                -- update the inward of this cell
                 cell' = GridCell.setInwardCell gc parent'
                 -- Replace cell with cell' in res cells
                 cellIndex = GridUtils.indexOfCell cell' res.cells
@@ -85,7 +87,9 @@ configureCells rows cols incells =
                        else gcell
                 ) res.cells
             in
-               {work | cells = newCells}
+               if cell.row > 0
+                  then {work | cells = newCells}
+                  else work
     in
        -- process each cell, saving modified list as we go along
        .cells <| List.foldl configurer res incells
@@ -98,13 +102,11 @@ counterClockwiseCell : Grid a -> (BaseCell) -> Maybe (BaseCell, (CellID, CellLin
 counterClockwiseCell grid cell =
     maybeGridCellToMaybePolarCell <| Grid.getCell grid cell.row (cell.col - 1)
 
-
-outwardCell : Grid a -> CellLinks -> List (BaseCell, (CellID, CellLinks))
-outwardCell grid outward =
+outwardCells : Grid a -> CellLinks -> List GridCell
+outwardCells grid outward =
     let outwardIds = Set.toList outward
-        outwardCells = List.map (Grid.cellIdToCell grid) outwardIds
     in
-       gridCellsToPolarCells outwardCells
+        List.map (Grid.cellIdToCell grid) outwardIds
 
 gridCellsToPolarCells : List GridCell -> List (BaseCell, (CellID, CellLinks))
 gridCellsToPolarCells gridcells =
@@ -151,7 +153,7 @@ neighbors grid cell =
                 inward = if Cell.isNilCellID inId
                             then []
                             else [Grid.cellIdToCell grid inId]
-                outward = polarCellsToGridCells <| outwardCell grid outwardIds
+                outward = outwardCells grid outwardIds
             in
                List.append (List.concat [cw, ccw, inward]) outward
         _ -> []
@@ -192,7 +194,9 @@ painter cellPainter grid cellSize =
             in
                List.map (GC.traced GC.defaultLine) <| List.concat [line1, line2]
 
-        drawables = List.concatMap cellLines (gridCellsToPolarCells grid.cells)
+        drawables = List.concatMap cellLines <| 
+            List.filter (\c -> (fst c).row > 0) (gridCellsToPolarCells grid.cells)
+
         forms = circleForm :: [GC.group drawables |> GC.move (negate center, negate center)]
     in
        GC.collage (imgSize + 1) (imgSize + 1) forms
