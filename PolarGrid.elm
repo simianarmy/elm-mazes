@@ -34,7 +34,7 @@ makeCells mask =
                    estCellWidth = circumference / (toFloat prevCount)
                    ratio = round (estCellWidth / rowHeight)
                    ncells = prevCount * ratio
-                   rowCells = Array.initialize ncells (\a -> GridCell.cellToPolarCell (Cell.createCell row a))
+                   rowCells = Array.initialize ncells (\a -> GridCell.cellToPolarCell (Cell.createCell row (a + 1)))
                    res' = Array.set row rowCells res
                in
                   makeCellRows res' (row + 1)
@@ -67,32 +67,32 @@ configureCells rows cols incells =
         ---- recursive worker.  accumulates results in res
         configurer : GridCell -> ConfigStep -> ConfigStep
         configurer gc work =
-            let (cell, _) = GridCell.toPolarCell gc
-                rowLen = List.length (Grid.rowCells res cell.row)
-                divLen = List.length (Grid.rowCells res (cell.row - 1))
-                ratio = (toFloat rowLen) / (toFloat divLen)
-                divisor = round ((toFloat cell.col) / ratio)
+            let (cell, _) = Debug.log "cell: " <| GridCell.toPolarCell gc
+                rowLen = Debug.log "rowLen: " <| List.length (Grid.rowCells work cell.row)
+                divLen = Debug.log "divLen: " <| List.length (Grid.rowCells work (cell.row - 1))
+                ratio = Debug.log "ratio: " <| (toFloat rowLen) / (toFloat divLen)
+                pcol = Debug.log "parent col: " <| round ((toFloat cell.col) / ratio) + 1
                 -- parent must be a PolarCellTag
-                parent = Grid.maybeGridCellToGridCell 
-                <| Grid.getCell res (cell.row - 1) divisor
+                parent = Debug.log "parent: " <| Grid.maybeGridCellToGridCell 
+                <| Grid.getCell work (Debug.log "row: " (cell.row - 1)) pcol
                 -- update the CellLinks (outward) of this parent
-                parent' = GridCell.addOutwardLink parent gc
+                parent' = Debug.log "parent': " <| GridCell.addOutwardLink parent gc
                 -- update the inward of this cell
                 cell' = GridCell.setInwardCell gc parent'
                 -- Replace cell with cell' in res cells
-                cellIndex = GridUtils.indexOfCell cell' res.cells
+                cellIndex = Debug.log "cell idx: " <| GridUtils.indexOfCell cell' work.cells
                 newCells = List.indexedMap (\idx -> \gcell ->
                     if (idx == cellIndex)
                        then cell'
                        else gcell
-                ) res.cells
+                ) work.cells
             in
                if cell.row > 0
                   then {work | cells = newCells}
                   else work
     in
        -- process each cell, saving modified list as we go along
-       .cells <| List.foldl configurer res incells
+       .cells <| List.foldl configurer res <| List.drop 1 incells
 
 clockwiseCell : Grid a -> BaseCell -> Maybe (BaseCell, (CellID, CellLinks))
 clockwiseCell grid cell =

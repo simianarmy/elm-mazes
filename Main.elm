@@ -12,9 +12,9 @@ import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
 
-initWidth = 8
-initHeight = 8
-initDisplay = Maze.Ascii
+initWidth = 4
+initHeight = 4
+initDisplay = Maze.Polar
 
 --- MODEL ---
 

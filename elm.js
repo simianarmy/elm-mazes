@@ -11716,24 +11716,24 @@ Elm.PolarGrid.make = function (_elm) {
       return A3($Graphics$Collage.collage,imgSize + 1,imgSize + 1,forms);
    });
    var configureCells = F3(function (rows,cols,incells) {
-      var res = {cells: incells,rows: rows,cols: cols};
       var configurer = F2(function (gc,work) {
-         var _p8 = $GridCell.toPolarCell(gc);
+         var _p8 = A2($Debug.log,"cell: ",$GridCell.toPolarCell(gc));
          var cell = _p8._0;
-         var rowLen = $List.length(A2($Grid.rowCells,res,cell.row));
-         var divLen = $List.length(A2($Grid.rowCells,res,cell.row - 1));
-         var ratio = $Basics.toFloat(rowLen) / $Basics.toFloat(divLen);
-         var divisor = $Basics.round($Basics.toFloat(cell.col) / ratio);
-         var parent = $Grid.maybeGridCellToGridCell(A3($Grid.getCell,res,cell.row - 1,divisor));
-         var parent$ = A2($GridCell.addOutwardLink,parent,gc);
+         var rowLen = A2($Debug.log,"rowLen: ",$List.length(A2($Grid.rowCells,work,cell.row)));
+         var divLen = A2($Debug.log,"divLen: ",$List.length(A2($Grid.rowCells,work,cell.row - 1)));
+         var ratio = A2($Debug.log,"ratio: ",$Basics.toFloat(rowLen) / $Basics.toFloat(divLen));
+         var pcol = A2($Debug.log,"parent col: ",$Basics.round($Basics.toFloat(cell.col) / ratio) + 1);
+         var parent = A2($Debug.log,"parent: ",$Grid.maybeGridCellToGridCell(A3($Grid.getCell,work,A2($Debug.log,"row: ",cell.row - 1),pcol)));
+         var parent$ = A2($Debug.log,"parent\': ",A2($GridCell.addOutwardLink,parent,gc));
          var cell$ = A2($GridCell.setInwardCell,gc,parent$);
-         var cellIndex = A2($GridUtils.indexOfCell,cell$,res.cells);
-         var newCells = A2($List.indexedMap,F2(function (idx,gcell) {    return _U.eq(idx,cellIndex) ? cell$ : gcell;}),res.cells);
+         var cellIndex = A2($Debug.log,"cell idx: ",A2($GridUtils.indexOfCell,cell$,work.cells));
+         var newCells = A2($List.indexedMap,F2(function (idx,gcell) {    return _U.eq(idx,cellIndex) ? cell$ : gcell;}),work.cells);
          return _U.cmp(cell.row,0) > 0 ? _U.update(work,{cells: newCells}) : work;
       });
+      var res = {cells: incells,rows: rows,cols: cols};
       return function (_) {
          return _.cells;
-      }(A3($List.foldl,configurer,res,incells));
+      }(A3($List.foldl,configurer,res,A2($List.drop,1,incells)));
    });
    var ConfigStep = F3(function (a,b,c) {    return {cells: a,rows: b,cols: c};});
    var makeCells = function (mask) {
@@ -11750,7 +11750,7 @@ Elm.PolarGrid.make = function (_elm) {
                var estCellWidth = circumference / $Basics.toFloat(prevCount);
                var ratio = $Basics.round(estCellWidth / rowHeight);
                var ncells = prevCount * ratio;
-               var rowCells = A2($Array.initialize,ncells,function (a) {    return $GridCell.cellToPolarCell(A2($Cell.createCell,row,a));});
+               var rowCells = A2($Array.initialize,ncells,function (a) {    return $GridCell.cellToPolarCell(A2($Cell.createCell,row,a + 1));});
                var res$ = A3($Array.set,row,rowCells,res);
                var _v4 = res$,_v5 = row + 1;
                res = _v4;
@@ -12409,8 +12409,8 @@ Elm.Maze.make = function (_elm) {
    var AldousBroder = {ctor: "AldousBroder"};
    var Sidewinder = {ctor: "Sidewinder"};
    var BinaryTree = {ctor: "BinaryTree"};
-   var defaultAlgorithm = BinaryTree;
    var NoOp = {ctor: "NoOp"};
+   var defaultAlgorithm = NoOp;
    var algorithms = function (display) {
       var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)}
                             ,{alg: Wilsons,name: algToString(Wilsons)}
@@ -12599,9 +12599,9 @@ Elm.Main.make = function (_elm) {
                                              ,actions.signal]));
    var PngData = F3(function (a,b,c) {    return {width: a,height: b,blackFlags: c};});
    var AppState = function (a) {    return {maze: a};};
-   var initDisplay = $Maze.Ascii;
-   var initHeight = 8;
-   var initWidth = 8;
+   var initDisplay = $Maze.Polar;
+   var initHeight = 4;
+   var initWidth = 4;
    var initialModel = {maze: A5($Maze.init,$Maze.defaultAlgorithm,initWidth,initHeight,startTimeSeed,initDisplay)};
    var model = A3($Signal.foldp,update,initialModel,userInput);
    var main = A2($Signal.map,view(actions.address),model);

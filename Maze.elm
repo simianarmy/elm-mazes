@@ -41,7 +41,7 @@ type alias Maze a = {
     display : Display
 }
 
-defaultAlgorithm = BinaryTree
+defaultAlgorithm = NoOp
 
 cellSize : Int
 cellSize = 20
