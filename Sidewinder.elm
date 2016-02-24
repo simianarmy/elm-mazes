@@ -66,4 +66,4 @@ on startCellFn grid =
                 List.foldl processCell state (Grid.rowCells curGrid row)
                 |> .grid
     in
-        List.foldl processRow grid (List.reverse [1..grid.rows])
+        List.foldl processRow grid (List.reverse [0..grid.rows-1])

@@ -74,9 +74,9 @@ makeCells mask =
            else RectCellTag (Cell.createMaskedCell row col)
 
         makeRow cols row =
-            List.map (createMaskedCell row) [1..(mask.cols)]
+            List.map (createMaskedCell row) [0..(mask.cols-1)]
     in
-       List.concatMap (makeRow mask.cols) [1..(mask.rows)]
+       List.concatMap (makeRow mask.cols) [0..(mask.rows-1)]
 
 -- generates collage object (Element) of the grid
 -- Takes 2 painter functions: one for the whole grid and one for each cell
@@ -121,7 +121,7 @@ toAscii grid cellViewer =
                finalascii.top ++ "\n" ++ finalascii.bottom ++ "\n"
     in
        "+" ++ (String.repeat grid.cols "---+") ++ "\n" ++
-       String.concat (List.map rowToStrings [1..grid.rows])
+       String.concat (List.map rowToStrings [0..grid.rows-1])
 
 -- generates rectangular grid element
 painter : (Grid a -> GridCell -> Color) -> Grid a -> Int -> Element
@@ -182,6 +182,7 @@ painter cellPainter grid cellSize =
     in
        collage imgWidth imgHeight [group drawables |> move (ox, oy)]
 
+-- 0-based indices
 -- returns cell at an x,y index.
 -- returns nil cell if the index is invalid or the cell at that location is masked
 getCell : {a | cells : List GridCell, rows : Int, cols : Int } 
@@ -189,10 +190,10 @@ getCell : {a | cells : List GridCell, rows : Int, cols : Int }
     -> Maybe GridCell
 getCell grid row col =
     -- validate bounds
-    if (row > grid.rows || col > grid.cols || row <= 0 || col <= 0)
+    if (row >= grid.rows || col >= grid.cols || row < 0 || col < 0)
        then Nothing
        else
-       let cell = Array.get ((gridIndex grid row col) - 1) <| Array.fromList grid.cells
+       let cell = Array.get (gridIndex grid row col) <| Array.fromList grid.cells
        in
           case cell of
               Just (RectCellTag c) ->
@@ -343,6 +344,7 @@ rowMatcher cell row =
         RectCellTag c -> c.row == row
         PolarCellTag (c, _) -> c.row == row
 
+-- takes 0-indexed row
 rowCells : {a| cells : List GridCell} -> Int -> List GridCell
 rowCells grid row =
     List.filter (\e -> rowMatcher e row) grid.cells
@@ -361,12 +363,12 @@ cellIndex : Grid a -> GridCell -> Int
 cellIndex grid cell =
     let rc = GridCell.toRectCell cell
     in
-       (grid.cols * (rc.row - 1)) + rc.col
+       grid.cols * rc.row + rc.col
 
--- cardinal index of row col in a grid (1,1) = 1, etc
+-- cardinal index of row col in a grid (0,0) = 0, etc
 gridIndex : {a | cols : Int } -> Int -> Int -> Int
 gridIndex grid row col =
-    grid.cols * (row - 1) + col
+    grid.cols * row + col
 
 -- returns cell by its id
 cellIdToCell : Grid a -> Cell.CellID -> GridCell

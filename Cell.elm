@@ -18,7 +18,7 @@ type alias BaseCell = {
 -- Standard cell
 type alias Cell = BaseCell
 
--- create cell at row col
+-- create cell at row col (0,0) = origin
 createCell : Int -> Int -> Cell
 createCell row col =
     {

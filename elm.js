@@ -11108,9 +11108,9 @@ Elm.Mask.make = function (_elm) {
    var set = F3(function (mask,_p4,isOn) {
       var _p5 = _p4;
       var _p7 = _p5._0;
-      var _p6 = A2($Array.get,_p7 - 1,mask.bits);
+      var _p6 = A2($Array.get,_p7,mask.bits);
       if (_p6.ctor === "Just") {
-            return _U.update(mask,{bits: A3($Array.set,_p7 - 1,A3($Array.set,_p5._1 - 1,isOn,_p6._0),mask.bits)});
+            return _U.update(mask,{bits: A3($Array.set,_p7,A3($Array.set,_p5._1,isOn,_p6._0),mask.bits)});
          } else {
             return mask;
          }
@@ -11120,9 +11120,9 @@ Elm.Mask.make = function (_elm) {
       return A3($List.foldl,setone,mask,vals);
    });
    var get = F3(function (mask,row,col) {
-      var _p8 = A2($Array.get,row - 1,mask.bits);
+      var _p8 = A2($Array.get,row,mask.bits);
       if (_p8.ctor === "Just") {
-            var _p9 = A2($Array.get,col - 1,_p8._0);
+            var _p9 = A2($Array.get,col,_p8._0);
             if (_p9.ctor === "Just") {
                   return _p9._0;
                } else {
@@ -11139,7 +11139,7 @@ Elm.Mask.make = function (_elm) {
    var maxGetRandomLocationTries = 10000;
    var getRandomLoc = F3(function (mask,rnd,itr) {
       getRandomLoc: while (true) if (A3(get,mask,rnd.row,rnd.col)) return {ctor: "_Tuple2",_0: rnd.row,_1: rnd.col}; else if (_U.cmp(itr,
-         maxGetRandomLocationTries) > 0) return {ctor: "_Tuple2",_0: 1,_1: 1}; else {
+         maxGetRandomLocationTries) > 0) return {ctor: "_Tuple2",_0: 0,_1: 0}; else {
                var _v5 = mask,_v6 = $Rnd.refresh(rnd),_v7 = itr + 1;
                mask = _v5;
                rnd = _v6;
@@ -11297,8 +11297,8 @@ Elm.Grid.make = function (_elm) {
       return A2($Basics._op["++"],$Basics.toString(grid.rows),A2($Basics._op["++"]," X ",A2($Basics._op["++"],$Basics.toString(grid.cols)," Grid")));
    };
    var cellToList = function (cell) {    var _p0 = cell;if (_p0.ctor === "Just") {    return _U.list([_p0._0]);} else {    return _U.list([]);}};
-   var gridIndex = F3(function (grid,row,col) {    return grid.cols * (row - 1) + col;});
-   var cellIndex = F2(function (grid,cell) {    var rc = $GridCell.toRectCell(cell);return grid.cols * (rc.row - 1) + rc.col;});
+   var gridIndex = F3(function (grid,row,col) {    return grid.cols * row + col;});
+   var cellIndex = F2(function (grid,cell) {    var rc = $GridCell.toRectCell(cell);return grid.cols * rc.row + rc.col;});
    var size = function (grid) {    return $Mask.count(grid.mask);};
    var gridCellsToBaseCells = function (gridcells) {    return A2($List.map,$GridCell.toRectCell,gridcells);};
    var rowMatcher = F2(function (cell,row) {
@@ -11364,8 +11364,8 @@ Elm.Grid.make = function (_elm) {
    };
    var toValidCell = function (cell) {    var _p8 = cell;if (_p8.ctor === "Just") {    return _p8._0;} else {    return $Cell.createNilCell;}};
    var getCell = F3(function (grid,row,col) {
-      if (_U.cmp(row,grid.rows) > 0 || (_U.cmp(col,grid.cols) > 0 || (_U.cmp(row,0) < 1 || _U.cmp(col,0) < 1))) return $Maybe.Nothing; else {
-            var cell = A2($Array.get,A3(gridIndex,grid,row,col) - 1,$Array.fromList(grid.cells));
+      if (_U.cmp(row,grid.rows) > -1 || (_U.cmp(col,grid.cols) > -1 || (_U.cmp(row,0) < 0 || _U.cmp(col,0) < 0))) return $Maybe.Nothing; else {
+            var cell = A2($Array.get,A3(gridIndex,grid,row,col),$Array.fromList(grid.cells));
             var _p9 = cell;
             if (_p9.ctor === "Just") {
                   if (_p9._0.ctor === "RectCellTag") {
@@ -11487,15 +11487,17 @@ Elm.Grid.make = function (_elm) {
       };
       return A2($Basics._op["++"],
       "+",
-      A2($Basics._op["++"],A2($String.repeat,grid.cols,"---+"),A2($Basics._op["++"],"\n",$String.concat(A2($List.map,rowToStrings,_U.range(1,grid.rows))))));
+      A2($Basics._op["++"],
+      A2($String.repeat,grid.cols,"---+"),
+      A2($Basics._op["++"],"\n",$String.concat(A2($List.map,rowToStrings,_U.range(0,grid.rows - 1))))));
    });
    var toElement = F4(function (grid,gridPainter,cellPainter,cellSize) {    return A3(gridPainter,cellPainter,grid,cellSize);});
    var makeCells = function (mask) {
       var createMaskedCell = F2(function (row,col) {
          return A3($Mask.get,mask,row,col) ? $GridCell.RectCellTag(A2($Cell.createCell,row,col)) : $GridCell.RectCellTag(A2($Cell.createMaskedCell,row,col));
       });
-      var makeRow = F2(function (cols,row) {    return A2($List.map,createMaskedCell(row),_U.range(1,mask.cols));});
-      return A2($List.concatMap,makeRow(mask.cols),_U.range(1,mask.rows));
+      var makeRow = F2(function (cols,row) {    return A2($List.map,createMaskedCell(row),_U.range(0,mask.cols - 1));});
+      return A2($List.concatMap,makeRow(mask.cols),_U.range(0,mask.rows - 1));
    };
    var update = function (grid) {    return _U.update(grid,{cells: grid.cellMaker(grid.mask)});};
    var updateRnd = function (grid) {    return _U.update(grid,{rnd: $Rnd.refresh(grid.rnd)});};
@@ -12182,7 +12184,7 @@ Elm.Sidewinder.make = function (_elm) {
             return _.grid;
          }(A3($List.foldl,processCell,state,A2($Grid.rowCells,curGrid,row)));
       });
-      return A3($List.foldl,processRow,grid,$List.reverse(_U.range(1,grid.rows)));
+      return A3($List.foldl,processRow,grid,$List.reverse(_U.range(0,grid.rows - 1)));
    });
    var RowState = F2(function (a,b) {    return {run: a,grid: b};});
    return _elm.Sidewinder.values = {_op: _op,RowState: RowState,on: on};
@@ -12409,8 +12411,8 @@ Elm.Maze.make = function (_elm) {
    var AldousBroder = {ctor: "AldousBroder"};
    var Sidewinder = {ctor: "Sidewinder"};
    var BinaryTree = {ctor: "BinaryTree"};
+   var defaultAlgorithm = BinaryTree;
    var NoOp = {ctor: "NoOp"};
-   var defaultAlgorithm = NoOp;
    var algorithms = function (display) {
       var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)}
                             ,{alg: Wilsons,name: algToString(Wilsons)}
@@ -12599,9 +12601,9 @@ Elm.Main.make = function (_elm) {
                                              ,actions.signal]));
    var PngData = F3(function (a,b,c) {    return {width: a,height: b,blackFlags: c};});
    var AppState = function (a) {    return {maze: a};};
-   var initDisplay = $Maze.Polar;
-   var initHeight = 4;
-   var initWidth = 4;
+   var initDisplay = $Maze.Ascii;
+   var initHeight = 5;
+   var initWidth = 5;
    var initialModel = {maze: A5($Maze.init,$Maze.defaultAlgorithm,initWidth,initHeight,startTimeSeed,initDisplay)};
    var model = A3($Signal.foldp,update,initialModel,userInput);
    var main = A2($Signal.map,view(actions.address),model);

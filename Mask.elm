@@ -26,28 +26,28 @@ createMask cols rows =
            bits = bits
        }
 
--- 1-based indices
+-- 0-based indices
 get : Mask -> Int -> Int -> Bool
 get mask row col =
-    case Array.get (row - 1) mask.bits of
+    case Array.get row mask.bits of
         Just a ->
-            case Array.get (col - 1) a of
+            case Array.get col a of
                 Just b -> b
                 Nothing -> False
         Nothing -> False
 
--- 1-based indices
+-- 0-based indices
 set : Mask -> (Int, Int) -> Bool -> Mask
 set mask (row, col) isOn =
-    case Array.get (row - 1) mask.bits of
+    case Array.get row mask.bits of
         -- update columns array
         Just rowbits -> {
-           mask | bits = Array.set (row - 1) (Array.set (col - 1) isOn rowbits) mask.bits
+           mask | bits = Array.set row (Array.set col isOn rowbits) mask.bits
         }
         Nothing -> mask
 
 -- set multiple values from list
--- 1-based indices
+-- 0-based indices
 mset : Mask -> List ((Int, Int), Bool) -> Mask
 mset mask vals =
     let setone e mask' =
@@ -63,7 +63,7 @@ count mask =
     in
         Array.foldl (+) 0 <| Array.map addCols mask.bits
 
--- returns 1-based (row,col) pair corresponding to a random, enabled location in the grid
+-- returns 0-based (row,col) pair corresponding to a random, enabled location in the grid
 randomLocation : Mask -> Rnd.GridRnd -> (Int, Int)
 randomLocation mask rnd =
     getRandomLoc mask rnd 1
@@ -73,7 +73,7 @@ getRandomLoc mask rnd itr =
        then (rnd.row, rnd.col)
        else
        if itr > maxGetRandomLocationTries
-          then (1, 1) -- what wil this do??
+          then (0, 0) -- what wil this do??
           else getRandomLoc mask (Rnd.refresh rnd) (itr + 1)
 
 -- Creates mask from text (one row per line)
