@@ -11425,8 +11425,8 @@ Elm.Grid.make = function (_elm) {
          var halfSize = $Basics.toFloat(cellSize) / 2.0;
          var rectcell = $GridCell.toRectCell(cell);
          var bgRect = A2($Graphics$Collage.filled,A2(cellPainter,grid,cell),cellToRect(rectcell));
-         var cx = $Basics.toFloat((rectcell.col - 1) * cellSize) + halfSize;
-         var cy = $Basics.toFloat($Basics.negate(rectcell.row - 1) * cellSize) - halfSize;
+         var cx = $Basics.toFloat(rectcell.col * cellSize) + halfSize;
+         var cy = $Basics.toFloat($Basics.negate(rectcell.row) * cellSize) - halfSize;
          return A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: cx,_1: cy},bgRect);
       });
       var maybeVisibleLine = F2(function (style,_p16) {
@@ -11435,10 +11435,10 @@ Elm.Grid.make = function (_elm) {
       });
       var cellWalls = F2(function (style,gridcell) {
          var cell = $GridCell.toRectCell(gridcell);
-         var x1 = $Basics.toFloat((cell.col - 1) * cellSize);
-         var y1 = $Basics.toFloat($Basics.negate(cell.row - 1) * cellSize);
-         var x2 = $Basics.toFloat(cell.col * cellSize);
-         var y2 = $Basics.toFloat($Basics.negate(cell.row) * cellSize);
+         var x1 = $Basics.toFloat(cell.col * cellSize);
+         var y1 = $Basics.toFloat($Basics.negate(cell.row) * cellSize);
+         var x2 = $Basics.toFloat((cell.col + 1) * cellSize);
+         var y2 = $Basics.toFloat($Basics.negate(cell.row + 1) * cellSize);
          return cell.masked ? _U.list([]) : A2($List.concatMap,
          maybeVisibleLine(style),
          _U.list([{ctor: "_Tuple2"

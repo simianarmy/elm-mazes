@@ -140,10 +140,10 @@ painter cellPainter grid cellSize =
         cellWalls : LineStyle -> GridCell -> List Form
         cellWalls style gridcell =
             let cell = GridCell.toRectCell gridcell
-                x1 = toFloat ((cell.col - 1) * cellSize)
-                y1 = toFloat (negate (cell.row - 1) * cellSize)
-                x2 = toFloat (cell.col * cellSize)
-                y2 = toFloat (negate cell.row  * cellSize)
+                x1 = toFloat (cell.col * cellSize)
+                y1 = toFloat (negate cell.row * cellSize)
+                x2 = toFloat ((cell.col + 1) * cellSize)
+                y2 = toFloat (negate (cell.row + 1)  * cellSize)
             in
                if cell.masked
                   then []
@@ -162,8 +162,8 @@ painter cellPainter grid cellSize =
                 bgRect = filled (cellPainter grid cell) (cellToRect rectcell)
                 --dbg = outlinedText style (Text.fromString " C ")
                 halfSize = (toFloat cellSize) / 2.0
-                cx = toFloat ((rectcell.col - 1) * cellSize) + halfSize
-                cy = toFloat (negate (rectcell.row - 1) * cellSize) - halfSize
+                cx = toFloat (rectcell.col * cellSize) + halfSize
+                cy = toFloat (negate rectcell.row * cellSize) - halfSize
             in
                move (cx, cy) bgRect
 
