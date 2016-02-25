@@ -11254,7 +11254,7 @@ Elm.GridCell.make = function (_elm) {
       var pcell = _p6._0;
       var pcid = _p6._1._0;
       var pclinks = _p6._1._1;
-      var newLinks = A2($Set.insert,cid,pclinks);
+      var newLinks = A2($Set.insert,cell.id,pclinks);
       return PolarCellTag({ctor: "_Tuple2",_0: pcell,_1: {ctor: "_Tuple2",_0: pcid,_1: newLinks}});
    });
    var RectCellTag = function (a) {    return {ctor: "RectCellTag",_0: a};};
@@ -11724,12 +11724,19 @@ Elm.PolarGrid.make = function (_elm) {
          var rowLen = A2($Debug.log,"rowLen: ",$List.length(A2($Grid.rowCells,work,cell.row)));
          var divLen = A2($Debug.log,"divLen: ",$List.length(A2($Grid.rowCells,work,cell.row - 1)));
          var ratio = A2($Debug.log,"ratio: ",$Basics.toFloat(rowLen) / $Basics.toFloat(divLen));
-         var pcol = A2($Debug.log,"parent col: ",$Basics.round($Basics.toFloat(cell.col) / ratio));
-         var parent = A2($Debug.log,"parent: ",$Grid.maybeGridCellToGridCell(A3($Grid.getCell,work,A2($Debug.log,"row: ",cell.row - 1),pcol)));
+         var pcol = A2($Debug.log,"parent col: ",$Basics.floor($Basics.toFloat(cell.col) / ratio));
+         var parent = A2($Debug.log,
+         "parent: ",
+         $Grid.maybeGridCellToGridCell(A3($Grid.getCell,work,A2($Debug.log,"row: ",cell.row - 1),A2($Debug.log,"col: ",pcol))));
          var parent$ = A2($Debug.log,"parent\': ",A2($GridCell.addOutwardLink,parent,gc));
          var cell$ = A2($GridCell.setInwardCell,gc,parent$);
          var cellIndex = A2($Debug.log,"cell idx: ",A2($GridUtils.indexOfCell,cell$,work.cells));
-         var newCells = A2($List.indexedMap,F2(function (idx,gcell) {    return _U.eq(idx,cellIndex) ? cell$ : gcell;}),work.cells);
+         var newCells = A2($List.map,
+         function (c) {
+            var pcId = $GridCell.id(c);
+            return _U.eq(pcId,$GridCell.id(parent$)) ? parent$ : _U.eq(pcId,$GridCell.id(cell$)) ? cell$ : c;
+         },
+         work.cells);
          return _U.cmp(cell.row,0) > 0 ? _U.update(work,{cells: newCells}) : work;
       });
       var res = {cells: incells,rows: rows,cols: cols};
@@ -11739,7 +11746,6 @@ Elm.PolarGrid.make = function (_elm) {
    });
    var ConfigStep = F3(function (a,b,c) {    return {cells: a,rows: b,cols: c};});
    var makeCells = function (mask) {
-      var ncols = 1;
       var nrows = mask.rows;
       var rowHeight = 1 / $Basics.toFloat(nrows);
       var rows = A2($Array.initialize,nrows,function (r) {    return $Array.empty;});
@@ -11762,7 +11768,7 @@ Elm.PolarGrid.make = function (_elm) {
       });
       var acells = A2(makeCellRows,rows$,1);
       var cellList = $List.concat($Array.toList(A2($Array.map,$Array.toList,acells)));
-      return A3(configureCells,nrows,ncols,cellList);
+      return A3(configureCells,nrows,mask.cols,cellList);
    };
    return _elm.PolarGrid.values = {_op: _op
                                   ,makeCells: makeCells

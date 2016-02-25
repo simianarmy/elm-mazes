@@ -18,7 +18,6 @@ import Color exposing (Color)
 makeCells : Mask -> List GridCell
 makeCells mask =
     let nrows = mask.rows
-        ncols = 1
         rowHeight = 1 / (toFloat nrows)
         -- rows = 2-D array of Cell that we can convet to list format on return
         rows = Array.initialize nrows (\r -> Array.empty)
@@ -51,7 +50,7 @@ makeCells mask =
            |> Array.toList
            |> List.concat
     in
-       configureCells nrows ncols cellList
+       configureCells nrows mask.cols cellList
 
 type alias ConfigStep = {
     cells: List GridCell,
@@ -80,21 +79,27 @@ configureCells rows cols incells =
                 rowLen = Debug.log "rowLen: " <| List.length (Grid.rowCells work cell.row)
                 divLen = Debug.log "divLen: " <| List.length (Grid.rowCells work (cell.row - 1))
                 ratio = Debug.log "ratio: " <| (toFloat rowLen) / (toFloat divLen)
-                pcol = Debug.log "parent col: " <| round ((toFloat cell.col) / ratio)
-                -- parent must be a PolarCellTag
+                pcol = Debug.log "parent col: " <| floor ((toFloat cell.col) / ratio)
+                -- Crash if parent is not a valid cell!
                 parent = Debug.log "parent: " <| Grid.maybeGridCellToGridCell 
-                    <| Grid.getCell work (Debug.log "row: " (cell.row - 1)) pcol
+                    <| Grid.getCell work (Debug.log "row: " (cell.row - 1)) <| Debug.log "col: " pcol
                 -- update the CellLinks (outward) of this parent
                 parent' = Debug.log "parent': " <| GridCell.addOutwardLink parent gc
                 -- update the inward of this cell
                 cell' = GridCell.setInwardCell gc parent'
                 -- Replace cell with cell' in res cells
                 cellIndex = Debug.log "cell idx: " <| GridUtils.indexOfCell cell' work.cells
-                newCells = List.indexedMap (\idx -> \gcell ->
-                    if (idx == cellIndex)
-                       then cell'
-                       else gcell
-                ) work.cells
+                -- Transform newCells to contain the modified parent' and cell' cells
+                newCells = List.map (\c ->
+                    let pcId = GridCell.id c
+                    in
+                       if pcId == GridCell.id parent'
+                          then parent'
+                          else
+                          if pcId == GridCell.id cell'
+                             then cell'
+                             else c
+                         ) work.cells
             in
                if cell.row > 0
                   then {work | cells = newCells}

@@ -46,7 +46,7 @@ addOutwardLink : GridCell -> GridCell -> GridCell
 addOutwardLink parentCell outwardCell =
     let (pcell, (pcid, pclinks)) = toPolarCell parentCell
         (cell, (cid, clinks)) = toPolarCell outwardCell
-        newLinks = Set.insert cid pclinks
+        newLinks = Set.insert cell.id pclinks
     in
        PolarCellTag (pcell, (pcid, newLinks))
 
