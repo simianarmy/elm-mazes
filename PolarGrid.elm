@@ -8,7 +8,7 @@ import GridCell exposing (..)
 import GridUtils
 
 import Set
-import Array
+import Array exposing (Array)
 import Graphics.Element as GE
 import Graphics.Collage as GC
 import Html
@@ -24,6 +24,8 @@ makeCells mask =
         rows = Array.initialize nrows (\r -> Array.empty)
         rows' = Array.set 0 (Array.fromList [GridCell.cellToPolarCell (Cell.createCell 0 0)]) rows
 
+        -- row: 1..rows
+        makeCellRows : Array (Array GridCell) -> Int -> Array (Array GridCell)
         makeCellRows res row =
             if row >= nrows
                then res
@@ -34,7 +36,9 @@ makeCells mask =
                    estCellWidth = circumference / (toFloat prevCount)
                    ratio = round (estCellWidth / rowHeight)
                    ncells = prevCount * ratio
-                   rowCells = Array.initialize ncells (\a -> GridCell.cellToPolarCell (Cell.createCell row (a + 1)))
+                   rowCells = Array.initialize ncells (\a -> 
+                       GridCell.cellToPolarCell (Cell.createCell row a)
+                   )
                    res' = Array.set row rowCells res
                in
                   makeCellRows res' (row + 1)
@@ -67,14 +71,19 @@ configureCells rows cols incells =
         ---- recursive worker.  accumulates results in res
         configurer : GridCell -> ConfigStep -> ConfigStep
         configurer gc work =
+            -- here's what we're doing ruby-style
+            -- ratio = @grid[row].length / @grid[row - 1].length
+            -- parent = @grid[row - 1][col / ratio]
+            -- parent.outward << cell
+            -- cell.inward = parent
             let (cell, _) = Debug.log "cell: " <| GridCell.toPolarCell gc
                 rowLen = Debug.log "rowLen: " <| List.length (Grid.rowCells work cell.row)
                 divLen = Debug.log "divLen: " <| List.length (Grid.rowCells work (cell.row - 1))
                 ratio = Debug.log "ratio: " <| (toFloat rowLen) / (toFloat divLen)
-                pcol = Debug.log "parent col: " <| round ((toFloat cell.col) / ratio) + 1
+                pcol = Debug.log "parent col: " <| round ((toFloat cell.col) / ratio)
                 -- parent must be a PolarCellTag
                 parent = Debug.log "parent: " <| Grid.maybeGridCellToGridCell 
-                <| Grid.getCell work (Debug.log "row: " (cell.row - 1)) pcol
+                    <| Grid.getCell work (Debug.log "row: " (cell.row - 1)) pcol
                 -- update the CellLinks (outward) of this parent
                 parent' = Debug.log "parent': " <| GridCell.addOutwardLink parent gc
                 -- update the inward of this cell
@@ -92,7 +101,9 @@ configureCells rows cols incells =
                   else work
     in
        -- process each cell, saving modified list as we go along
-       .cells <| List.foldl configurer res <| List.drop 1 incells
+       .cells
+           <| List.foldl configurer res
+           <| List.filter (\c -> (fst (GridCell.toPolarCell c)).row > 0) incells
 
 clockwiseCell : Grid a -> BaseCell -> Maybe (BaseCell, (CellID, CellLinks))
 clockwiseCell grid cell =
@@ -165,15 +176,14 @@ painter cellPainter grid cellSize =
         wall = Color.black
         center = (toFloat imgSize) / 2
         radius = grid.rows * cellSize
-        circleForm = GC.outlined GC.defaultLine <| GC.circle (toFloat radius)
 
         cellLines : (BaseCell, (CellID, CellLinks)) -> List GC.Form
         cellLines (cell, (inward, outwards)) =
             let theta = (2 * pi) / (toFloat <| List.length (Grid.rowCells grid cell.row))
-                innerRadius = toFloat ((cell.row - 1) * cellSize)
-                outerRadius = toFloat ((cell.row) * cellSize)
-                thetaCcw = (toFloat (cell.col - 1)) * theta
-                thetaCw = (toFloat (cell.col)) * theta
+                innerRadius = toFloat (cell.row * cellSize)
+                outerRadius = toFloat ((cell.row + 1) * cellSize)
+                thetaCcw = (toFloat cell.col) * theta
+                thetaCw = (toFloat (cell.col + 1)) * theta
                 ax = (center + (innerRadius * (cos thetaCcw)))
                 ay = (center + (innerRadius * (sin thetaCcw)))
                 bx = (center + (outerRadius * (cos thetaCcw)))
@@ -194,6 +204,7 @@ painter cellPainter grid cellSize =
             in
                List.map (GC.traced GC.defaultLine) <| List.concat [line1, line2]
 
+        circleForm = GC.outlined GC.defaultLine <| GC.circle (toFloat radius)
         drawables = List.concatMap cellLines <| 
             List.filter (\c -> (fst c).row > 0) (gridCellsToPolarCells grid.cells)
 

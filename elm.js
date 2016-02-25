@@ -11688,15 +11688,15 @@ Elm.PolarGrid.make = function (_elm) {
          var _p7 = _p6._0;
          var linkedCw = A2($Cell.isLinked,_p7,$Basics.fst(toValidCell(A2(clockwiseCell,grid,_p7))));
          var linkedInward = A2($Cell.isLinked,_p7,$Basics.fst($GridCell.toPolarCell(A2($Grid.cellIdToCell,grid,_p6._1._0))));
-         var outerRadius = $Basics.toFloat(_p7.row * cellSize);
-         var innerRadius = $Basics.toFloat((_p7.row - 1) * cellSize);
+         var outerRadius = $Basics.toFloat((_p7.row + 1) * cellSize);
+         var innerRadius = $Basics.toFloat(_p7.row * cellSize);
          var theta = 2 * $Basics.pi / $Basics.toFloat($List.length(A2($Grid.rowCells,grid,_p7.row)));
-         var thetaCcw = $Basics.toFloat(_p7.col - 1) * theta;
+         var thetaCcw = $Basics.toFloat(_p7.col) * theta;
          var ax = center + innerRadius * $Basics.cos(thetaCcw);
          var ay = center + innerRadius * $Basics.sin(thetaCcw);
          var bx = center + outerRadius * $Basics.cos(thetaCcw);
          var by = center + outerRadius * $Basics.sin(thetaCcw);
-         var thetaCw = $Basics.toFloat(_p7.col) * theta;
+         var thetaCw = $Basics.toFloat(_p7.col + 1) * theta;
          var cx = center + innerRadius * $Basics.cos(thetaCw);
          var cy = center + innerRadius * $Basics.sin(thetaCw);
          var line1 = $Basics.not(linkedInward) ? _U.list([A2($Graphics$Collage.segment,
@@ -11724,7 +11724,7 @@ Elm.PolarGrid.make = function (_elm) {
          var rowLen = A2($Debug.log,"rowLen: ",$List.length(A2($Grid.rowCells,work,cell.row)));
          var divLen = A2($Debug.log,"divLen: ",$List.length(A2($Grid.rowCells,work,cell.row - 1)));
          var ratio = A2($Debug.log,"ratio: ",$Basics.toFloat(rowLen) / $Basics.toFloat(divLen));
-         var pcol = A2($Debug.log,"parent col: ",$Basics.round($Basics.toFloat(cell.col) / ratio) + 1);
+         var pcol = A2($Debug.log,"parent col: ",$Basics.round($Basics.toFloat(cell.col) / ratio));
          var parent = A2($Debug.log,"parent: ",$Grid.maybeGridCellToGridCell(A3($Grid.getCell,work,A2($Debug.log,"row: ",cell.row - 1),pcol)));
          var parent$ = A2($Debug.log,"parent\': ",A2($GridCell.addOutwardLink,parent,gc));
          var cell$ = A2($GridCell.setInwardCell,gc,parent$);
@@ -11735,7 +11735,7 @@ Elm.PolarGrid.make = function (_elm) {
       var res = {cells: incells,rows: rows,cols: cols};
       return function (_) {
          return _.cells;
-      }(A3($List.foldl,configurer,res,A2($List.drop,1,incells)));
+      }(A3($List.foldl,configurer,res,A2($List.filter,function (c) {    return _U.cmp($Basics.fst($GridCell.toPolarCell(c)).row,0) > 0;},incells)));
    });
    var ConfigStep = F3(function (a,b,c) {    return {cells: a,rows: b,cols: c};});
    var makeCells = function (mask) {
@@ -11752,7 +11752,7 @@ Elm.PolarGrid.make = function (_elm) {
                var estCellWidth = circumference / $Basics.toFloat(prevCount);
                var ratio = $Basics.round(estCellWidth / rowHeight);
                var ncells = prevCount * ratio;
-               var rowCells = A2($Array.initialize,ncells,function (a) {    return $GridCell.cellToPolarCell(A2($Cell.createCell,row,a + 1));});
+               var rowCells = A2($Array.initialize,ncells,function (a) {    return $GridCell.cellToPolarCell(A2($Cell.createCell,row,a));});
                var res$ = A3($Array.set,row,rowCells,res);
                var _v4 = res$,_v5 = row + 1;
                res = _v4;
@@ -12601,9 +12601,9 @@ Elm.Main.make = function (_elm) {
                                              ,actions.signal]));
    var PngData = F3(function (a,b,c) {    return {width: a,height: b,blackFlags: c};});
    var AppState = function (a) {    return {maze: a};};
-   var initDisplay = $Maze.Ascii;
-   var initHeight = 5;
-   var initWidth = 5;
+   var initDisplay = $Maze.Polar;
+   var initHeight = 8;
+   var initWidth = 8;
    var initialModel = {maze: A5($Maze.init,$Maze.defaultAlgorithm,initWidth,initHeight,startTimeSeed,initDisplay)};
    var model = A3($Signal.foldp,update,initialModel,userInput);
    var main = A2($Signal.map,view(actions.address),model);
