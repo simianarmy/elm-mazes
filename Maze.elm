@@ -89,6 +89,10 @@ update maze =
 updateSize maze width height =
     init maze.alg (Debug.log "width: " width) (Debug.log "height: " height) maze.grid.rnd.seed maze.display
 
+-- updateView : Maze a -> Display -> Maze b
+updateView maze displayType =
+    init maze.alg maze.grid.cols maze.grid.rows maze.grid.rnd.seed displayType
+
 -- setMask : Maze a -> Mask -> Maze a
 setMask maze mask =
     let grid' = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker

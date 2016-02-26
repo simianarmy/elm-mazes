@@ -72,10 +72,9 @@ update action model =
                {model | maze = maze''}
 
         SelectView display ->
-            let maze' = model.maze
-                maze'' = {maze' | display = display}
+            let maze' = Maze.updateView model.maze display
             in
-               {model | maze = maze''}
+               {model | maze = maze'}
 
         LoadAsciiMask lines ->
             let mask = Mask.fromTxt <| Debug.log "lines from input file: " lines
