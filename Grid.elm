@@ -76,9 +76,9 @@ makeCells mask =
            else RectCellTag (Cell.createMaskedCell row col)
 
         makeRow row cols =
-            Array.initialize (mask.cols - 1) (\n -> createMaskedCell row n)
+            Array.initialize mask.cols (\n -> createMaskedCell row n)
     in
-       Array.initialize (mask.rows - 1) (\n -> makeRow n mask.cols)
+       Array.initialize mask.rows (\n -> makeRow n mask.cols)
 
 -- generates collage object (Element) of the grid
 -- Takes 2 painter functions: one for the whole grid and one for each cell
@@ -197,9 +197,9 @@ cellsList cells =
 cellsListToCellGrid : List GridCell -> CellGrid
 cellsListToCellGrid cells =
     -- Determine row count
-    let rows = Maybe.withDefault 1 <| List.maximum <| List.map (\c -> (toRectCell c).row) cells
+    let rowMax = Maybe.withDefault 0 <| List.maximum <| List.map (\c -> (toRectCell c).row) cells
     in
-       Array.initialize rows (\row -> Array.fromList <| List.filter (\c -> (toRectCell c).row == row) cells)
+       Array.initialize (rowMax + 1) (\row -> Array.fromList <| List.filter (\c -> (toRectCell c).row == row) cells)
 
 -- 0-based indices
 -- returns cell at an x,y index.
