@@ -44,7 +44,7 @@ type alias Maze a = {
 defaultAlgorithm = BinaryTree
 
 cellSize : Int
-cellSize = 20
+cellSize = 30
 
 -- Possible functions for creating grids:
 -- generateCells

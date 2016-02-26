@@ -40,7 +40,7 @@ setInwardCell cell inward =
     let (c, (cid, links)) = toPolarCell cell
         (ic, (icid, _)) = toPolarCell inward
     in
-       PolarCellTag (c, (icid, links))
+       PolarCellTag (c, (ic.id, links))
 
 addOutwardLink : GridCell -> GridCell -> GridCell
 addOutwardLink parentCell outwardCell =

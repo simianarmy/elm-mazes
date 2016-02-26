@@ -19,7 +19,7 @@ makeCells : Mask -> CellGrid
 makeCells mask =
     let nrows = mask.rows
         rowHeight = 1 / (toFloat nrows)
-        -- rows = 2-D array of Cell that we can convet to list format on return
+        -- Create initial CellGrid representation
         rows = Array.initialize nrows (\r -> Array.empty)
         rows' = Array.set 0 (Array.fromList [GridCell.cellToPolarCell (Cell.createCell 0 0)]) rows
 
@@ -47,6 +47,7 @@ makeCells mask =
     in
        configureCells nrows mask.cols acells
 
+-- Work data structure for configureCells
 type alias ConfigStep = {
     cells: List GridCell,
     rows: Int,
@@ -64,11 +65,12 @@ configureCells rows cols incells =
             rows = rows,
             cols = cols
         }
+        -- necessary since we can't pass grid objects to Grid yet
         rowLength : Int -> List GridCell -> Int
         rowLength row cells =
-            List.length <| List.filter (\c -> (toRectCell c).row == row) cells
+            List.length <| List.filter (\c -> (GridCell.toRectCell c).row == row) cells
 
-        ---- recursive worker.  accumulates results in res
+        ---- recursive worker.  accumulates results in work
         configurer : GridCell -> ConfigStep -> ConfigStep
         configurer gc work =
             -- here's what we're doing ruby-style
@@ -81,18 +83,20 @@ configureCells rows cols incells =
                 divLen = Debug.log "divLen: " <| rowLength (cell.row - 1) work.cells
                 ratio = Debug.log "ratio: " <| (toFloat rowLen) / (toFloat divLen)
                 pcol = Debug.log "parent col: " <| floor ((toFloat cell.col) / ratio)
+
                 -- Crash if parent is not a valid cell!
-                -- TODO: LOOKUP CELL BY ROW, COL USING LIST FILTER
-                parent = Debug.log "parent: " <| Grid.maybeGridCellToGridCell <| List.head <| List.filter (\c ->
-                    let rc = toRectCell c
-                    in
-                       (rc.row == cell.row - 1 && rc.col == pcol)
-                   ) work.cells
+                parent = Debug.log "parent: " 
+                    <| Grid.maybeGridCellToGridCell
+                    <| List.head
+                    <| List.filter (\c ->
+                        let rc = GridCell.toRectCell c
+                        in
+                           (rc.row == cell.row - 1 && rc.col == pcol)
+                       ) work.cells
                 -- update the CellLinks (outward) of this parent
                 parent' = Debug.log "parent': " <| GridCell.addOutwardLink parent gc
                 -- update the inward of this cell
-                cell' = GridCell.setInwardCell gc parent'
-                -- Replace cell with cell' in res cells
+                cell' = Debug.log "cell': " <| GridCell.setInwardCell gc parent'
                 -- Transform newCells to contain the modified parent' and cell' cells
                 newCells = List.map (\c ->
                     let pcId = GridCell.id c
@@ -105,12 +109,10 @@ configureCells rows cols incells =
                              else c
                          ) work.cells
             in
-               if cell.row > 0
-                  then {work | cells = newCells}
-                  else work
+               {work | cells = newCells}
 
         result = List.foldl configurer res
-           <| List.filter (\c -> (fst (GridCell.toPolarCell c)).row > 0) cellList
+           <| List.filter (\c -> (GridCell.toRectCell c).row > 0) cellList
     in
        -- convert back to 2D grid
        Grid.cellsListToCellGrid result.cells

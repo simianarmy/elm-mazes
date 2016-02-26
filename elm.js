@@ -11243,7 +11243,7 @@ Elm.GridCell.make = function (_elm) {
       var c = _p4._0;
       var cid = _p4._1._0;
       var links = _p4._1._1;
-      return PolarCellTag({ctor: "_Tuple2",_0: c,_1: {ctor: "_Tuple2",_0: icid,_1: links}});
+      return PolarCellTag({ctor: "_Tuple2",_0: c,_1: {ctor: "_Tuple2",_0: ic.id,_1: links}});
    });
    var addOutwardLink = F2(function (parentCell,outwardCell) {
       var _p5 = toPolarCell(outwardCell);
@@ -11748,18 +11748,18 @@ Elm.PolarGrid.make = function (_elm) {
          },
          work.cells))));
          var parent$ = A2($Debug.log,"parent\': ",A2($GridCell.addOutwardLink,parent,gc));
-         var cell$ = A2($GridCell.setInwardCell,gc,parent$);
+         var cell$ = A2($Debug.log,"cell\': ",A2($GridCell.setInwardCell,gc,parent$));
          var newCells = A2($List.map,
          function (c) {
             var pcId = $GridCell.id(c);
             return _U.eq(pcId,$GridCell.id(parent$)) ? parent$ : _U.eq(pcId,$GridCell.id(cell$)) ? cell$ : c;
          },
          work.cells);
-         return _U.cmp(cell.row,0) > 0 ? _U.update(work,{cells: newCells}) : work;
+         return _U.update(work,{cells: newCells});
       });
       var cellList = $Grid.cellsList(incells);
       var res = {cells: cellList,rows: rows,cols: cols};
-      var result = A3($List.foldl,configurer,res,A2($List.filter,function (c) {    return _U.cmp($Basics.fst($GridCell.toPolarCell(c)).row,0) > 0;},cellList));
+      var result = A3($List.foldl,configurer,res,A2($List.filter,function (c) {    return _U.cmp($GridCell.toRectCell(c).row,0) > 0;},cellList));
       return $Grid.cellsListToCellGrid(result.cells);
    });
    var ConfigStep = F3(function (a,b,c) {    return {cells: a,rows: b,cols: c};});
@@ -12402,7 +12402,7 @@ Elm.Maze.make = function (_elm) {
       return A5(init,maze.alg,A2($Debug.log,"width: ",width),A2($Debug.log,"height: ",height),maze.grid.rnd.seed,maze.display);
    });
    var gridMaker = F4(function (_p4,mask,display,seed) {    var _p5 = _p4;return true;});
-   var cellSize = 20;
+   var cellSize = 30;
    var view = function (maze) {
       var gridHtml = function () {
          var _p6 = maze.display;
