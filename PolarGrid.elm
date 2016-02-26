@@ -6,6 +6,7 @@ import Mask exposing (Mask)
 import Cell exposing (Cell, BaseCell, CellID, CellLinks)
 import GridCell exposing (..)
 import GridUtils
+import Rnd
 
 import Set
 import Array exposing (Array)
@@ -162,7 +163,7 @@ randomCell grid =
         rowLen = List.length <| Grid.rowCells grid randRow
         -- col is rand(grid[row].length), but that reqires
         -- a dynamic rng, so this is a hack
-        randCol = min rowLen grid'.rnd.col
+        randCol = Rnd.randInt grid'.rnd rowLen
     in
         getCell grid' randRow randCol
 

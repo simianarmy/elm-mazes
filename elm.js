@@ -11111,15 +11111,22 @@ Elm.Rnd.make = function (_elm) {
       var seed4 = _p5._1;
       return _U.update(rnd,{seed: seed4,row: nextRow,col: nextCol,heads: _U.eq(headOrTail,1)});
    };
+   var randInt = F2(function (rnd,max) {    return $Basics.fst(A2($Random.generate,A2($Random.$int,0,max - 1),rnd.seed));});
    var nextSeed = function (rnd) {    return refresh(rnd).seed;};
    var createGridRnd = F3(function (rows,cols,initSeed) {
-      return {seed: initSeed,row: 0,col: 0,heads: false,rowRnd: $Random.generate(A2($Random.$int,1,rows)),colRnd: $Random.generate(A2($Random.$int,1,cols))};
+      return {seed: initSeed
+             ,row: -1
+             ,col: -1
+             ,heads: false
+             ,rowRnd: $Random.generate(A2($Random.$int,0,rows - 1))
+             ,colRnd: $Random.generate(A2($Random.$int,0,cols - 1))};
    });
    var GridRnd = F6(function (a,b,c,d,e,f) {    return {seed: a,row: b,col: c,heads: d,rowRnd: e,colRnd: f};});
    return _elm.Rnd.values = {_op: _op
                             ,GridRnd: GridRnd
                             ,createGridRnd: createGridRnd
                             ,nextSeed: nextSeed
+                            ,randInt: randInt
                             ,refresh: refresh
                             ,refreshCoinFlip: refreshCoinFlip
                             ,refreshRow: refreshRow
@@ -11702,6 +11709,7 @@ Elm.PolarGrid.make = function (_elm) {
    $Mask = Elm.Mask.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Rnd = Elm.Rnd.make(_elm),
    $Set = Elm.Set.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
@@ -11709,7 +11717,7 @@ Elm.PolarGrid.make = function (_elm) {
       var grid$ = $Grid.updateRnd(grid);
       var randRow = grid$.rnd.row;
       var rowLen = $List.length(A2($Grid.rowCells,grid,randRow));
-      var randCol = A2($Basics.min,rowLen,grid$.rnd.col);
+      var randCol = A2($Rnd.randInt,grid$.rnd,rowLen);
       return A3($Grid.getCell,grid$,randRow,randCol);
    };
    var maybeGridCellToMaybePolarCell = function (cell) {    return A2($Maybe.map,$GridCell.toPolarCell,cell);};

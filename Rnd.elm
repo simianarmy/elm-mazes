@@ -15,11 +15,11 @@ createGridRnd : Int -> Int -> Seed -> GridRnd
 createGridRnd rows cols initSeed =
     {
         seed = initSeed,
-        row = 0,
-        col = 0,
+        row = -1,
+        col = -1,
         heads = False,
-        rowRnd = generate (int 1 rows),
-        colRnd = generate (int 1 cols)
+        rowRnd = generate (int 0 (rows-1)),
+        colRnd = generate (int 0 (cols-1))
     }
 
 
@@ -27,6 +27,11 @@ createGridRnd rows cols initSeed =
 nextSeed : GridRnd -> Seed
 nextSeed rnd =
     (refresh rnd).seed
+
+randInt : GridRnd -> Int -> Int
+randInt rnd max =
+    -- dynamic generator based on input ceiling
+    fst <| generate (int 0 (max-1)) rnd.seed
 
 -- refresh all random values
 refresh : GridRnd -> GridRnd
