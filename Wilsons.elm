@@ -26,7 +26,7 @@ on startCellFn grid =
         -- get all cells but the sampled one
         unvisited = filterGridCells (\e ->
             not <| e.id == (GridCell.id startCell)
-        ) grid.cells
+        ) <| Grid.cellsList grid.cells
     in
        trampoline (work grid' unvisited)
 

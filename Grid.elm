@@ -6,7 +6,7 @@ import GridCell exposing (..)
 
 import Set exposing (Set)
 import List
-import Array
+import Array exposing (Array)
 import String
 import Color
 import Rnd exposing (..)
@@ -16,13 +16,15 @@ import Graphics.Element exposing (Element)
 import Color exposing (..)
 import Text exposing (..)
 
+type alias CellGrid = Array (Array GridCell)
+
 -- made extensible to contain additional data (ie. distances)
 type alias Grid a =
     {a |
         rows: Int,
         cols: Int,
-        cells: List GridCell,
-        cellMaker: (Mask -> List GridCell),
+        cells: CellGrid,
+        cellMaker: (Mask -> CellGrid),
         rnd: GridRnd,
         mask : Mask
 }
@@ -33,7 +35,7 @@ type alias RowAscii = {
 }
 
 -- constructor
---createGrid : Int -> Int -> Seed -> Grid a
+-- createGrid : Int -> Int -> Seed -> (Mask -> CellGrid) -> Grid a
 createGrid rows cols initSeed cellMaker =
     let mask' = Mask.createMask rows cols
     in createGridFromMask mask' initSeed cellMaker
@@ -66,17 +68,17 @@ update grid =
     }
 
 -- cells constructor for "basic" grids
-makeCells : Mask -> List GridCell
+makeCells : Mask -> CellGrid
 makeCells mask =
     let createMaskedCell row col =
         if Mask.get mask row col
            then RectCellTag (Cell.createCell row col)
            else RectCellTag (Cell.createMaskedCell row col)
 
-        makeRow cols row =
-            List.map (createMaskedCell row) [0..(mask.cols-1)]
+        makeRow row cols =
+            Array.initialize (mask.cols - 1) (\n -> createMaskedCell row n)
     in
-       List.concatMap (makeRow mask.cols) [0..(mask.rows-1)]
+       Array.initialize (mask.rows - 1) (\n -> makeRow n mask.cols)
 
 -- generates collage object (Element) of the grid
 -- Takes 2 painter functions: one for the whole grid and one for each cell
@@ -178,14 +180,31 @@ painter cellPainter grid cellSize =
                group <| ((cellBackground style cell) :: (cellWalls style cell))
 
         -- cast grid.cells to rectCells
-        drawables = List.map paintCell grid.cells
+        drawables = List.map paintCell (cellsList grid.cells)
     in
        collage imgWidth imgHeight [group drawables |> move (ox, oy)]
+
+-- GRID DATA STRUCTURE CONVERSION OPERATORS
+-- 1D list -> 2D array
+-- 2D array -> 1D list
+
+-- flattens 2-d array of gridcells to 1-d list
+cellsList : CellGrid -> List GridCell
+cellsList cells =
+    List.concat <| Array.toList <| Array.map Array.toList cells
+
+-- converts 1-d list of gridcells to 2-d array
+cellsListToCellGrid : List GridCell -> CellGrid
+cellsListToCellGrid cells =
+    -- Determine row count
+    let rows = Maybe.withDefault 1 <| List.maximum <| List.map (\c -> (toRectCell c).row) cells
+    in
+       Array.initialize rows (\row -> Array.fromList <| List.filter (\c -> (toRectCell c).row == row) cells)
 
 -- 0-based indices
 -- returns cell at an x,y index.
 -- returns nil cell if the index is invalid or the cell at that location is masked
-getCell : {a | cells : List GridCell, rows : Int, cols : Int } 
+getCell : {a | cells : CellGrid, rows : Int, cols : Int } 
     -> Int -> Int 
     -> Maybe GridCell
 getCell grid row col =
@@ -193,7 +212,8 @@ getCell grid row col =
     if (row >= grid.rows || col >= grid.cols || row < 0 || col < 0)
        then Nothing
        else
-       let cell = Array.get (gridIndex grid row col) <| Array.fromList grid.cells
+       let rowCells = Maybe.withDefault Array.empty <| Array.get row grid.cells
+           cell = Array.get col rowCells
        in
           case cell of
               Just (RectCellTag c) ->
@@ -280,7 +300,7 @@ neighbors grid cell =
 -- returns all cells with only 1 link
 --deadEnds : Grid a -> List GridCell
 deadEnds grid =
-    List.filter (\c -> (List.length (Set.toList c.links)) == 1) (gridCellsToBaseCells grid.cells)
+    List.filter (\c -> (List.length (Set.toList c.links)) == 1) (gridCellsToBaseCells (cellsList grid.cells))
 
 -- sometimes useful to filter the neighbors of a cell by some criteria
 filterNeighbors : (GridCell -> Bool) -> Grid a -> GridCell -> List GridCell
@@ -316,7 +336,7 @@ linkCellsHelper grid cell cellToLinkId bidi =
                 PolarCellTag (pc, data) -> PolarCellTag ((linker pc), data)
 
     in
-       {grid | cells = List.map linkMatched grid.cells}
+       {grid | cells = cellsListToCellGrid <| List.map linkMatched (cellsList grid.cells)}
 
 -- link 2 cells
 linkCells : Grid a -> GridCell -> GridCell -> Bool -> Grid a
@@ -345,9 +365,9 @@ rowMatcher cell row =
         PolarCellTag (c, _) -> c.row == row
 
 -- takes 0-indexed row
-rowCells : {a| cells : List GridCell} -> Int -> List GridCell
+rowCells : {a| cells : CellGrid} -> Int -> List GridCell
 rowCells grid row =
-    List.filter (\e -> rowMatcher e row) grid.cells
+    Array.toList <| Maybe.withDefault Array.empty <| Array.get row grid.cells
 
 -- helper to pattern match list of unions
 gridCellsToBaseCells : List GridCell -> List BaseCell

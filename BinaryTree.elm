@@ -38,4 +38,4 @@ on startCellFn grid =
                    Just neighbor -> linkCells grid' cell neighbor True
     in
        -- We want to somehow map over each cell while keeping the linking states
-        List.foldl processCell grid grid.cells
+        List.foldl processCell grid (Grid.cellsList grid.cells)

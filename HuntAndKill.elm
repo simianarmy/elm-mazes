@@ -54,7 +54,7 @@ hunt grid =
         huntUnvisitedNeighbor gcell =
             (not <| isEmpty (visitedNeighbors gcell)) && (not <| Cell.hasLinks (GridCell.toRectCell gcell))
 
-        huntedCell = LE.find huntUnvisitedNeighbor grid.cells
+        huntedCell = LE.find huntUnvisitedNeighbor <| Grid.cellsList grid.cells
     in
        case huntedCell of
           -- no results, return an invalid cell

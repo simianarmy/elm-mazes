@@ -15,7 +15,7 @@ import Html
 import Color exposing (Color)
 
 -- Does all the work of initializing a polar grid's cells
-makeCells : Mask -> List GridCell
+makeCells : Mask -> CellGrid
 makeCells mask =
     let nrows = mask.rows
         rowHeight = 1 / (toFloat nrows)
@@ -24,7 +24,7 @@ makeCells mask =
         rows' = Array.set 0 (Array.fromList [GridCell.cellToPolarCell (Cell.createCell 0 0)]) rows
 
         -- row: 1..rows
-        makeCellRows : Array (Array GridCell) -> Int -> Array (Array GridCell)
+        makeCellRows : CellGrid -> Int -> CellGrid
         makeCellRows res row =
             if row >= nrows
                then res
@@ -44,13 +44,8 @@ makeCells mask =
 
         -- populate the 2D array
         acells = makeCellRows rows' 1
-        -- convert to list of lists and
-        -- flatten inner lists to final list
-        cellList = Array.map Array.toList acells
-           |> Array.toList
-           |> List.concat
     in
-       configureCells nrows mask.cols cellList
+       configureCells nrows mask.cols acells
 
 type alias ConfigStep = {
     cells: List GridCell,
@@ -60,13 +55,19 @@ type alias ConfigStep = {
 
 -- Performs additional processing on generated cells
 -- Calculates each cell's parent and inward properties
-configureCells : Int -> Int -> List GridCell -> List GridCell
+configureCells : Int -> Int -> CellGrid -> CellGrid
 configureCells rows cols incells =
-    let res = {
-            cells = incells,
+    -- convert 2d cell grid to 1D list
+    let cellList = Grid.cellsList incells
+        res = {
+            cells = cellList,
             rows = rows,
             cols = cols
         }
+        rowLength : Int -> List GridCell -> Int
+        rowLength row cells =
+            List.length <| List.filter (\c -> (toRectCell c).row == row) cells
+
         ---- recursive worker.  accumulates results in res
         configurer : GridCell -> ConfigStep -> ConfigStep
         configurer gc work =
@@ -76,19 +77,22 @@ configureCells rows cols incells =
             -- parent.outward << cell
             -- cell.inward = parent
             let (cell, _) = Debug.log "cell: " <| GridCell.toPolarCell gc
-                rowLen = Debug.log "rowLen: " <| List.length (Grid.rowCells work cell.row)
-                divLen = Debug.log "divLen: " <| List.length (Grid.rowCells work (cell.row - 1))
+                rowLen = Debug.log "rowLen: " <| rowLength cell.row work.cells
+                divLen = Debug.log "divLen: " <| rowLength (cell.row - 1) work.cells
                 ratio = Debug.log "ratio: " <| (toFloat rowLen) / (toFloat divLen)
                 pcol = Debug.log "parent col: " <| floor ((toFloat cell.col) / ratio)
                 -- Crash if parent is not a valid cell!
-                parent = Debug.log "parent: " <| Grid.maybeGridCellToGridCell 
-                    <| Grid.getCell work (Debug.log "row: " (cell.row - 1)) <| Debug.log "col: " pcol
+                -- TODO: LOOKUP CELL BY ROW, COL USING LIST FILTER
+                parent = Debug.log "parent: " <| Grid.maybeGridCellToGridCell <| List.head <| List.filter (\c ->
+                    let rc = toRectCell c
+                    in
+                       (rc.row == cell.row - 1 && rc.col == pcol)
+                   ) work.cells
                 -- update the CellLinks (outward) of this parent
                 parent' = Debug.log "parent': " <| GridCell.addOutwardLink parent gc
                 -- update the inward of this cell
                 cell' = GridCell.setInwardCell gc parent'
                 -- Replace cell with cell' in res cells
-                cellIndex = Debug.log "cell idx: " <| GridUtils.indexOfCell cell' work.cells
                 -- Transform newCells to contain the modified parent' and cell' cells
                 newCells = List.map (\c ->
                     let pcId = GridCell.id c
@@ -104,11 +108,12 @@ configureCells rows cols incells =
                if cell.row > 0
                   then {work | cells = newCells}
                   else work
+
+        result = List.foldl configurer res
+           <| List.filter (\c -> (fst (GridCell.toPolarCell c)).row > 0) cellList
     in
-       -- process each cell, saving modified list as we go along
-       .cells
-           <| List.foldl configurer res
-           <| List.filter (\c -> (fst (GridCell.toPolarCell c)).row > 0) incells
+       -- convert back to 2D grid
+       Grid.cellsListToCellGrid result.cells
 
 clockwiseCell : Grid a -> BaseCell -> Maybe (BaseCell, (CellID, CellLinks))
 clockwiseCell grid cell =
@@ -211,7 +216,7 @@ painter cellPainter grid cellSize =
 
         circleForm = GC.outlined GC.defaultLine <| GC.circle (toFloat radius)
         drawables = List.concatMap cellLines <| 
-            List.filter (\c -> (fst c).row > 0) (gridCellsToPolarCells grid.cells)
+            List.filter (\c -> (fst c).row > 0) (gridCellsToPolarCells (Grid.cellsList grid.cells))
 
         forms = circleForm :: [GC.group drawables |> GC.move (negate center, negate center)]
     in
