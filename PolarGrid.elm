@@ -80,14 +80,13 @@ configureCells rows cols incells =
             -- parent.outward << cell
             -- cell.inward = parent
             let (cell, _) = Debug.log "cell: " <| GridCell.toPolarCell gc
-                rowLen = Debug.log "rowLen: " <| rowLength cell.row work.cells
-                divLen = Debug.log "divLen: " <| rowLength (cell.row - 1) work.cells
-                ratio = Debug.log "ratio: " <| (toFloat rowLen) / (toFloat divLen)
-                pcol = Debug.log "parent col: " <| floor ((toFloat cell.col) / ratio)
+                rowLen = rowLength cell.row work.cells
+                divLen = rowLength (cell.row - 1) work.cells
+                ratio = (toFloat rowLen) / (toFloat divLen)
+                pcol = floor ((toFloat cell.col) / ratio)
 
                 -- Crash if parent is not a valid cell!
-                parent = Debug.log "parent: " 
-                    <| Grid.maybeGridCellToGridCell
+                parent = Grid.maybeGridCellToGridCell
                     <| List.head
                     <| List.filter (\c ->
                         let rc = GridCell.toRectCell c
@@ -161,8 +160,7 @@ randomCell grid =
     let grid' = updateRnd grid
         randRow = grid'.rnd.row
         rowLen = List.length <| Grid.rowCells grid randRow
-        -- col is rand(grid[row].length), but that reqires
-        -- a dynamic rng, so this is a hack
+        -- col is rand(grid[row].length)
         randCol = Rnd.randInt grid'.rnd rowLen
     in
         getCell grid' randRow randCol
@@ -181,6 +179,11 @@ neighbors grid cell =
             in
                List.append (List.concat [cw, ccw, inward]) outward
         _ -> []
+
+-- sometimes useful to filter the neighbors of a cell by some criteria
+filterNeighbors : (GridCell -> Bool) -> Grid a -> GridCell -> List GridCell
+filterNeighbors pred grid cell =
+    List.filter pred <| neighbors grid cell
 
 painter :  (Grid a -> GridCell -> Color) -> Grid a -> Int -> GE.Element
 painter cellPainter grid cellSize =

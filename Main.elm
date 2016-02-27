@@ -12,9 +12,9 @@ import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
 
-initWidth   = 8
-initHeight  = 8
-initDisplay = Maze.Ascii
+initWidth   = 4
+initHeight  = 4
+initDisplay = Maze.Polar
 
 --- MODEL ---
 
@@ -98,9 +98,9 @@ view address model =
         algToOptions attr =
             option [selected (attr.alg == Maze.defaultAlgorithm)] [text attr.name]
         viewOptions = [
-            option [selected True] [text "Ascii"]
-            , option [] [text "Colored"]
-            , option [] [text "Polar"]
+            option [selected (model.maze.display == Ascii)] [text "Ascii"]
+            , option [selected (model.maze.display == Colored)] [text "Colored"]
+            , option [selected (model.maze.display == Polar)] [text "Polar"]
             ]
         maze = model.maze
     in

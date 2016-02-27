@@ -2,6 +2,7 @@
 module Wilsons (on) where
 
 import Grid exposing (Grid)
+import PolarGrid
 import Cell exposing (BaseCell)
 import GridCell exposing (..)
 import GridUtils
@@ -51,8 +52,12 @@ loopErasedRandomWalk rwp =
     if not <| member rwp.cell rwp.unvisited
        then carvePassage rwp
        else
-       let gccell = Grid.maybeGridCellToGridCell
-           <| GridUtils.sampleCell (Grid.neighbors rwp.grid rwp.cell) rwp.grid.rnd
+       let 
+           neighborsFn = case rwp.cell of
+               PolarCellTag pc -> PolarGrid.neighbors
+               _ -> Grid.neighbors
+           gccell = Grid.maybeGridCellToGridCell
+               <| GridUtils.sampleCell (neighborsFn rwp.grid rwp.cell) rwp.grid.rnd
            position = GridUtils.indexOfCell gccell rwp.path
            grid = Grid.updateRnd rwp.grid
        in

@@ -209,7 +209,8 @@ getCell : {a | cells : CellGrid, rows : Int, cols : Int }
     -> Maybe GridCell
 getCell grid row col =
     -- validate bounds
-    if (row >= grid.rows || col >= grid.cols || row < 0 || col < 0)
+    -- Ignore columns to accomodate polar grids
+    if (row >= grid.rows || row < 0 || col < 0)
        then Nothing
        else
        let rowCells = Maybe.withDefault Array.empty <| Array.get row grid.cells

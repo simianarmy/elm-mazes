@@ -41,7 +41,7 @@ type alias Maze a = {
     display : Display
 }
 
-defaultAlgorithm = BinaryTree
+defaultAlgorithm = RecursiveBacktracker
 
 cellSize : Int
 cellSize = 30

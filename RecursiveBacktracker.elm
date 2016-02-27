@@ -28,7 +28,11 @@ walkRandomly grid stack =
        then Done grid
        else
        let current = head stack |> Grid.maybeGridCellToGridCell
-           neighbors = Grid.filterNeighbors (\c -> not <| Cell.hasLinks (GridCell.toRectCell c)) grid current
+           -- Get the proper filter function
+           filterNeighborsFn = case current of
+               PolarCellTag pc -> PolarGrid.filterNeighbors
+               _ -> Grid.filterNeighbors
+           neighbors = filterNeighborsFn (\c -> not <| Cell.hasLinks (GridCell.toRectCell c)) grid current
        in
            if isEmpty neighbors
               then Continue (\() -> walkRandomly grid (Maybe.withDefault [] (tail stack)))

@@ -16,9 +16,9 @@ import Debug exposing (log)
 on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
 on startCellFn grid =
     let grid' = Grid.updateRnd grid
-        startCell = Grid.maybeGridCellToGridCell <| startCellFn grid
+        startCell = Debug.log "start cell: " <| Grid.maybeGridCellToGridCell <| startCellFn grid
     in
-       trampoline (walkRandomly grid' startCell ((Grid.size grid) - 1))
+       trampoline (walkRandomly grid' startCell ((Grid.size grid)- 1))
 
 -- Breaking out to try trampoline
 walkRandomly : Grid a -> GridCell -> Int -> Trampoline (Grid a)
@@ -27,9 +27,12 @@ walkRandomly grid cell unvisited =
        then Done grid
        else
        -- Pick a random neighbor of cell
-       let sample = case cell of
-               RectCellTag rc -> Grid.neighbors grid cell
-               PolarCellTag pc -> PolarGrid.neighbors grid cell
+       let 
+           -- refresh rng
+           grid' = Grid.updateRnd grid
+           sample = Debug.log "sample cell: " <| case cell of
+               RectCellTag rc -> Grid.neighbors grid' cell
+               PolarCellTag pc -> PolarGrid.neighbors grid' cell
            -- gridcell
            gcneighbor = Grid.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd
            -- basecell
@@ -39,10 +42,10 @@ walkRandomly grid cell unvisited =
           if not <| Cell.hasLinks neighbor
              then
              -- link cell to neighbor and move to the neighbor
-             let grid' = Grid.updateRnd <| Grid.linkCells grid cell gcneighbor True
+             let grid'' = Grid.linkCells grid' cell gcneighbor True
              in
-                Continue (\() -> walkRandomly grid' gcneighbor (unvisited - 1))
+                Continue (\() -> walkRandomly grid'' gcneighbor (unvisited - 1))
              else
              -- move to the neighbor w/out linking
-             Continue (\() -> walkRandomly (Grid.updateRnd grid) gcneighbor unvisited)
+             Continue (\() -> walkRandomly grid' gcneighbor unvisited)
 
