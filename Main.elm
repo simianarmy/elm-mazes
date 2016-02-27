@@ -14,7 +14,7 @@ import Html.Events exposing (..)
 
 initWidth   = 4
 initHeight  = 4
-initDisplay = Maze.Polar
+initDisplay = Maze.Ascii
 
 --- MODEL ---
 

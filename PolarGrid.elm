@@ -79,7 +79,7 @@ configureCells rows cols incells =
             -- parent = @grid[row - 1][col / ratio]
             -- parent.outward << cell
             -- cell.inward = parent
-            let (cell, _) = Debug.log "cell: " <| GridCell.toPolarCell gc
+            let (cell, _) = GridCell.toPolarCell gc
                 rowLen = rowLength cell.row work.cells
                 divLen = rowLength (cell.row - 1) work.cells
                 ratio = (toFloat rowLen) / (toFloat divLen)
@@ -94,9 +94,9 @@ configureCells rows cols incells =
                            (rc.row == cell.row - 1 && rc.col == pcol)
                        ) work.cells
                 -- update the CellLinks (outward) of this parent
-                parent' = Debug.log "parent': " <| GridCell.addOutwardLink parent gc
+                parent' = GridCell.addOutwardLink parent gc
                 -- update the inward of this cell
-                cell' = Debug.log "cell': " <| GridCell.setInwardCell gc parent'
+                cell' = GridCell.setInwardCell gc parent'
                 -- Transform newCells to contain the modified parent' and cell' cells
                 newCells = List.map (\c ->
                     let pcId = GridCell.id c
@@ -119,17 +119,17 @@ configureCells rows cols incells =
 
 clockwiseCell : Grid a -> BaseCell -> Maybe (BaseCell, (CellID, CellLinks))
 clockwiseCell grid cell =
-    maybeGridCellToMaybePolarCell <| Grid.getCell grid cell.row (cell.col + 1)
+    maybeGridCellToMaybePolarCell <| getCell grid cell.row (cell.col + 1)
 
 counterClockwiseCell : Grid a -> (BaseCell) -> Maybe (BaseCell, (CellID, CellLinks))
 counterClockwiseCell grid cell =
-    maybeGridCellToMaybePolarCell <| Grid.getCell grid cell.row (cell.col - 1)
+    maybeGridCellToMaybePolarCell <| getCell grid cell.row (cell.col - 1)
 
 outwardCells : Grid a -> CellLinks -> List GridCell
 outwardCells grid outward =
     let outwardIds = Set.toList outward
     in
-        List.map (Grid.cellIdToCell grid) outwardIds
+        List.map (cellIdToCell grid) outwardIds
 
 gridCellsToPolarCells : List GridCell -> List (BaseCell, (CellID, CellLinks))
 gridCellsToPolarCells gridcells =
@@ -155,6 +155,41 @@ maybeGridCellToMaybePolarCell : Maybe GridCell -> Maybe (BaseCell, (CellID, Cell
 maybeGridCellToMaybePolarCell cell =
     Maybe.map GridCell.toPolarCell cell
 
+cellIdToCell : Grid a -> Cell.CellID -> GridCell
+cellIdToCell grid cellid =
+    let row = (fst cellid)
+        col = (snd cellid)
+    in
+        maybeGridCellToGridCell <| getCell grid row col
+
+size : Grid a -> Int
+size grid =
+    List.length <| cellsList grid.cells
+
+-- 0-based indices
+-- returns cell at an x,y index.
+-- returns nil cell if the index is invalid or the cell at that location is masked
+getCell : {a | cells : CellGrid, rows : Int, cols : Int } 
+    -> Int -> Int 
+    -> Maybe GridCell
+getCell grid row col =
+    -- validate bounds
+    if (row >= grid.rows || row < 0 || col < 0)
+       then Nothing
+       else
+       let rowCells = Maybe.withDefault Array.empty <| Array.get row grid.cells
+           -- trick to ensure the clockwise boundary and the counter-clockwise boundary effectively become adjacent.
+           -- removes the rightward radial line
+           rowLen = Array.length rowCells
+           cell = Array.get (col % rowLen) rowCells
+       in
+          case cell of
+              Just (PolarCellTag (c, o)) ->
+                  if c.masked
+                     then Nothing
+                     else cell
+              _ -> Debug.crash "Unsupported GridCell type (expecting PolarCells)" Nothing
+
 randomCell: Grid a -> Maybe GridCell
 randomCell grid =
     let grid' = updateRnd grid
@@ -174,7 +209,7 @@ neighbors grid cell =
                 (ccw) = toCellList <| counterClockwiseCell grid c
                 inward = if Cell.isNilCellID inId
                             then []
-                            else [Grid.cellIdToCell grid inId]
+                            else [cellIdToCell grid inId]
                 outward = outwardCells grid outwardIds
             in
                List.append (List.concat [cw, ccw, inward]) outward
@@ -209,7 +244,7 @@ painter cellPainter grid cellSize =
                 dx = (center + (outerRadius * (cos thetaCw)))
                 dy = (center + (outerRadius * (sin thetaCw)))
 
-                linkedInward = Cell.isLinked cell (fst <| GridCell.toPolarCell <| (Grid.cellIdToCell grid inward))
+                linkedInward = Cell.isLinked cell (fst <| GridCell.toPolarCell <| (cellIdToCell grid inward))
                 linkedCw  = Cell.isLinked cell (fst <| toValidCell (clockwiseCell grid cell))
                 line1 = if not linkedInward
                            then [GC.segment (ax, ay) (cx, cy)]
