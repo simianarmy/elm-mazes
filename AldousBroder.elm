@@ -18,7 +18,7 @@ on startCellFn grid =
     let grid' = Grid.updateRnd grid
         startCell = Debug.log "start cell: " <| Grid.maybeGridCellToGridCell <| startCellFn grid
     in
-       trampoline (walkRandomly grid' startCell ((Grid.size grid)- 1))
+       trampoline (walkRandomly grid' startCell ((Grid.size grid) - 1))
 
 -- Breaking out to try trampoline
 walkRandomly : Grid a -> GridCell -> Int -> Trampoline (Grid a)

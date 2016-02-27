@@ -11306,7 +11306,6 @@ Elm.Grid.make = function (_elm) {
    var cellToList = function (cell) {    var _p0 = cell;if (_p0.ctor === "Just") {    return _U.list([_p0._0]);} else {    return _U.list([]);}};
    var gridIndex = F3(function (grid,row,col) {    return grid.cols * row + col;});
    var cellIndex = F2(function (grid,cell) {    var rc = $GridCell.toRectCell(cell);return grid.cols * rc.row + rc.col;});
-   var size = function (grid) {    return $Mask.count(grid.mask);};
    var gridCellsToBaseCells = function (gridcells) {    return A2($List.map,$GridCell.toRectCell,gridcells);};
    var rowCells = F2(function (grid,row) {    return $Array.toList(A2($Maybe.withDefault,$Array.empty,A2($Array.get,row,grid.cells)));});
    var rowMatcher = F2(function (cell,row) {
@@ -11436,6 +11435,14 @@ Elm.Grid.make = function (_elm) {
             return A4(linkCellsHelper,grid,_p15._0._0,c2Id,bidi);
          }
    });
+   var size = function (grid) {
+      var _p16 = maybeGridCellToGridCell(A3(getCell,grid,0,0));
+      if (_p16.ctor === "PolarCellTag") {
+            return $List.length(cellsList(grid.cells));
+         } else {
+            return $Mask.count(grid.mask);
+         }
+   };
    var painter = F3(function (cellPainter,grid,cellSize) {
       var cellToRect = function (cell) {    return $Graphics$Collage.square($Basics.toFloat(cellSize));};
       var cellBackground = F2(function (style,cell) {
@@ -11446,9 +11453,9 @@ Elm.Grid.make = function (_elm) {
          var cy = $Basics.toFloat($Basics.negate(rectcell.row) * cellSize) - halfSize;
          return A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: cx,_1: cy},bgRect);
       });
-      var maybeVisibleLine = F2(function (style,_p16) {
-         var _p17 = _p16;
-         return _p17._0 ? _U.list([A2($Graphics$Collage.traced,style,_p17._1)]) : _U.list([]);
+      var maybeVisibleLine = F2(function (style,_p17) {
+         var _p18 = _p17;
+         return _p18._0 ? _U.list([A2($Graphics$Collage.traced,style,_p18._1)]) : _U.list([]);
       });
       var cellWalls = F2(function (style,gridcell) {
          var cell = $GridCell.toRectCell(gridcell);

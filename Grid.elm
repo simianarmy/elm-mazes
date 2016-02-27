@@ -375,9 +375,12 @@ gridCellsToBaseCells : List GridCell -> List BaseCell
 gridCellsToBaseCells gridcells =
     List.map GridCell.toRectCell gridcells
 
+-- Not all grid types have the same # cells
 size : Grid a -> Int
 size grid =
-    Mask.count grid.mask
+    case maybeGridCellToGridCell <| getCell grid 0 0 of
+        PolarCellTag c -> List.length <| cellsList grid.cells
+        _ -> Mask.count grid.mask
 
 -- cardinal index of a cell in a grid (1,1) = 1, etc
 cellIndex : Grid a -> GridCell -> Int
