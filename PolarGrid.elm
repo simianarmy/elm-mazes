@@ -131,6 +131,10 @@ outwardCells grid outward =
     in
         List.map (cellIdToCell grid) outwardIds
 
+center: Grid a -> GridCell
+center grid =
+    getCell grid 0 0 |> maybeGridCellToGridCell
+
 gridCellsToPolarCells : List GridCell -> List (BaseCell, (CellID, CellLinks))
 gridCellsToPolarCells gridcells =
     List.map GridCell.toPolarCell gridcells
@@ -166,30 +170,6 @@ size : Grid a -> Int
 size grid =
     List.length <| cellsList grid.cells
 
--- 0-based indices
--- returns cell at an x,y index.
--- returns nil cell if the index is invalid or the cell at that location is masked
-getCell : {a | cells : CellGrid, rows : Int, cols : Int } 
-    -> Int -> Int 
-    -> Maybe GridCell
-getCell grid row col =
-    -- validate bounds
-    if (row >= grid.rows || row < 0 || col < 0)
-       then Nothing
-       else
-       let rowCells = Maybe.withDefault Array.empty <| Array.get row grid.cells
-           -- trick to ensure the clockwise boundary and the counter-clockwise boundary effectively become adjacent.
-           -- removes the rightward radial line
-           rowLen = Array.length rowCells
-           cell = Array.get (col % rowLen) rowCells
-       in
-          case cell of
-              Just (PolarCellTag (c, o)) ->
-                  if c.masked
-                     then Nothing
-                     else cell
-              _ -> Debug.crash "Unsupported GridCell type (expecting PolarCells)" Nothing
-
 randomCell: Grid a -> Maybe GridCell
 randomCell grid =
     let grid' = updateRnd grid
@@ -223,7 +203,6 @@ filterNeighbors pred grid cell =
 painter :  (Grid a -> GridCell -> Color) -> Grid a -> Int -> GE.Element
 painter cellPainter grid cellSize =
     let imgSize = 2 * grid.rows * cellSize
-        background = Color.white
         wall = Color.black
         center = (toFloat imgSize) / 2
         radius = grid.rows * cellSize

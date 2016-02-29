@@ -24,7 +24,7 @@ createGrid grid root =
 cellBackgroundColor : Colored (CellDistances (Grid a)) -> GridCell -> Color
 cellBackgroundColor grid gridcell =
     let cell = GridCell.toRectCell gridcell
-        distance = Distances.lookup grid.dists cell
+        distance = Debug.log "distance: " <| Distances.lookup grid.dists cell
         intensity = toFloat (grid.maximum - distance) / (toFloat grid.maximum)
         dark = round (255 * intensity)
         bright = round (128 + (127 * intensity))

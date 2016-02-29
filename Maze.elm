@@ -34,6 +34,7 @@ type alias AlgAttr = {
 type Display = Ascii
              | Colored
              | Polar
+             | PolarAscii
 
 type alias Maze a = {
     grid : Grid a,
@@ -111,8 +112,13 @@ view maze =
                     coloredGrid = ColoredGrid.createGrid maze.grid root
                 in
                    fromElement <| Grid.toElement coloredGrid Grid.painter ColoredGrid.cellBackgroundColor cellSize
-            Polar ->
+            PolarAscii ->
                 fromElement <| Grid.toElement maze.grid PolarGrid.painter Grid.cellBackgroundColor cellSize
+            Polar ->
+                let (root, _) = GridCell.toPolarCell <| PolarGrid.center maze.grid
+                    coloredGrid = ColoredGrid.createGrid maze.grid root
+                in
+                    fromElement <| Grid.toElement coloredGrid PolarGrid.painter ColoredGrid.cellBackgroundColor cellSize
     in
        div [] [
            text <| (algToString maze.alg) ++ " algorithm"

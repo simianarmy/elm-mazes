@@ -209,7 +209,7 @@ getCell : {a | cells : CellGrid, rows : Int, cols : Int }
     -> Maybe GridCell
 getCell grid row col =
     -- validate bounds
-    if (row >= grid.rows || col >= grid.cols || row < 0 || col < 0)
+    if (row >= grid.rows || row < 0 || col < 0)
        then Nothing
        else
        let rowCells = Maybe.withDefault Array.empty <| Array.get row grid.cells
@@ -217,11 +217,20 @@ getCell grid row col =
        in
           case cell of
               Just (RectCellTag c) ->
-                  if c.masked
+                  if (col >= grid.cols) || c.masked
                      then Nothing
-                     --else Just (RectCellTag c)
                      else cell
-              _ -> Debug.crash "Unsupported GridCell type (expecting RectCells)" Nothing
+              Just (PolarCellTag c) ->
+                  -- This is ugly, but we want to recalculate col for polar grids
+                  -- to remove the radial line on the right
+                  let rowLen = Array.length rowCells
+                      (pc, rest) = toPolarCell <| maybeGridCellToGridCell <| Array.get (col % rowLen) rowCells
+                  in
+                     if pc.masked
+                        then Nothing
+                        --else Just (RectCellTag c)
+                        else Just (PolarCellTag (pc, rest))
+              _ -> Nothing
 
 -- commonly used to map a maybe cell to a cell
 toValidCell : Maybe Cell -> Cell
