@@ -159,13 +159,6 @@ maybeGridCellToMaybePolarCell : Maybe GridCell -> Maybe (BaseCell, (CellID, Cell
 maybeGridCellToMaybePolarCell cell =
     Maybe.map GridCell.toPolarCell cell
 
-cellIdToCell : Grid a -> Cell.CellID -> GridCell
-cellIdToCell grid cellid =
-    let row = (fst cellid)
-        col = (snd cellid)
-    in
-        maybeGridCellToGridCell <| getCell grid row col
-
 size : Grid a -> Int
 size grid =
     List.length <| cellsList grid.cells
@@ -207,12 +200,14 @@ painter cellPainter grid cellSize =
         center = (toFloat imgSize) / 2
         radius = grid.rows * cellSize
 
-        cellLines : (BaseCell, (CellID, CellLinks)) -> List GC.Form
-        cellLines (cell, (inward, outwards)) =
-            let theta = (2 * pi) / (toFloat <| List.length (Grid.rowCells grid cell.row))
+        cellLines : GridCell -> List GC.Form
+        cellLines gc =
+            let (cell, (inward, outwards)) = toPolarCell gc
+                theta = (2 * pi) / (toFloat <| List.length (Grid.rowCells grid cell.row))
                 innerRadius = toFloat (cell.row * cellSize)
                 outerRadius = toFloat ((cell.row + 1) * cellSize)
                 thetaCcw = (toFloat cell.col) * theta
+                midTheta = (toFloat cell.col + 0.5) * theta
                 thetaCw = (toFloat (cell.col + 1)) * theta
                 ax = (center + (innerRadius * (cos thetaCcw)))
                 ay = (center + (innerRadius * (sin thetaCcw)))
@@ -222,6 +217,8 @@ painter cellPainter grid cellSize =
                 cy = (center + (innerRadius * (sin thetaCw)))
                 dx = (center + (outerRadius * (cos thetaCw)))
                 dy = (center + (outerRadius * (sin thetaCw)))
+                midX = (center + (outerRadius * (cos midTheta)))
+                midY = (center + (outerRadius * (sin midTheta)))
 
                 linkedInward = Cell.isLinked cell (fst <| GridCell.toPolarCell <| (cellIdToCell grid inward))
                 linkedCw  = Cell.isLinked cell (fst <| toValidCell (clockwiseCell grid cell))
@@ -231,12 +228,13 @@ painter cellPainter grid cellSize =
                 line2 = if not linkedCw
                            then [GC.segment (cx, cy) (dx, dy)]
                            else []
+                filled = GC.filled (cellPainter grid gc) <| (GC.polygon [(ax, ay), (bx, by), (midX, midY), (dx, dy), (cx, cy)])
             in
-               List.map (GC.traced GC.defaultLine) <| List.concat [line1, line2]
+               filled :: (List.map (GC.traced GC.defaultLine) <| List.concat [line1, line2])
 
         circleForm = GC.outlined GC.defaultLine <| GC.circle (toFloat radius)
         drawables = List.concatMap cellLines <| 
-            List.filter (\c -> (fst c).row > 0) (gridCellsToPolarCells (Grid.cellsList grid.cells))
+            List.filter (\c -> (fst (toPolarCell c)).row > 0) (Grid.cellsList grid.cells)
 
         forms = circleForm :: [GC.group drawables |> GC.move (negate center, negate center)]
     in

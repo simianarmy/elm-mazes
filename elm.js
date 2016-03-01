@@ -11355,10 +11355,18 @@ Elm.Grid.make = function (_elm) {
                         return _U.cmp(col,grid.cols) > -1 || _p7._0._0.masked ? $Maybe.Nothing : cell;
                      } else {
                         var rowLen = $Array.length(rowCells);
-                        var _p8 = $GridCell.toPolarCell(maybeGridCellToGridCell(A2($Array.get,A2($Basics._op["%"],col,rowLen),rowCells)));
-                        var pc = _p8._0;
-                        var rest = _p8._1;
-                        return pc.masked ? $Maybe.Nothing : $Maybe.Just($GridCell.PolarCellTag({ctor: "_Tuple2",_0: pc,_1: rest}));
+                        var modCol = A2($Basics._op["%"],col,rowLen);
+                        var modCell = A2($Array.get,modCol,rowCells);
+                        var _p8 = modCell;
+                        if (_p8.ctor === "Just") {
+                              if (_p8._0.ctor === "RectCellTag") {
+                                    return _U.crashCase("Grid",{start: {line: 230,column: 22},end: {line: 233,column: 44}},_p8)("WOT?");
+                                 } else {
+                                    return modCell;
+                                 }
+                           } else {
+                              return $Maybe.Nothing;
+                           }
                      }
                } else {
                   return $Maybe.Nothing;
@@ -11370,13 +11378,13 @@ Elm.Grid.make = function (_elm) {
    var west = F2(function (grid,cell) {    return maybeGridCellToMaybeCell(A3(getCell,grid,cell.row,cell.col - 1));});
    var east = F2(function (grid,cell) {    return maybeGridCellToMaybeCell(A3(getCell,grid,cell.row,cell.col + 1));});
    var neighbors = F2(function (grid,cell) {
-      var _p9 = cell;
-      if (_p9.ctor === "RectCellTag") {
-            var _p10 = _p9._0;
-            var e = A2(east,grid,_p10);
-            var w = A2(west,grid,_p10);
-            var s = A2(south,grid,_p10);
-            var n = A2(north,grid,_p10);
+      var _p10 = cell;
+      if (_p10.ctor === "RectCellTag") {
+            var _p11 = _p10._0;
+            var e = A2(east,grid,_p11);
+            var w = A2(west,grid,_p11);
+            var s = A2(south,grid,_p11);
+            var n = A2(north,grid,_p11);
             var res = $List.concat(_U.list([cellToList(n),cellToList(s),cellToList(w),cellToList(e)]));
             return A2($List.map,function (e) {    return $GridCell.RectCellTag(e);},res);
          } else {
@@ -11386,9 +11394,9 @@ Elm.Grid.make = function (_elm) {
    var filterNeighbors = F3(function (pred,grid,cell) {    return A2($List.filter,pred,A2(neighbors,grid,cell));});
    var center = function (grid) {    return maybeGridCellToCell(A3(getCell,grid,grid.rows / 2 | 0,grid.cols / 2 | 0));};
    var randomCell = function (grid) {
-      var _p11 = A2($Mask.randomLocation,grid.mask,grid.rnd);
-      var row = _p11._0;
-      var col = _p11._1;
+      var _p12 = A2($Mask.randomLocation,grid.mask,grid.rnd);
+      var row = _p12._0;
+      var col = _p12._1;
       return A3(getCell,grid,row,col);
    };
    var cellIdToCell = F2(function (grid,cellid) {
@@ -11397,11 +11405,11 @@ Elm.Grid.make = function (_elm) {
       return maybeGridCellToGridCell(A3(getCell,grid,row,col));
    });
    var linkedCells = F2(function (grid,cell) {
-      var _p12 = cell;
-      if (_p12.ctor === "RectCellTag") {
-            return A2($List.map,cellIdToCell(grid),$Set.toList(_p12._0.links));
+      var _p13 = cell;
+      if (_p13.ctor === "RectCellTag") {
+            return A2($List.map,cellIdToCell(grid),$Set.toList(_p13._0.links));
          } else {
-            return A2($List.map,cellIdToCell(grid),$Set.toList(_p12._0._0.links));
+            return A2($List.map,cellIdToCell(grid),$Set.toList(_p13._0._0.links));
          }
    });
    var cellsListToCellGrid = function (cells) {
@@ -11420,22 +11428,22 @@ Elm.Grid.make = function (_elm) {
       var linkCell = F2(function (cell1,id) {    return _U.update(cell1,{links: A2($Set.insert,id,cell1.links)});});
       var linker = function (c) {    return _U.eq(c.id,cell.id) ? A2(linkCell,c,cellToLinkId) : bidi && _U.eq(c.id,cellToLinkId) ? A2(linkCell,c,cell.id) : c;};
       var linkMatched = function (c) {
-         var _p13 = c;
-         if (_p13.ctor === "RectCellTag") {
-               return $GridCell.RectCellTag(linker(_p13._0));
+         var _p14 = c;
+         if (_p14.ctor === "RectCellTag") {
+               return $GridCell.RectCellTag(linker(_p14._0));
             } else {
-               return $GridCell.PolarCellTag({ctor: "_Tuple2",_0: linker(_p13._0._0),_1: _p13._0._1});
+               return $GridCell.PolarCellTag({ctor: "_Tuple2",_0: linker(_p14._0._0),_1: _p14._0._1});
             }
       };
       return _U.update(grid,{cells: cellsListToCellGrid(A2($List.map,linkMatched,cellsList(grid.cells)))});
    });
    var linkCells = F4(function (grid,cell,cell2,bidi) {
       var c2Id = gridCellID(cell2);
-      var _p14 = cell;
-      if (_p14.ctor === "RectCellTag") {
-            return A4(linkCellsHelper,grid,_p14._0,c2Id,bidi);
+      var _p15 = cell;
+      if (_p15.ctor === "RectCellTag") {
+            return A4(linkCellsHelper,grid,_p15._0,c2Id,bidi);
          } else {
-            return A4(linkCellsHelper,grid,_p14._0._0,c2Id,bidi);
+            return A4(linkCellsHelper,grid,_p15._0._0,c2Id,bidi);
          }
    });
    var painter = F3(function (cellPainter,grid,cellSize) {
@@ -11448,9 +11456,9 @@ Elm.Grid.make = function (_elm) {
          var cy = $Basics.toFloat($Basics.negate(rectcell.row) * cellSize) - halfSize;
          return A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: cx,_1: cy},bgRect);
       });
-      var maybeVisibleLine = F2(function (style,_p15) {
-         var _p16 = _p15;
-         return _p16._0 ? _U.list([A2($Graphics$Collage.traced,style,_p16._1)]) : _U.list([]);
+      var maybeVisibleLine = F2(function (style,_p16) {
+         var _p17 = _p16;
+         return _p17._0 ? _U.list([A2($Graphics$Collage.traced,style,_p17._1)]) : _U.list([]);
       });
       var cellWalls = F2(function (style,gridcell) {
          var cell = $GridCell.toRectCell(gridcell);
@@ -11662,11 +11670,6 @@ Elm.PolarGrid.make = function (_elm) {
       return A3($Grid.getCell,grid$,randRow,randCol);
    };
    var size = function (grid) {    return $List.length($Grid.cellsList(grid.cells));};
-   var cellIdToCell = F2(function (grid,cellid) {
-      var col = $Basics.snd(cellid);
-      var row = $Basics.fst(cellid);
-      return $Grid.maybeGridCellToGridCell(A3($Grid.getCell,grid,row,col));
-   });
    var maybeGridCellToMaybePolarCell = function (cell) {    return A2($Maybe.map,$GridCell.toPolarCell,cell);};
    var toCellList = function (cell) {
       var _p0 = cell;
@@ -11687,7 +11690,7 @@ Elm.PolarGrid.make = function (_elm) {
    var polarCellsToGridCells = function (cells) {    return A2($List.map,function (c) {    return $GridCell.PolarCellTag(c);},cells);};
    var gridCellsToPolarCells = function (gridcells) {    return A2($List.map,$GridCell.toPolarCell,gridcells);};
    var center = function (grid) {    return $Grid.maybeGridCellToGridCell(A3($Grid.getCell,grid,0,0));};
-   var outwardCells = F2(function (grid,outward) {    var outwardIds = $Set.toList(outward);return A2($List.map,cellIdToCell(grid),outwardIds);});
+   var outwardCells = F2(function (grid,outward) {    var outwardIds = $Set.toList(outward);return A2($List.map,$Grid.cellIdToCell(grid),outwardIds);});
    var counterClockwiseCell = F2(function (grid,cell) {    return maybeGridCellToMaybePolarCell(A3($Grid.getCell,grid,cell.row,cell.col - 1));});
    var clockwiseCell = F2(function (grid,cell) {    return maybeGridCellToMaybePolarCell(A3($Grid.getCell,grid,cell.row,cell.col + 1));});
    var neighbors = F2(function (grid,cell) {
@@ -11696,7 +11699,7 @@ Elm.PolarGrid.make = function (_elm) {
             var _p4 = _p2._0._1._0;
             var _p3 = _p2._0._0;
             var outward = A2(outwardCells,grid,_p2._0._1._1);
-            var inward = $Cell.isNilCellID(_p4) ? _U.list([]) : _U.list([A2(cellIdToCell,grid,_p4)]);
+            var inward = $Cell.isNilCellID(_p4) ? _U.list([]) : _U.list([A2($Grid.cellIdToCell,grid,_p4)]);
             var ccw = toCellList(A2(counterClockwiseCell,grid,_p3));
             var cw = toCellList(A2(clockwiseCell,grid,_p3));
             return A2($List.append,$List.concat(_U.list([cw,ccw,inward])),outward);
@@ -11711,35 +11714,47 @@ Elm.PolarGrid.make = function (_elm) {
       var wall = $Color.black;
       var imgSize = 2 * grid.rows * cellSize;
       var center = $Basics.toFloat(imgSize) / 2;
-      var cellLines = function (_p5) {
-         var _p6 = _p5;
-         var _p7 = _p6._0;
-         var linkedCw = A2($Cell.isLinked,_p7,$Basics.fst(toValidCell(A2(clockwiseCell,grid,_p7))));
-         var linkedInward = A2($Cell.isLinked,_p7,$Basics.fst($GridCell.toPolarCell(A2(cellIdToCell,grid,_p6._1._0))));
-         var outerRadius = $Basics.toFloat((_p7.row + 1) * cellSize);
-         var innerRadius = $Basics.toFloat(_p7.row * cellSize);
-         var theta = 2 * $Basics.pi / $Basics.toFloat($List.length(A2($Grid.rowCells,grid,_p7.row)));
-         var thetaCcw = $Basics.toFloat(_p7.col) * theta;
+      var cellLines = function (gc) {
+         var _p5 = $GridCell.toPolarCell(gc);
+         var cell = _p5._0;
+         var inward = _p5._1._0;
+         var outwards = _p5._1._1;
+         var theta = 2 * $Basics.pi / $Basics.toFloat($List.length(A2($Grid.rowCells,grid,cell.row)));
+         var innerRadius = $Basics.toFloat(cell.row * cellSize);
+         var outerRadius = $Basics.toFloat((cell.row + 1) * cellSize);
+         var thetaCcw = $Basics.toFloat(cell.col) * theta;
          var ax = center + innerRadius * $Basics.cos(thetaCcw);
          var ay = center + innerRadius * $Basics.sin(thetaCcw);
          var bx = center + outerRadius * $Basics.cos(thetaCcw);
          var by = center + outerRadius * $Basics.sin(thetaCcw);
-         var thetaCw = $Basics.toFloat(_p7.col + 1) * theta;
+         var midTheta = ($Basics.toFloat(cell.col) + 0.5) * theta;
+         var midX = center + outerRadius * $Basics.cos(midTheta);
+         var midY = center + outerRadius * $Basics.sin(midTheta);
+         var thetaCw = $Basics.toFloat(cell.col + 1) * theta;
          var cx = center + innerRadius * $Basics.cos(thetaCw);
          var cy = center + innerRadius * $Basics.sin(thetaCw);
+         var dx = center + outerRadius * $Basics.cos(thetaCw);
+         var dy = center + outerRadius * $Basics.sin(thetaCw);
+         var filled = A2($Graphics$Collage.filled,
+         A2(cellPainter,grid,gc),
+         $Graphics$Collage.polygon(_U.list([{ctor: "_Tuple2",_0: ax,_1: ay}
+                                           ,{ctor: "_Tuple2",_0: bx,_1: by}
+                                           ,{ctor: "_Tuple2",_0: midX,_1: midY}
+                                           ,{ctor: "_Tuple2",_0: dx,_1: dy}
+                                           ,{ctor: "_Tuple2",_0: cx,_1: cy}])));
+         var linkedInward = A2($Cell.isLinked,cell,$Basics.fst($GridCell.toPolarCell(A2($Grid.cellIdToCell,grid,inward))));
          var line1 = $Basics.not(linkedInward) ? _U.list([A2($Graphics$Collage.segment,
          {ctor: "_Tuple2",_0: ax,_1: ay},
          {ctor: "_Tuple2",_0: cx,_1: cy})]) : _U.list([]);
-         var dx = center + outerRadius * $Basics.cos(thetaCw);
-         var dy = center + outerRadius * $Basics.sin(thetaCw);
+         var linkedCw = A2($Cell.isLinked,cell,$Basics.fst(toValidCell(A2(clockwiseCell,grid,cell))));
          var line2 = $Basics.not(linkedCw) ? _U.list([A2($Graphics$Collage.segment,
          {ctor: "_Tuple2",_0: cx,_1: cy},
          {ctor: "_Tuple2",_0: dx,_1: dy})]) : _U.list([]);
-         return A2($List.map,$Graphics$Collage.traced($Graphics$Collage.defaultLine),$List.concat(_U.list([line1,line2])));
+         return A2($List._op["::"],filled,A2($List.map,$Graphics$Collage.traced($Graphics$Collage.defaultLine),$List.concat(_U.list([line1,line2]))));
       };
       var drawables = A2($List.concatMap,
       cellLines,
-      A2($List.filter,function (c) {    return _U.cmp($Basics.fst(c).row,0) > 0;},gridCellsToPolarCells($Grid.cellsList(grid.cells))));
+      A2($List.filter,function (c) {    return _U.cmp($Basics.fst($GridCell.toPolarCell(c)).row,0) > 0;},$Grid.cellsList(grid.cells)));
       var forms = A2($List._op["::"],
       circleForm,
       _U.list([A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: $Basics.negate(center),_1: $Basics.negate(center)},$Graphics$Collage.group(drawables))]));
@@ -11750,8 +11765,8 @@ Elm.PolarGrid.make = function (_elm) {
          return $List.length(A2($List.filter,function (c) {    return _U.eq($GridCell.toRectCell(c).row,row);},cells));
       });
       var configurer = F2(function (gc,work) {
-         var _p8 = $GridCell.toPolarCell(gc);
-         var cell = _p8._0;
+         var _p6 = $GridCell.toPolarCell(gc);
+         var cell = _p6._0;
          var rowLen = A2(rowLength,cell.row,work.cells);
          var divLen = A2(rowLength,cell.row - 1,work.cells);
          var ratio = $Basics.toFloat(rowLen) / $Basics.toFloat(divLen);
@@ -11793,9 +11808,9 @@ Elm.PolarGrid.make = function (_elm) {
                var ncells = prevCount * ratio;
                var rowCells = A2($Array.initialize,ncells,function (a) {    return $GridCell.cellToPolarCell(A2($Cell.createCell,row,a));});
                var res$ = A3($Array.set,row,rowCells,res);
-               var _v4 = res$,_v5 = row + 1;
-               res = _v4;
-               row = _v5;
+               var _v3 = res$,_v4 = row + 1;
+               res = _v3;
+               row = _v4;
                continue makeCellRows;
             }
       });
@@ -11815,7 +11830,6 @@ Elm.PolarGrid.make = function (_elm) {
                                   ,toValidCell: toValidCell
                                   ,toCellList: toCellList
                                   ,maybeGridCellToMaybePolarCell: maybeGridCellToMaybePolarCell
-                                  ,cellIdToCell: cellIdToCell
                                   ,size: size
                                   ,randomCell: randomCell
                                   ,neighbors: neighbors
@@ -12118,7 +12132,7 @@ Elm.ColoredGrid.make = function (_elm) {
    var _op = {};
    var cellBackgroundColor = F2(function (grid,gridcell) {
       var cell = $GridCell.toRectCell(gridcell);
-      var distance = A2($Debug.log,"distance: ",A2($Distances.lookup,grid.dists,cell));
+      var distance = A2($Distances.lookup,grid.dists,cell);
       var intensity = $Basics.toFloat(grid.maximum - distance) / $Basics.toFloat(grid.maximum);
       var dark = $Basics.round(255 * intensity);
       var bright = $Basics.round(128 + 127 * intensity);
