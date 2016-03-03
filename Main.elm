@@ -98,7 +98,7 @@ view address model =
         algToOptions attr =
             option [selected (attr.alg == Maze.defaultAlgorithm)] [text attr.name]
         viewOptions = [
-            option [selected (model.maze.display == Ascii)] [text "Ascii"]
+            option [selected (model.maze.display == Ascii)] [text "ASCII"]
             , option [selected (model.maze.display == Colored)] [text "Colored"]
             , option [selected (model.maze.display == Polar)] [text "Polar"]
             ]

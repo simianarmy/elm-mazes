@@ -213,28 +213,21 @@ getCell grid row col =
        then Nothing
        else
        let rowCells = Maybe.withDefault Array.empty <| Array.get row grid.cells
-           cell = Array.get col rowCells
+           -- Get a cell to check it's type...lame I know
+           sampleCell = Array.get 0 rowCells
        in
-          case cell of
+          case sampleCell of
               Just (RectCellTag c) ->
                   if (col >= grid.cols) || c.masked
                      then Nothing
-                     else cell
-              Just (PolarCellTag c) ->
+                     else Array.get col rowCells
+              Just (PolarCellTag (c, o)) ->
                   -- This is ugly, but we want to recalculate col for polar grids
                   -- to remove the radial line on the right
                   let rowLen = Array.length rowCells
-                      modCol = col % rowLen
-                      modCell = Array.get modCol rowCells
+                     -- TODO: mask check
                   in
-                     case modCell of
-                         Just (RectCellTag rc) -> Debug.crash "WOT?"
-                         Just (PolarCellTag mc) -> modCell
-                         Nothing -> Nothing
-                     --if pc.masked
-                     --   then Nothing
-                     --   --else Just (RectCellTag c)
-                     --   else Just (PolarCellTag (pc, rest))
+                      Array.get (col % rowLen) rowCells
               _ -> Nothing
 
 -- commonly used to map a maybe cell to a cell
