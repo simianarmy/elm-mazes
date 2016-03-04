@@ -12,6 +12,7 @@ import Set
 type GridCell
     = RectCellTag BaseCell
     | PolarCellTag (BaseCell, (CellID, CellLinks))
+    | HexCellTag BaseCell
 
 id : GridCell -> CellID
 id gc =
