@@ -6,10 +6,8 @@ import Mask exposing (Mask)
 import Cell exposing (Cell, BaseCell, CellID, CellLinks)
 import GridCell exposing (..)
 import GridUtils
-import Rnd
 import Arithmetic
 
-import Set
 import Array exposing (Array)
 import Graphics.Element as GE
 import Graphics.Collage as GC
@@ -92,4 +90,67 @@ neighbors grid gc =
             ]
 
         _ -> Debug.crash "Illegal call to HexGrid.neighbors with non-HexCellTag type cell"
+
+type alias HexVertices = {
+    x_fw : Int,
+    x_nw : Int,
+    x_ne : Int,
+    x_fe : Int,
+    y_n : Int,
+    y_m : Int,
+    y_s : Int
+}
+
+painter :  (Grid a -> GridCell -> Color) -> Grid a -> Int -> GE.Element
+painter cellPainter grid cellSize =
+    let asize = cellSize / 2
+        bsize = cellSize * (sqrt 3) / 2
+        width = cellSize * 2
+        height = bsize * 2
+        imgWidth = round (3 * asize * grid.cols + asize + 0.5)
+        imgHeight = round (height * grid.rows + bsize + 0.5)
+        ox = toFloat (negate imgWidth) / 2.0
+        oy = toFloat imgHeight / 2.0
+        background = Color.white
+        wall = Color.black
+
+        cellBackground : GC.LineStyle -> GridCell -> HexVertices -> GC.Form
+        cellBackground style cell vx = let color = cellPainter grid cell
+            in
+               if color > 0
+                  then GC.filled color 
+                      <| GC.polygon [(vx.x_fw, vx.y_m), (vx.x_nw, vx.y_n), (vx.x_ne, vx.y_n), (vx.x_fe, vx.y_m), (vx.x_ne, vx.y_s), (vx.x_nw, vx.y_s)]
+                  else -- draw nothing?
+                  GC.segment (0, 0) (0 0)
+
+        paintCell : GridCell -> GC.Form
+        paintCell gc =
+            let cell = GridCell.base gc
+                dl = GC.defaultLine
+                style = { dl | width = 2 }
+                cx = cellSize + 3 * cell.col * round asize
+                cy = bsize + (toFloat cell.row) * height
+                cy' = round <| if Arithmetic.isEven cell.col
+                        then cy + bsize
+                        else cy
+                -- f/n = far/near
+                -- n/s/e/w = north/south/east/west
+                vertices = {
+                     x_fw = round (cx - cellSize)
+                   , x_nw = round (cx - asize)
+                   , x_ne = round (cx + asize)
+                   , x_fe = round (cx + cellSize)
+                    -- m = middle
+                   , y_n = round (cy' - bsize)
+                   , y_m = round cy'
+                   , y_s = round (cy' + bsize)
+               }
+            in
+               GC.group <| ((cellBackground style gc vertices))
+               --:: (cellWalls style cell vertices))
+
+        drawables = List.map paintCell (Grid.cellsList grid.cells)
+        forms = [GC.group drawables |> GC.move (ox, oy)]
+    in
+       GC.collage imgWidth imgHeight forms
 
