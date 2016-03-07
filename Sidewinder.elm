@@ -18,7 +18,7 @@ on startCellFn grid =
         processCell : GridCell -> RowState a -> RowState a
         processCell cell rowState =
             let run' = cell :: rowState.run
-                basecell = GridCell.toRectCell cell
+                basecell = GridCell.base cell
                 atEasternBoundary = not (Grid.isValidCell (Grid.east rowState.grid basecell))
                 atNorthernBoundary = not (Grid.isValidCell (Grid.north rowState.grid basecell))
                 -- update grid's rnd
@@ -39,7 +39,7 @@ on startCellFn grid =
                             -- link cells and update the grid RND
                             grid = Grid.linkCells grid'' 
                                 (RectCellTag member)
-                                (RectCellTag (Grid.toValidCell northern))
+                                (Grid.maybeGridCellToGridCell northern)
                                 True
                         } 
                         else
@@ -54,11 +54,10 @@ on startCellFn grid =
                       -- link cells and update the grid RND
                       grid = Grid.linkCells grid' 
                           cell
-                          (RectCellTag (Grid.toValidCell (Grid.east grid' basecell)))
+                          (Grid.maybeGridCellToGridCell <| Grid.east grid' basecell)
                           True
                   }
 
-        -- elm told me to do this
         --processRow : Int -> Grid a -> Grid a
         processRow row curGrid =
             let state = {run = [], grid = curGrid}

@@ -15,10 +15,10 @@ on startCellFn grid =
     let getRandomNeighbor : Grid a -> GridCell -> Maybe GridCell
         getRandomNeighbor grid' cell =
             let acell = GridCell.toRectCell cell
-                northandeast = List.concat [
-                    Grid.cellToList (north grid' acell),
-                    Grid.cellToList (east grid' acell)]
-                gcneighbors = List.map (\e -> (RectCellTag e)) northandeast
+                gcneighbors = GridUtils.smooshMaybes [
+                    north grid' acell,
+                    east grid' acell
+                    ]
             in
                -- TODO: Maybe.andThen here?
                if isEmpty gcneighbors

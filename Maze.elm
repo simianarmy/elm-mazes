@@ -3,9 +3,10 @@ module Maze where
 import Grid exposing (..)
 import DistanceGrid
 import ColoredGrid
-import Mask
 import PolarGrid
+import HexGrid
 import Rnd
+import Mask
 import GridCell exposing (GridCell)
 import BinaryTree
 import Sidewinder
@@ -31,17 +32,33 @@ type alias AlgAttr = {
     name : String
 }
 
+-- TODO:
+-- Display should be Ascii | Distance | Colored
+-- Add Shape type: Rect | Polar | Hex
 type Display = Ascii
              | Colored
-             | Polar
+
+type Shape = Rect
+            | Polar
+            | Hex
 
 type alias Maze a = {
     grid : Grid a,
     alg : Algorithm,
+    shape: Shape,
     display : Display
 }
 
 defaultAlgorithm = RecursiveBacktracker
+
+-- Data formatted for html selects
+displays = [(Ascii, "ASCII")
+        , (Colored, "Colored")
+        ]
+shapes = [(Rect, "Rectangular")
+        , (Polar, "Polar")
+        , (Hex, "Hexagonal")
+        ]
 
 cellSize : Int
 cellSize = 30
@@ -52,25 +69,26 @@ cellSize = 30
 gridMaker (width, height) mask display seed =
     True
 
---init : Algorithm -> Int -> Int -> Seed -> Maze a
-init algType width height seed display =
+--init : Algorithm -> Int -> Int -> Seed -> Shape -> Display -> Maze a
+init algType width height seed shape display =
     let mask = Mask.createMask width height
-        cellGenFn = case display of
+        cellGenFn = case shape of
             Polar -> PolarGrid.makeCells
             _ -> Grid.makeCells
         grid' = Grid.createGridFromMask mask seed cellGenFn
     in
        {
-           grid = applyAlg algType display <| grid',
+           grid = applyAlg algType shape <| grid',
            alg = algType,
+           shape = shape,
            display = display
        }
 
 -- generates maze algorithm function taking a grid and random cell generator and
 -- returning a grid
-applyAlg : Algorithm -> Display -> (Grid a -> Grid a)
-applyAlg algName displayType =
-    let randCellFn = case displayType of
+applyAlg : Algorithm -> Shape -> (Grid a -> Grid a)
+applyAlg algName shape =
+    let randCellFn = case shape of
         Polar -> PolarGrid.randomCell
         _ -> Grid.randomCell
     in
@@ -81,24 +99,24 @@ update maze =
     let grid' = Grid.update maze.grid
     in
        {
-           maze | grid = applyAlg maze.alg maze.display <| grid'
+           maze | grid = applyAlg maze.alg maze.shape <| grid'
        }
 
 -- INVALIDATES MASK, SO REFRESH MAZE
 --updateSize : Maze a -> Int -> Int -> Maze a
 updateSize maze width height =
-    init maze.alg (Debug.log "width: " width) (Debug.log "height: " height) maze.grid.rnd.seed maze.display
+    init maze.alg width height maze.grid.rnd.seed maze.shape maze.display
 
 -- updateView : Maze a -> Display -> Maze b
 updateView maze displayType =
-    init maze.alg maze.grid.cols maze.grid.rows maze.grid.rnd.seed displayType
+    init maze.alg maze.grid.cols maze.grid.rows maze.grid.rnd.seed maze.shape displayType
 
 -- setMask : Maze a -> Mask -> Maze a
 setMask maze mask =
     let grid' = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker
     in
        {maze |
-           grid = applyAlg maze.alg maze.display <| grid'
+           grid = applyAlg maze.alg maze.shape <| grid'
        }
 
 --view : Maze a -> Html
@@ -106,16 +124,22 @@ view maze =
     let gridHtml = case maze.display of
             Ascii ->
                 pre [] [text <| Grid.toAscii maze.grid Grid.cellToAscii]
+
             Colored ->
-                let root = Grid.center maze.grid
-                    coloredGrid = ColoredGrid.createGrid maze.grid root
-                in
-                   fromElement <| Grid.toElement coloredGrid Grid.painter ColoredGrid.cellBackgroundColor cellSize
-            Polar ->
-                let (root, _) = GridCell.toPolarCell <| PolarGrid.center maze.grid
-                    coloredGrid = ColoredGrid.createGrid maze.grid root
-                in
-                    fromElement <| Grid.toElement coloredGrid PolarGrid.painter ColoredGrid.cellBackgroundColor cellSize
+                case maze.shape of
+                    Rect ->
+                        let root = Grid.center maze.grid
+                            coloredGrid = ColoredGrid.createGrid maze.grid root
+                        in
+                           fromElement <| Grid.toElement coloredGrid Grid.painter ColoredGrid.cellBackgroundColor cellSize
+
+                    Polar ->
+                        let (root, _) = GridCell.toPolarCell <| PolarGrid.center maze.grid
+                            coloredGrid = ColoredGrid.createGrid maze.grid root
+                        in
+                            fromElement <| Grid.toElement coloredGrid PolarGrid.painter ColoredGrid.cellBackgroundColor cellSize
+
+                    _ -> Debug.crash "IMPLEMENT A VIEW FOR THIS SHAPE!"
     in
        div [] [
            text <| (algToString maze.alg) ++ " algorithm"
@@ -150,9 +174,9 @@ viewDistances maze =
 --           , pre [] [text <| DistanceGrid.viewDistances longGrid]
            ]
 
---TODO: returns available maze algorithms for the given display type
-algorithms : Display -> List AlgAttr
-algorithms display =
+-- returns available maze algorithms for the maze shape
+algorithms : Shape -> List AlgAttr
+algorithms shape =
     let algs = [ {alg = NoOp, name = algToString NoOp}]
         rectAlgs = [
             {alg = BinaryTree, name = algToString BinaryTree}
@@ -165,7 +189,7 @@ algorithms display =
             , {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
         ]
     in
-       case display of
+       case shape of
            Polar -> List.concat [algs, allAlgs]
            _ -> List.concat [algs, rectAlgs, allAlgs]
 
@@ -192,9 +216,9 @@ algToString algType =
 
 algByName : String -> Algorithm
 algByName str =
-    let res = List.head <| List.filter (\a -> a.name == str) (algorithms Ascii)
+    let res = List.head <| List.filter (\a -> a.name == str) (algorithms Rect)
     in
        case res of
            Just a -> a.alg
-           _ -> BinaryTree
+           _ -> Debug.crash "Unknown algorithm" BinaryTree
 

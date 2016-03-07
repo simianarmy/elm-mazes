@@ -23,3 +23,13 @@ indexOfCell cell cells =
     let id = GridCell.id cell
     in
         ListUtils.firstIndexOf id <| List.map GridCell.id cells
+
+smooshMaybes : List (Maybe GridCell) -> List GridCell
+smooshMaybes maybes =
+    let cellToList cell =
+        case cell of
+            Just cell -> [cell]
+            Nothing -> []
+    in
+        List.concat <| List.map cellToList maybes
+

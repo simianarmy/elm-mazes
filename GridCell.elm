@@ -3,10 +3,6 @@ module GridCell where
 import Cell exposing (BaseCell, CellID, CellLinks)
 import Set
 
--- Abstract cell list type
--- type OldGridCell
---     = RectCellTag Cell
---     | PolarCellTag PolarCell
 
 -- RG says a better way might be to extract common properties into a new type and add the differences to the tag function like so
 type GridCell
@@ -14,11 +10,29 @@ type GridCell
     | PolarCellTag (BaseCell, (CellID, CellLinks))
     | HexCellTag BaseCell
 
+-- attribute functions
 id : GridCell -> CellID
 id gc =
     case gc of
         RectCellTag bc -> bc.id
         PolarCellTag (bc, _) -> bc.id
+        HexCellTag bc -> bc.id
+
+row : GridCell -> Int
+row gc =
+    fst <| id gc
+
+col : GridCell -> Int
+col gc =
+    snd <| id gc
+
+-- returns cell's base object
+base : GridCell -> BaseCell
+base gc =
+    case gc of
+        RectCellTag bc -> bc
+        PolarCellTag (bc, _) -> bc
+        HexCellTag bc -> bc
 
 cellToPolarCell : BaseCell -> GridCell
 cellToPolarCell base =
@@ -29,12 +43,15 @@ toRectCell cell =
     case cell of
         RectCellTag c -> c
         PolarCellTag (c, _) -> c
+        HexCellTag c -> c
 
 toPolarCell : GridCell -> (BaseCell, (CellID, CellLinks))
 toPolarCell cell =
     case cell of
-        RectCellTag c -> (c, ((-1, -1), Set.empty))
         PolarCellTag c -> c
+        RectCellTag c -> (c, ((-1, -1), Set.empty))
+        HexCellTag c -> (c, ((-1, -1), Set.empty))
+
 
 setInwardCell : GridCell -> GridCell -> GridCell
 setInwardCell cell inward =

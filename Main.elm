@@ -12,9 +12,10 @@ import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
 
-initWidth   = 4
-initHeight  = 4
-initDisplay = Maze.Ascii
+initWidth   = 8
+initHeight  = 8
+initDisplay = Maze.Colored
+initShape   = Maze.Polar
 
 --- MODEL ---
 
@@ -43,6 +44,7 @@ type Action =
     | UpdateHeight String
     | SelectAlg String
     | SelectView Maze.Display
+    | SelectShape Maze.Shape
     | LoadAsciiMask (List String)
     | LoadImageMask PngData
 
@@ -76,6 +78,13 @@ update action model =
             in
                {model | maze = maze'}
 
+        SelectShape shape ->
+            -- new grid, re-init time
+            let maze = model.maze
+                maze' = Maze.init maze.alg maze.grid.cols maze.grid.rows maze.grid.rnd.seed shape maze.display
+            in
+               {model | maze = maze'}
+
         LoadAsciiMask lines ->
             let mask = Mask.fromTxt <| Debug.log "lines from input file: " lines
             in
@@ -95,13 +104,14 @@ view address model =
             (\val -> Signal.message address <| SelectAlg <| val)
         selectView = Html.Events.on "change" targetValue
             (\val -> Signal.message address <| SelectView <| displayFromString val)
+        selectShape = Html.Events.on "change" targetValue
+            (\val -> Signal.message address <| SelectShape <| shapeFromString val)
         algToOptions attr =
-            option [selected (attr.alg == Maze.defaultAlgorithm)] [text attr.name]
-        viewOptions = [
-            option [selected (model.maze.display == Ascii)] [text "ASCII"]
-            , option [selected (model.maze.display == Colored)] [text "Colored"]
-            , option [selected (model.maze.display == Polar)] [text "Polar"]
-            ]
+            option [selected (attr.alg == model.maze.alg)] [text attr.name]
+        viewToOption opt =
+            option [selected ((fst opt) == model.maze.display)] [text (snd opt)]
+        shapeToOption opt =
+            option [selected ((fst opt) == model.maze.shape)] [text (snd opt)]
         maze = model.maze
     in
     div [] [
@@ -118,8 +128,9 @@ view address model =
         , input [ class "sizeInput", value (toString maze.grid.rows)
               , on "input" targetValue (Signal.message address << UpdateHeight)] []
         , br [] []
-        , select [ selectAlg ] (List.map algToOptions <| Maze.algorithms maze.display)
-        , select [ selectView ] (viewOptions)
+        , select [ selectAlg ] (List.map algToOptions <| Maze.algorithms maze.shape)
+        , select [ selectView ] (List.map viewToOption Maze.displays)
+        , select [ selectShape ] (List.map shapeToOption Maze.shapes)
         , button [ onClick address Refresh ] [ text "REFRESH" ]
         , br [] []
         , text "Ascii Mask file: "
@@ -130,11 +141,16 @@ view address model =
 
 displayFromString : String -> Display
 displayFromString str =
-    if str == "Ascii"
+    if str == "ASCII"
        then Maze.Ascii
-       else if str == "Colored"
-               then Maze.Colored
-               else Maze.Polar
+       else Maze.Colored
+
+shapeFromString str =
+    let s = List.filter (\e -> (snd e) == str) Maze.shapes
+    in
+       case List.head s of
+           Nothing -> initShape
+           Just item -> fst item
 
 ---- INPUTS ----
 
@@ -159,7 +175,7 @@ model =
 --initialModel : Model a
 initialModel =
     {
-        maze = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initDisplay
+        maze = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initShape initDisplay
     }
 
 -- actions from user input

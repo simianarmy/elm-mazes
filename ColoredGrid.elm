@@ -29,7 +29,9 @@ cellBackgroundColor grid gridcell =
         dark = round (255 * intensity)
         bright = round (128 + (127 * intensity))
     in
-       Color.rgb dark bright dark
+       if distance < 0
+          then Color.rgb 255 255 255
+          else Color.rgb dark bright dark
 
 
 
