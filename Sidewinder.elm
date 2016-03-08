@@ -19,8 +19,8 @@ on startCellFn grid =
         processCell cell rowState =
             let run' = cell :: rowState.run
                 basecell = GridCell.base cell
-                atEasternBoundary = not (Grid.isValidCell (Grid.east rowState.grid basecell))
-                atNorthernBoundary = not (Grid.isValidCell (Grid.north rowState.grid basecell))
+                atEasternBoundary = not (GridCell.isValidCell (Grid.east rowState.grid basecell))
+                atNorthernBoundary = not (GridCell.isValidCell (Grid.north rowState.grid basecell))
                 -- update grid's rnd
                 grid' = Grid.updateRnd rowState.grid
                 shouldCloseOut = atEasternBoundary || ((not atNorthernBoundary) && grid'.rnd.heads)
@@ -32,7 +32,7 @@ on startCellFn grid =
                       northern = Grid.north grid' member
                       grid'' = Grid.updateRnd grid'
                   in
-                     if Grid.isValidCell northern
+                     if GridCell.isValidCell northern
                         then
                         {
                             run = [],

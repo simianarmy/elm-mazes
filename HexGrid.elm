@@ -37,14 +37,14 @@ configureCells rows cols incells =
 -- return row index of a cell's north diagonal
 northDiag : BaseCell -> Int
 northDiag cell =
-    if Arithmetic.isOdd cell.col
+    if Arithmetic.isEven cell.col
        then cell.row - 1
        else cell.row
 
 -- return row index of a cell's south diagonal
 southDiag : BaseCell -> Int
 southDiag cell = 
-    if Arithmetic.isOdd cell.col
+    if Arithmetic.isEven cell.col
        then cell.row
        else cell.row + 1
 
@@ -107,19 +107,41 @@ painter cellPainter grid cellSize =
         bsize = cellSize * (sqrt 3) / 2
         width = cellSize * 2
         height = bsize * 2
-        imgWidth = 3 * asize * (toFloat grid.cols) + asize + 0.5
-        imgHeight = height * (toFloat grid.rows) + bsize + 0.5
-        ox = negate imgWidth / 2.0
-        oy = imgHeight / 2.0
+        imgWidth = round (3 * asize * (toFloat grid.cols) + asize + 0.5)
+        imgHeight = round (height * (toFloat grid.rows) + bsize + 0.5)
+        ox = negate (toFloat imgWidth) / 2.0
+        oy = negate (toFloat imgHeight) / 2.0
         background = Color.white
         wall = Color.black
 
-        cellBackground : GC.LineStyle -> GridCell -> HexVertices -> GC.Form
-        cellBackground style cell vx = 
-            let color = cellPainter grid cell
+        cellBackground : GridCell -> HexVertices -> GC.Form
+        cellBackground gc vx = 
+            let color = cellPainter grid gc
             in
                GC.filled color 
                <| GC.polygon [(vx.x_fw, vx.y_m), (vx.x_nw, vx.y_n), (vx.x_ne, vx.y_n), (vx.x_fe, vx.y_m), (vx.x_ne, vx.y_s), (vx.x_nw, vx.y_s)]
+
+        maybeVisibleLine : GC.LineStyle -> (Bool, GC.Path) -> List GC.Form
+        maybeVisibleLine style (visible, seg) =
+            if visible
+               then [GC.traced style seg]
+               else []
+
+        cellWalls : GC.LineStyle -> GridCell -> HexVertices -> List GC.Form
+        cellWalls style gc vx =
+            let cell = GridCell.base gc
+            in
+               if cell.masked
+                  then []
+                  else List.concatMap (maybeVisibleLine style)
+                  [
+                      ((not <| GridCell.isValidCell (southwest grid cell)), (GC.segment (vx.x_fw, vx.y_m) (vx.x_nw, vx.y_s))),
+                      ((not <| GridCell.isValidCell (northwest grid cell)), (GC.segment (vx.x_fw, vx.y_m) (vx.x_nw, vx.y_n))),
+                      ((not <| GridCell.isValidCell (north grid cell)), (GC.segment (vx.x_nw, vx.y_n) (vx.x_ne, vx.y_n))),
+                      ((not <| Cell.isLinked cell (maybeGridCellToCell (northeast grid cell))), (GC.segment (vx.x_ne, vx.y_n) (vx.x_fe, vx.y_m))),
+                      ((not <| Cell.isLinked cell (maybeGridCellToCell (southeast grid cell))), (GC.segment (vx.x_fe, vx.y_m) (vx.x_ne, vx.y_s))),
+                      ((not <| Cell.isLinked cell (maybeGridCellToCell (south grid cell))), (GC.segment (vx.x_ne, vx.y_s) (vx.x_nw, vx.y_s)))
+                      ]
 
         paintCell : GridCell -> GC.Form
         paintCell gc =
@@ -128,7 +150,7 @@ painter cellPainter grid cellSize =
                 style = { dl | width = 2 }
                 cx = cellSize + 3 * cell.col * round asize
                 cy = bsize + (toFloat cell.row) * height
-                cy' = round <| if Arithmetic.isEven cell.col
+                cy' = round <| if Arithmetic.isOdd cell.col
                         then cy + bsize
                         else cy
                 -- f/n = far/near
@@ -144,11 +166,14 @@ painter cellPainter grid cellSize =
                    , y_s = toFloat cy' + bsize
                }
             in
-               GC.group <| [cellBackground style gc vertices]
-               --:: (cellWalls style cell vertices))
+               GC.group <| ((cellBackground gc vertices) :: (cellWalls style gc vertices))
 
         drawables = List.map paintCell (Grid.cellsList grid.cells)
         forms = [GC.group drawables |> GC.move (ox, oy)]
     in
-       GC.collage (round imgWidth) (round imgHeight) forms
+       GC.collage (imgWidth + 1) (imgHeight + 1) forms
 
+
+cellBackgroundColor : Grid a -> GridCell -> Color
+cellBackgroundColor grid gridcell =
+    Color.rgb 255 255 255

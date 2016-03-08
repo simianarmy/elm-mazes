@@ -142,7 +142,7 @@ painter cellPainter grid cellSize =
 
         cellWalls : LineStyle -> GridCell -> List Form
         cellWalls style gridcell =
-            let cell = GridCell.toRectCell gridcell
+            let cell = GridCell.base gridcell
                 x1 = toFloat (cell.col * cellSize)
                 y1 = toFloat (negate cell.row * cellSize)
                 x2 = toFloat ((cell.col + 1) * cellSize)
@@ -153,15 +153,15 @@ painter cellPainter grid cellSize =
                   else
                   List.concatMap (maybeVisibleLine style)
                   [
-                      ((not <| isValidCell (north grid cell)), (segment (x1, y1) (x2, y1))),
-                      ((not <| isValidCell (west grid cell)), (segment (x1, y1) (x1, y2))),
+                      ((not <| GridCell.isValidCell (north grid cell)), (segment (x1, y1) (x2, y1))),
+                      ((not <| GridCell.isValidCell (west grid cell)), (segment (x1, y1) (x1, y2))),
                       ((not <| Cell.isLinked cell (maybeGridCellToCell (east grid cell))), (segment (x2, y1) (x2, y2))),
                       ((not <| Cell.isLinked cell (maybeGridCellToCell (south grid cell))), (segment (x1, y2) (x2, y2)))
                       ]
 
         cellBackground : LineStyle -> GridCell -> Form
         cellBackground style cell =
-            let rectcell = GridCell.toRectCell cell
+            let rectcell = GridCell.base cell
                 bgRect = filled (cellPainter grid cell) (cellToRect rectcell)
                 --dbg = outlinedText style (Text.fromString " C ")
                 halfSize = (toFloat cellSize) / 2.0
@@ -198,9 +198,9 @@ cellsList cells =
 cellsListToCellGrid : List GridCell -> CellGrid
 cellsListToCellGrid cells =
     -- Determine row count
-    let rowMax = Maybe.withDefault 0 <| List.maximum <| List.map (\c -> (toRectCell c).row) cells
+    let rowMax = Maybe.withDefault 0 <| List.maximum <| List.map GridCell.row cells
     in
-       Array.initialize (rowMax + 1) (\row -> Array.fromList <| List.filter (\c -> (toRectCell c).row == row) cells)
+       Array.initialize (rowMax + 1) (\row -> Array.fromList <| List.filter (\c -> (GridCell.row c) == row) cells)
 
 -- 0-based indices
 -- returns cell at an x,y index.
@@ -248,7 +248,7 @@ maybeGridCellToCell cell =
 
 maybeGridCellToMaybeCell : Maybe GridCell -> Maybe Cell
 maybeGridCellToMaybeCell cell =
-    Maybe.map GridCell.toRectCell cell
+    Maybe.map GridCell.base cell
 
 -- defaults to RectCellTag
 maybeGridCellToGridCell : Maybe GridCell -> GridCell
@@ -258,12 +258,6 @@ maybeGridCellToGridCell cell =
         Just (RectCellTag c) -> RectCellTag c
         Just (PolarCellTag p) -> PolarCellTag p
         Just (HexCellTag c) -> HexCellTag c
-
-isValidCell : Maybe GridCell -> Bool
-isValidCell cell =
-    case cell of
-        Nothing -> False
-        Just cell -> True
 
 north : Grid a -> Cell -> Maybe GridCell
 north grid cell =
@@ -373,7 +367,7 @@ rowCells grid row =
 -- helper to pattern match list of unions
 gridCellsToBaseCells : List GridCell -> List BaseCell
 gridCellsToBaseCells gridcells =
-    List.map GridCell.toRectCell gridcells
+    List.map GridCell.base gridcells
 
 -- Not all grid types have the same # cells
 size : Grid a -> Int
@@ -383,7 +377,7 @@ size grid =
 -- cardinal index of a cell in a grid (1,1) = 1, etc
 cellIndex : Grid a -> GridCell -> Int
 cellIndex grid cell =
-    let rc = GridCell.toRectCell cell
+    let rc = GridCell.base cell
     in
        grid.cols * rc.row + rc.col
 

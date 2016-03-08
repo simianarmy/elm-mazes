@@ -26,6 +26,12 @@ col : GridCell -> Int
 col gc =
     snd <| id gc
 
+isValidCell : Maybe GridCell -> Bool
+isValidCell cell =
+    case cell of
+        Nothing -> False
+        Just cell -> True
+
 -- returns cell's base object
 base : GridCell -> BaseCell
 base gc =
