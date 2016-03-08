@@ -6696,87 +6696,114 @@ Elm.List.Extra.make = function (_elm) {
       });
       return A3($List.foldl,mf,$Maybe.Nothing,xs);
    });
+   var interweaveHelp = F3(function (l1,l2,acc) {
+      interweaveHelp: while (true) {
+         var _p29 = {ctor: "_Tuple2",_0: l1,_1: l2};
+         _v17_1: do {
+            if (_p29._0.ctor === "::") {
+                  if (_p29._1.ctor === "::") {
+                        var _v18 = _p29._0._1,_v19 = _p29._1._1,_v20 = A2($Basics._op["++"],acc,_U.list([_p29._0._0,_p29._1._0]));
+                        l1 = _v18;
+                        l2 = _v19;
+                        acc = _v20;
+                        continue interweaveHelp;
+                     } else {
+                        break _v17_1;
+                     }
+               } else {
+                  if (_p29._1.ctor === "[]") {
+                        break _v17_1;
+                     } else {
+                        return A2($Basics._op["++"],acc,_p29._1);
+                     }
+               }
+         } while (false);
+         return A2($Basics._op["++"],acc,_p29._0);
+      }
+   });
+   var interweave = F2(function (l1,l2) {    return A3(interweaveHelp,l1,l2,_U.list([]));});
    var permutations = function (xs$) {
-      var _p29 = xs$;
-      if (_p29.ctor === "[]") {
+      var _p30 = xs$;
+      if (_p30.ctor === "[]") {
             return _U.list([_U.list([])]);
          } else {
-            var f = function (_p30) {
-               var _p31 = _p30;
-               return A2($List.map,F2(function (x,y) {    return A2($List._op["::"],x,y);})(_p31._0),permutations(_p31._1));
+            var f = function (_p31) {
+               var _p32 = _p31;
+               return A2($List.map,F2(function (x,y) {    return A2($List._op["::"],x,y);})(_p32._0),permutations(_p32._1));
             };
-            return A2($List.concatMap,f,select(_p29));
+            return A2($List.concatMap,f,select(_p30));
          }
    };
    var isPermutationOf = F2(function (permut,xs) {    return A2($List.member,permut,permutations(xs));});
    var subsequencesNonEmpty = function (xs) {
-      var _p32 = xs;
-      if (_p32.ctor === "[]") {
+      var _p33 = xs;
+      if (_p33.ctor === "[]") {
             return _U.list([]);
          } else {
-            var _p33 = _p32._0;
-            var f = F2(function (ys,r) {    return A2($List._op["::"],ys,A2($List._op["::"],A2($List._op["::"],_p33,ys),r));});
-            return A2($List._op["::"],_U.list([_p33]),A3($List.foldr,f,_U.list([]),subsequencesNonEmpty(_p32._1)));
+            var _p34 = _p33._0;
+            var f = F2(function (ys,r) {    return A2($List._op["::"],ys,A2($List._op["::"],A2($List._op["::"],_p34,ys),r));});
+            return A2($List._op["::"],_U.list([_p34]),A3($List.foldr,f,_U.list([]),subsequencesNonEmpty(_p33._1)));
          }
    };
    var subsequences = function (xs) {    return A2($List._op["::"],_U.list([]),subsequencesNonEmpty(xs));};
    var isSubsequenceOf = F2(function (subseq,xs) {    return A2($List.member,subseq,subsequences(xs));});
    var transpose = function (ll) {
       transpose: while (true) {
-         var _p34 = ll;
-         if (_p34.ctor === "[]") {
+         var _p35 = ll;
+         if (_p35.ctor === "[]") {
                return _U.list([]);
             } else {
-               if (_p34._0.ctor === "[]") {
-                     var _v21 = _p34._1;
-                     ll = _v21;
+               if (_p35._0.ctor === "[]") {
+                     var _v25 = _p35._1;
+                     ll = _v25;
                      continue transpose;
                   } else {
-                     var _p35 = _p34._1;
-                     var tails = A2($List.filterMap,$List.tail,_p35);
-                     var heads = A2($List.filterMap,$List.head,_p35);
-                     return A2($List._op["::"],A2($List._op["::"],_p34._0._0,heads),transpose(A2($List._op["::"],_p34._0._1,tails)));
+                     var _p36 = _p35._1;
+                     var tails = A2($List.filterMap,$List.tail,_p36);
+                     var heads = A2($List.filterMap,$List.head,_p36);
+                     return A2($List._op["::"],A2($List._op["::"],_p35._0._0,heads),transpose(A2($List._op["::"],_p35._0._1,tails)));
                   }
             }
       }
    };
-   var intercalate = function (xs) {    return function (_p36) {    return $List.concat(A2($List.intersperse,xs,_p36));};};
+   var intercalate = function (xs) {    return function (_p37) {    return $List.concat(A2($List.intersperse,xs,_p37));};};
+   var removeWhen = F2(function (pred,list) {    return A2($List.filter,function (_p38) {    return $Basics.not(pred(_p38));},list);});
    var singleton = function (x) {    return _U.list([x]);};
    var replaceIf = F3(function (predicate,replacement,list) {
       return A2($List.map,function (item) {    return predicate(item) ? replacement : item;},list);
    });
    var findIndices = function (p) {
-      return function (_p37) {
+      return function (_p39) {
          return A2($List.map,
          $Basics.fst,
          A2($List.filter,
-         function (_p38) {
-            var _p39 = _p38;
-            return p(_p39._1);
+         function (_p40) {
+            var _p41 = _p40;
+            return p(_p41._1);
          },
-         A2($List.indexedMap,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),_p37)));
+         A2($List.indexedMap,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),_p39)));
       };
    };
-   var findIndex = function (p) {    return function (_p40) {    return $List.head(A2(findIndices,p,_p40));};};
+   var findIndex = function (p) {    return function (_p42) {    return $List.head(A2(findIndices,p,_p42));};};
    var elemIndices = function (x) {    return findIndices(F2(function (x,y) {    return _U.eq(x,y);})(x));};
    var elemIndex = function (x) {    return findIndex(F2(function (x,y) {    return _U.eq(x,y);})(x));};
    var find = F2(function (predicate,list) {
       find: while (true) {
-         var _p41 = list;
-         if (_p41.ctor === "[]") {
+         var _p43 = list;
+         if (_p43.ctor === "[]") {
                return $Maybe.Nothing;
             } else {
-               var _p42 = _p41._0;
-               if (predicate(_p42)) return $Maybe.Just(_p42); else {
-                     var _v24 = predicate,_v25 = _p41._1;
-                     predicate = _v24;
-                     list = _v25;
+               var _p44 = _p43._0;
+               if (predicate(_p44)) return $Maybe.Just(_p44); else {
+                     var _v28 = predicate,_v29 = _p43._1;
+                     predicate = _v28;
+                     list = _v29;
                      continue find;
                   }
             }
       }
    });
-   var notMember = function (x) {    return function (_p43) {    return $Basics.not(A2($List.member,x,_p43));};};
+   var notMember = function (x) {    return function (_p45) {    return $Basics.not(A2($List.member,x,_p45));};};
    var andThen = $Basics.flip($List.concatMap);
    var lift2 = F3(function (f,la,lb) {    return A2(andThen,la,function (a) {    return A2(andThen,lb,function (b) {    return _U.list([A2(f,a,b)]);});});});
    var lift3 = F4(function (f,la,lb,lc) {
@@ -6799,88 +6826,118 @@ Elm.List.Extra.make = function (_elm) {
    });
    var andMap = F2(function (fl,l) {    return A3($List.map2,F2(function (x,y) {    return x(y);}),fl,l);});
    var dropDuplicates = function (list) {
-      var step = F2(function (next,_p44) {
-         var _p45 = _p44;
-         var _p47 = _p45._0;
-         var _p46 = _p45._1;
-         return A2($Set.member,next,_p47) ? {ctor: "_Tuple2",_0: _p47,_1: _p46} : {ctor: "_Tuple2"
-                                                                                  ,_0: A2($Set.insert,next,_p47)
-                                                                                  ,_1: A2($List._op["::"],next,_p46)};
+      var step = F2(function (next,_p46) {
+         var _p47 = _p46;
+         var _p49 = _p47._0;
+         var _p48 = _p47._1;
+         return A2($Set.member,next,_p49) ? {ctor: "_Tuple2",_0: _p49,_1: _p48} : {ctor: "_Tuple2"
+                                                                                  ,_0: A2($Set.insert,next,_p49)
+                                                                                  ,_1: A2($List._op["::"],next,_p48)};
       });
       return $List.reverse($Basics.snd(A3($List.foldl,step,{ctor: "_Tuple2",_0: $Set.empty,_1: _U.list([])},list)));
    };
    var dropWhile = F2(function (predicate,list) {
       dropWhile: while (true) {
-         var _p48 = list;
-         if (_p48.ctor === "[]") {
+         var _p50 = list;
+         if (_p50.ctor === "[]") {
                return _U.list([]);
             } else {
-               if (predicate(_p48._0)) {
-                     var _v28 = predicate,_v29 = _p48._1;
-                     predicate = _v28;
-                     list = _v29;
+               if (predicate(_p50._0)) {
+                     var _v32 = predicate,_v33 = _p50._1;
+                     predicate = _v32;
+                     list = _v33;
                      continue dropWhile;
                   } else return list;
             }
       }
    });
    var takeWhile = F2(function (predicate,list) {
-      var _p49 = list;
-      if (_p49.ctor === "[]") {
+      var _p51 = list;
+      if (_p51.ctor === "[]") {
             return _U.list([]);
          } else {
-            var _p50 = _p49._0;
-            return predicate(_p50) ? A2($List._op["::"],_p50,A2(takeWhile,predicate,_p49._1)) : _U.list([]);
+            var _p52 = _p51._0;
+            return predicate(_p52) ? A2($List._op["::"],_p52,A2(takeWhile,predicate,_p51._1)) : _U.list([]);
          }
    });
    var span = F2(function (p,xs) {    return {ctor: "_Tuple2",_0: A2(takeWhile,p,xs),_1: A2(dropWhile,p,xs)};});
-   var $break = function (p) {    return span(function (_p51) {    return $Basics.not(p(_p51));});};
+   var $break = function (p) {    return span(function (_p53) {    return $Basics.not(p(_p53));});};
    var groupBy = F2(function (eq,xs$) {
-      var _p52 = xs$;
-      if (_p52.ctor === "[]") {
+      var _p54 = xs$;
+      if (_p54.ctor === "[]") {
             return _U.list([]);
          } else {
-            var _p54 = _p52._0;
-            var _p53 = A2(span,eq(_p54),_p52._1);
-            var ys = _p53._0;
-            var zs = _p53._1;
-            return A2($List._op["::"],A2($List._op["::"],_p54,ys),A2(groupBy,eq,zs));
+            var _p56 = _p54._0;
+            var _p55 = A2(span,eq(_p56),_p54._1);
+            var ys = _p55._0;
+            var zs = _p55._1;
+            return A2($List._op["::"],A2($List._op["::"],_p56,ys),A2(groupBy,eq,zs));
          }
    });
    var group = groupBy(F2(function (x,y) {    return _U.eq(x,y);}));
    var minimumBy = F2(function (f,ls) {
-      var minBy = F3(function (f,x,y) {    return _U.cmp(f(x),f(y)) < 0 ? x : y;});
-      var _p55 = ls;
-      if (_p55.ctor === "::") {
-            return $Maybe.Just(A3($List.foldl,minBy(f),_p55._0,_p55._1));
+      var minBy = F2(function (x,_p57) {
+         var _p58 = _p57;
+         var _p59 = _p58._1;
+         var fx = f(x);
+         return _U.cmp(fx,_p59) < 0 ? {ctor: "_Tuple2",_0: x,_1: fx} : {ctor: "_Tuple2",_0: _p58._0,_1: _p59};
+      });
+      var _p60 = ls;
+      if (_p60.ctor === "::") {
+            if (_p60._1.ctor === "[]") {
+                  return $Maybe.Just(_p60._0);
+               } else {
+                  var _p61 = _p60._0;
+                  return $Maybe.Just($Basics.fst(A3($List.foldl,minBy,{ctor: "_Tuple2",_0: _p61,_1: f(_p61)},_p60._1)));
+               }
          } else {
             return $Maybe.Nothing;
          }
    });
    var maximumBy = F2(function (f,ls) {
-      var maxBy = F3(function (f,x,y) {    return _U.cmp(f(x),f(y)) > 0 ? x : y;});
-      var _p56 = ls;
-      if (_p56.ctor === "::") {
-            return $Maybe.Just(A3($List.foldl,maxBy(f),_p56._0,_p56._1));
+      var maxBy = F2(function (x,_p62) {
+         var _p63 = _p62;
+         var _p64 = _p63._1;
+         var fx = f(x);
+         return _U.cmp(fx,_p64) > 0 ? {ctor: "_Tuple2",_0: x,_1: fx} : {ctor: "_Tuple2",_0: _p63._0,_1: _p64};
+      });
+      var _p65 = ls;
+      if (_p65.ctor === "::") {
+            if (_p65._1.ctor === "[]") {
+                  return $Maybe.Just(_p65._0);
+               } else {
+                  var _p66 = _p65._0;
+                  return $Maybe.Just($Basics.fst(A3($List.foldl,maxBy,{ctor: "_Tuple2",_0: _p66,_1: f(_p66)},_p65._1)));
+               }
          } else {
             return $Maybe.Nothing;
          }
    });
    var uncons = function (xs) {
-      var _p57 = xs;
-      if (_p57.ctor === "[]") {
+      var _p67 = xs;
+      if (_p67.ctor === "[]") {
             return $Maybe.Nothing;
          } else {
-            return $Maybe.Just({ctor: "_Tuple2",_0: _p57._0,_1: _p57._1});
+            return $Maybe.Just({ctor: "_Tuple2",_0: _p67._0,_1: _p67._1});
          }
    };
+   var iterate = F2(function (f,x) {
+      var _p68 = f(x);
+      if (_p68.ctor === "Just") {
+            return A2($List._op["::"],x,A2(iterate,f,_p68._0));
+         } else {
+            return _U.list([x]);
+         }
+   });
+   var getAt = F2(function (xs,idx) {    return $List.head(A2($List.drop,idx,xs));});
+   _op["!!"] = getAt;
    var init = function () {
-      var maybe = F2(function (d,f) {    return function (_p58) {    return A2($Maybe.withDefault,d,A2($Maybe.map,f,_p58));};});
+      var maybe = F2(function (d,f) {    return function (_p69) {    return A2($Maybe.withDefault,d,A2($Maybe.map,f,_p69));};});
       return A2($List.foldr,
-      function (_p59) {
-         return A2(F2(function (x,y) {    return function (_p60) {    return x(y(_p60));};}),
+      function (_p70) {
+         return A2(F2(function (x,y) {    return function (_p71) {    return x(y(_p71));};}),
          $Maybe.Just,
-         A2(maybe,_U.list([]),F2(function (x,y) {    return A2($List._op["::"],x,y);})(_p59)));
+         A2(maybe,_U.list([]),F2(function (x,y) {    return A2($List._op["::"],x,y);})(_p70)));
       },
       $Maybe.Nothing);
    }();
@@ -6888,6 +6945,7 @@ Elm.List.Extra.make = function (_elm) {
    return _elm.List.Extra.values = {_op: _op
                                    ,last: last
                                    ,init: init
+                                   ,getAt: getAt
                                    ,uncons: uncons
                                    ,minimumBy: minimumBy
                                    ,maximumBy: maximumBy
@@ -6898,10 +6956,13 @@ Elm.List.Extra.make = function (_elm) {
                                    ,dropDuplicates: dropDuplicates
                                    ,replaceIf: replaceIf
                                    ,singleton: singleton
+                                   ,removeWhen: removeWhen
+                                   ,iterate: iterate
                                    ,intercalate: intercalate
                                    ,transpose: transpose
                                    ,subsequences: subsequences
                                    ,permutations: permutations
+                                   ,interweave: interweave
                                    ,foldl1: foldl1
                                    ,foldr1: foldr1
                                    ,scanl1: scanl1
@@ -12174,7 +12235,10 @@ Elm.HexGrid.make = function (_elm) {
    $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Cell = Elm.Cell.make(_elm),
+   $Color = Elm.Color.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $GridCell = Elm.GridCell.make(_elm),
    $GridUtils = Elm.GridUtils.make(_elm),
@@ -12184,6 +12248,49 @@ Elm.HexGrid.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
+   var painter = F3(function (cellPainter,grid,cellSize) {
+      var cellBackground = F3(function (style,cell,vx) {
+         var color = A2(cellPainter,grid,cell);
+         return A2($Graphics$Collage.filled,
+         color,
+         $Graphics$Collage.polygon(_U.list([{ctor: "_Tuple2",_0: vx.x_fw,_1: vx.y_m}
+                                           ,{ctor: "_Tuple2",_0: vx.x_nw,_1: vx.y_n}
+                                           ,{ctor: "_Tuple2",_0: vx.x_ne,_1: vx.y_n}
+                                           ,{ctor: "_Tuple2",_0: vx.x_fe,_1: vx.y_m}
+                                           ,{ctor: "_Tuple2",_0: vx.x_ne,_1: vx.y_s}
+                                           ,{ctor: "_Tuple2",_0: vx.x_nw,_1: vx.y_s}])));
+      });
+      var wall = $Color.black;
+      var background = $Color.white;
+      var width = cellSize * 2;
+      var bsize = cellSize * $Basics.sqrt(3) / 2;
+      var height = bsize * 2;
+      var imgHeight = height * $Basics.toFloat(grid.rows) + bsize + 0.5;
+      var oy = imgHeight / 2.0;
+      var asize = cellSize / 2;
+      var imgWidth = 3 * asize * $Basics.toFloat(grid.cols) + asize + 0.5;
+      var ox = $Basics.negate(imgWidth) / 2.0;
+      var paintCell = function (gc) {
+         var dl = $Graphics$Collage.defaultLine;
+         var style = _U.update(dl,{width: 2});
+         var cell = $GridCell.base(gc);
+         var cx = cellSize + 3 * cell.col * $Basics.round(asize);
+         var cy = bsize + $Basics.toFloat(cell.row) * height;
+         var cy$ = $Basics.round($Arithmetic.isEven(cell.col) ? cy + bsize : cy);
+         var vertices = {x_fw: $Basics.toFloat(cx) - $Basics.toFloat(cellSize)
+                        ,x_nw: $Basics.toFloat(cx) - asize
+                        ,x_ne: $Basics.toFloat(cx) + asize
+                        ,x_fe: $Basics.toFloat(cx) + $Basics.toFloat(cellSize)
+                        ,y_n: $Basics.toFloat(cy$) - bsize
+                        ,y_m: $Basics.toFloat(cy$)
+                        ,y_s: $Basics.toFloat(cy$) + bsize};
+         return $Graphics$Collage.group(_U.list([A3(cellBackground,style,gc,vertices)]));
+      };
+      var drawables = A2($List.map,paintCell,$Grid.cellsList(grid.cells));
+      var forms = _U.list([A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: ox,_1: oy},$Graphics$Collage.group(drawables))]);
+      return A3($Graphics$Collage.collage,$Basics.round(imgWidth),$Basics.round(imgHeight),forms);
+   });
+   var HexVertices = F7(function (a,b,c,d,e,f,g) {    return {x_fw: a,x_nw: b,x_ne: c,x_fe: d,y_n: e,y_m: f,y_s: g};});
    var getCell = F3(function (grid,row,col) {    return A3($Grid.getCell,grid,row,col);});
    var south = F2(function (grid,cell) {    return A3(getCell,grid,cell.row + 1,cell.col);});
    var north = F2(function (grid,cell) {    return A3(getCell,grid,cell.row - 1,cell.col);});
@@ -12205,7 +12312,7 @@ Elm.HexGrid.make = function (_elm) {
                                                    ,A2(southeast,grid,_p1)]));
          } else {
             return _U.crashCase("HexGrid",
-            {start: {line: 83,column: 5},end: {line: 94,column: 91}},
+            {start: {line: 81,column: 5},end: {line: 92,column: 91}},
             _p0)("Illegal call to HexGrid.neighbors with non-HexCellTag type cell");
          }
    });
@@ -12230,7 +12337,9 @@ Elm.HexGrid.make = function (_elm) {
                                 ,south: south
                                 ,southeast: southeast
                                 ,getCell: getCell
-                                ,neighbors: neighbors};
+                                ,neighbors: neighbors
+                                ,HexVertices: HexVertices
+                                ,painter: painter};
 };
 Elm.HuntAndKill = Elm.HuntAndKill || {};
 Elm.HuntAndKill.make = function (_elm) {
@@ -12481,6 +12590,7 @@ Elm.Maze.make = function (_elm) {
    $DistanceGrid = Elm.DistanceGrid.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $GridCell = Elm.GridCell.make(_elm),
+   $HexGrid = Elm.HexGrid.make(_elm),
    $Html = Elm.Html.make(_elm),
    $HuntAndKill = Elm.HuntAndKill.make(_elm),
    $List = Elm.List.make(_elm),
@@ -12556,7 +12666,9 @@ Elm.Maze.make = function (_elm) {
                     var root = _p8._0;
                     var coloredGrid = A2($ColoredGrid.createGrid,maze.grid,root);
                     return $Html.fromElement(A4($Grid.toElement,coloredGrid,$PolarGrid.painter,$ColoredGrid.cellBackgroundColor,cellSize));
-                  default: return _U.crashCase("Maze",{start: {line: 129,column: 17},end: {line: 142,column: 72}},_p7)("IMPLEMENT A VIEW FOR THIS SHAPE!");}
+                  default: var root = $Grid.center(maze.grid);
+                    var coloredGrid = A2($ColoredGrid.createGrid,maze.grid,root);
+                    return $Html.fromElement(A4($Grid.toElement,coloredGrid,$HexGrid.painter,$ColoredGrid.cellBackgroundColor,cellSize));}
             }
       }();
       return A2($Html.div,
@@ -12594,8 +12706,8 @@ Elm.Maze.make = function (_elm) {
                              ,{alg: Sidewinder,name: algToString(Sidewinder)}
                              ,{alg: HuntAndKill,name: algToString(HuntAndKill)}]);
       var algs = _U.list([{alg: NoOp,name: algToString(NoOp)}]);
-      var _p10 = shape;
-      if (_p10.ctor === "Polar") {
+      var _p9 = shape;
+      if (_p9.ctor === "Polar") {
             return $List.concat(_U.list([algs,allAlgs]));
          } else {
             return $List.concat(_U.list([algs,rectAlgs,allAlgs]));
@@ -12603,11 +12715,11 @@ Elm.Maze.make = function (_elm) {
    };
    var algByName = function (str) {
       var res = $List.head(A2($List.filter,function (a) {    return _U.eq(a.name,str);},algorithms(Rect)));
-      var _p11 = res;
-      if (_p11.ctor === "Just") {
-            return _p11._0.alg;
+      var _p10 = res;
+      if (_p10.ctor === "Just") {
+            return _p10._0.alg;
          } else {
-            return A2(_U.crash("Maze",{start: {line: 223,column: 17},end: {line: 223,column: 28}}),"Unknown algorithm",BinaryTree);
+            return A2(_U.crash("Maze",{start: {line: 228,column: 17},end: {line: 228,column: 28}}),"Unknown algorithm",BinaryTree);
          }
    };
    return _elm.Maze.values = {_op: _op

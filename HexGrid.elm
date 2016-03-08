@@ -92,13 +92,13 @@ neighbors grid gc =
         _ -> Debug.crash "Illegal call to HexGrid.neighbors with non-HexCellTag type cell"
 
 type alias HexVertices = {
-    x_fw : Int,
-    x_nw : Int,
-    x_ne : Int,
-    x_fe : Int,
-    y_n : Int,
-    y_m : Int,
-    y_s : Int
+    x_fw : Float,
+    x_nw : Float,
+    x_ne : Float,
+    x_fe : Float,
+    y_n : Float,
+    y_m : Float,
+    y_s : Float
 }
 
 painter :  (Grid a -> GridCell -> Color) -> Grid a -> Int -> GE.Element
@@ -107,21 +107,19 @@ painter cellPainter grid cellSize =
         bsize = cellSize * (sqrt 3) / 2
         width = cellSize * 2
         height = bsize * 2
-        imgWidth = round (3 * asize * grid.cols + asize + 0.5)
-        imgHeight = round (height * grid.rows + bsize + 0.5)
-        ox = toFloat (negate imgWidth) / 2.0
-        oy = toFloat imgHeight / 2.0
+        imgWidth = 3 * asize * (toFloat grid.cols) + asize + 0.5
+        imgHeight = height * (toFloat grid.rows) + bsize + 0.5
+        ox = negate imgWidth / 2.0
+        oy = imgHeight / 2.0
         background = Color.white
         wall = Color.black
 
         cellBackground : GC.LineStyle -> GridCell -> HexVertices -> GC.Form
-        cellBackground style cell vx = let color = cellPainter grid cell
+        cellBackground style cell vx = 
+            let color = cellPainter grid cell
             in
-               if color > 0
-                  then GC.filled color 
-                      <| GC.polygon [(vx.x_fw, vx.y_m), (vx.x_nw, vx.y_n), (vx.x_ne, vx.y_n), (vx.x_fe, vx.y_m), (vx.x_ne, vx.y_s), (vx.x_nw, vx.y_s)]
-                  else -- draw nothing?
-                  GC.segment (0, 0) (0 0)
+               GC.filled color 
+               <| GC.polygon [(vx.x_fw, vx.y_m), (vx.x_nw, vx.y_n), (vx.x_ne, vx.y_n), (vx.x_fe, vx.y_m), (vx.x_ne, vx.y_s), (vx.x_nw, vx.y_s)]
 
         paintCell : GridCell -> GC.Form
         paintCell gc =
@@ -136,21 +134,21 @@ painter cellPainter grid cellSize =
                 -- f/n = far/near
                 -- n/s/e/w = north/south/east/west
                 vertices = {
-                     x_fw = round (cx - cellSize)
-                   , x_nw = round (cx - asize)
-                   , x_ne = round (cx + asize)
-                   , x_fe = round (cx + cellSize)
+                     x_fw = toFloat cx - toFloat cellSize
+                   , x_nw = toFloat cx - asize
+                   , x_ne = toFloat cx + asize
+                   , x_fe = toFloat cx + toFloat cellSize
                     -- m = middle
-                   , y_n = round (cy' - bsize)
-                   , y_m = round cy'
-                   , y_s = round (cy' + bsize)
+                   , y_n = toFloat cy' - bsize
+                   , y_m = toFloat cy'
+                   , y_s = toFloat cy' + bsize
                }
             in
-               GC.group <| ((cellBackground style gc vertices))
+               GC.group <| [cellBackground style gc vertices]
                --:: (cellWalls style cell vertices))
 
         drawables = List.map paintCell (Grid.cellsList grid.cells)
         forms = [GC.group drawables |> GC.move (ox, oy)]
     in
-       GC.collage imgWidth imgHeight forms
+       GC.collage (round imgWidth) (round imgHeight) forms
 

@@ -139,7 +139,12 @@ view maze =
                         in
                             fromElement <| Grid.toElement coloredGrid PolarGrid.painter ColoredGrid.cellBackgroundColor cellSize
 
-                    _ -> Debug.crash "IMPLEMENT A VIEW FOR THIS SHAPE!"
+                    Hex ->
+                        let root = Grid.center maze.grid
+                            coloredGrid = ColoredGrid.createGrid maze.grid root
+                        in
+                           fromElement <| Grid.toElement coloredGrid HexGrid.painter ColoredGrid.cellBackgroundColor cellSize
+
     in
        div [] [
            text <| (algToString maze.alg) ++ " algorithm"
