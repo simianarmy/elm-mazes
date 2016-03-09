@@ -17,7 +17,7 @@ on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
 on startCellFn grid =
     let grid' = Grid.updateRnd grid
     in
-       trampoline (walkRandomly grid' <| Grid.maybeGridCellToGridCell (startCellFn grid))
+       trampoline (walkRandomly grid' <| GridCell.maybeGridCellToGridCell (startCellFn grid))
 
 -- Breaking out to try trampoline
 walkRandomly : Grid a -> GridCell -> Trampoline (Grid a)
@@ -33,7 +33,7 @@ walkRandomly grid gcell =
                 then
                 -- random walk phase
                 let neighbor = GridUtils.sampleCell unvisitedNeighbors grid.rnd
-                    |> Grid.maybeGridCellToGridCell
+                    |> GridCell.maybeGridCellToGridCell
                     grid' = Grid.linkCells grid gcell neighbor True
                     grid'' = Grid.updateRnd grid'
                 in
@@ -61,7 +61,7 @@ hunt grid =
           Nothing -> (grid, (RectCellTag Cell.createNilCell))
           Just a ->
               let linked = GridUtils.sampleCell (visitedNeighbors a) grid.rnd
-                         |> Grid.maybeGridCellToGridCell
+                         |> GridCell.maybeGridCellToGridCell
               in
                  ((Grid.linkCells (Grid.updateRnd grid) a linked True), a)
 

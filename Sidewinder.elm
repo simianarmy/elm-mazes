@@ -28,7 +28,7 @@ on startCellFn grid =
                if shouldCloseOut
                   then 
                   -- get random cell from run
-                  let member = Grid.maybeGridCellToCell <| GridUtils.sampleCell run' grid'.rnd
+                  let member = GridCell.maybeGridCellToCell <| GridUtils.sampleCell run' grid'.rnd
                       northern = Grid.north grid' member
                       grid'' = Grid.updateRnd grid'
                   in
@@ -39,7 +39,7 @@ on startCellFn grid =
                             -- link cells and update the grid RND
                             grid = Grid.linkCells grid'' 
                                 (RectCellTag member)
-                                (Grid.maybeGridCellToGridCell northern)
+                                (GridCell.maybeGridCellToGridCell northern)
                                 True
                         } 
                         else
@@ -54,7 +54,7 @@ on startCellFn grid =
                       -- link cells and update the grid RND
                       grid = Grid.linkCells grid' 
                           cell
-                          (Grid.maybeGridCellToGridCell <| Grid.east grid' basecell)
+                          (GridCell.maybeGridCellToGridCell <| Grid.east grid' basecell)
                           True
                   }
 

@@ -3,7 +3,8 @@ module AldousBroder (on) where
 
 import Grid exposing (Grid)
 import PolarGrid
-import PolarGrid
+import HexGrid
+import TriangleGrid
 import GridCell exposing (..)
 import Cell exposing (Cell)
 import GridUtils
@@ -17,7 +18,7 @@ import Debug exposing (log)
 on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
 on startCellFn grid =
     let grid' = Grid.updateRnd grid
-        startCell = Debug.log "start cell: " <| Grid.maybeGridCellToGridCell <| startCellFn grid
+        startCell = Debug.log "start cell: " <| GridCell.maybeGridCellToGridCell <| startCellFn grid
         gridSize = case startCell of
             PolarCellTag c -> PolarGrid.size grid'
             _ -> Grid.size grid'
@@ -37,10 +38,12 @@ walkRandomly grid cell unvisited =
            sample = case cell of
                RectCellTag rc -> Grid.neighbors grid' cell
                PolarCellTag pc -> PolarGrid.neighbors grid' cell
+               HexCellTag pc -> HexGrid.neighbors grid' cell
+               TriangleCellTag pc -> TriangleGrid.neighbors grid' cell
            -- gridcell
-           gcneighbor = Grid.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd
+           gcneighbor = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd
            -- basecell
-           neighbor = GridCell.toRectCell gcneighbor
+           neighbor = GridCell.base gcneighbor
        in
           -- if neighbor has no links
           if not <| Cell.hasLinks neighbor

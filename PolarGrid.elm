@@ -86,7 +86,7 @@ configureCells rows cols incells =
                 pcol = floor ((toFloat cell.col) / ratio)
 
                 -- Crash if parent is not a valid cell!
-                parent = Grid.maybeGridCellToGridCell
+                parent = GridCell.maybeGridCellToGridCell
                     <| List.head
                     <| List.filter (\c ->
                         let rc = GridCell.toRectCell c

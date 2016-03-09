@@ -2,13 +2,14 @@ module GridCell where
 
 import Cell exposing (BaseCell, CellID, CellLinks)
 import Set
-
+import Arithmetic
 
 -- RG says a better way might be to extract common properties into a new type and add the differences to the tag function like so
 type GridCell
     = RectCellTag BaseCell
     | PolarCellTag (BaseCell, (CellID, CellLinks))
     | HexCellTag BaseCell
+    | TriangleCellTag BaseCell
 
 -- attribute functions
 id : GridCell -> CellID
@@ -17,6 +18,7 @@ id gc =
         RectCellTag bc -> bc.id
         PolarCellTag (bc, _) -> bc.id
         HexCellTag bc -> bc.id
+        TriangleCellTag bc -> bc.id
 
 row : GridCell -> Int
 row gc =
@@ -39,17 +41,15 @@ base gc =
         RectCellTag bc -> bc
         PolarCellTag (bc, _) -> bc
         HexCellTag bc -> bc
+        TriangleCellTag bc -> bc
 
 cellToPolarCell : BaseCell -> GridCell
 cellToPolarCell base =
     PolarCellTag (base, ((-1, -1), Set.empty))
 
+-- alias for base
 toRectCell : GridCell -> BaseCell
-toRectCell cell =
-    case cell of
-        RectCellTag c -> c
-        PolarCellTag (c, _) -> c
-        HexCellTag c -> c
+toRectCell cell = base cell
 
 toPolarCell : GridCell -> (BaseCell, (CellID, CellLinks))
 toPolarCell cell =
@@ -57,7 +57,7 @@ toPolarCell cell =
         PolarCellTag c -> c
         RectCellTag c -> (c, ((-1, -1), Set.empty))
         HexCellTag c -> (c, ((-1, -1), Set.empty))
-
+        TriangleCellTag c -> (c, ((-1, -1), Set.empty))
 
 setInwardCell : GridCell -> GridCell -> GridCell
 setInwardCell cell inward =
@@ -73,4 +73,29 @@ addOutwardLink parentCell outwardCell =
         newLinks = Set.insert cell.id pclinks
     in
        PolarCellTag (pcell, (pcid, newLinks))
+
+-- helpful type functions
+maybeGridCellToCell : Maybe GridCell -> BaseCell
+maybeGridCellToCell cell =
+    maybeGridCellToGridCell cell
+    |> base
+
+maybeGridCellToMaybeCell : Maybe GridCell -> Maybe BaseCell
+maybeGridCellToMaybeCell cell =
+    Maybe.map base cell
+
+-- defaults to nil RectCellTag
+maybeGridCellToGridCell : Maybe GridCell -> GridCell
+maybeGridCellToGridCell cell =
+    case cell of
+        Nothing -> RectCellTag Cell.createNilCell
+        Just (RectCellTag c) -> RectCellTag c
+        Just (PolarCellTag p) -> PolarCellTag p
+        Just (HexCellTag c) -> HexCellTag c
+        Just (TriangleCellTag c) -> TriangleCellTag c
+
+-- Helper to apply filter to list of gridcells
+filterGridCells : (BaseCell -> Bool) -> List GridCell -> List GridCell
+filterGridCells fn cells =
+    List.filter (fn << base) cells
 

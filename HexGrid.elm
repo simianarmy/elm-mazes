@@ -117,9 +117,10 @@ painter cellPainter grid cellSize =
         cellBackground : GridCell -> HexVertices -> GC.Form
         cellBackground gc vx = 
             let color = cellPainter grid gc
+                ngon = GC.polygon [(vx.x_fw, vx.y_m), (vx.x_nw, vx.y_n), (vx.x_ne, vx.y_n), (vx.x_fe, vx.y_m), (vx.x_ne, vx.y_s), (vx.x_nw, vx.y_s)]
+                outline = GC.solid color
             in
-               GC.filled color 
-               <| GC.polygon [(vx.x_fw, vx.y_m), (vx.x_nw, vx.y_n), (vx.x_ne, vx.y_n), (vx.x_fe, vx.y_m), (vx.x_ne, vx.y_s), (vx.x_nw, vx.y_s)]
+               GC.group [(GC.filled color ngon), (GC.outlined outline ngon)]
 
         maybeVisibleLine : GC.LineStyle -> (Bool, GC.Path) -> List GC.Form
         maybeVisibleLine style (visible, seg) =
@@ -147,7 +148,7 @@ painter cellPainter grid cellSize =
         paintCell gc =
             let cell = GridCell.base gc
                 dl = GC.defaultLine
-                style = { dl | width = 2 }
+                style = { dl | width = 3 }
                 cx = cellSize + 3 * cell.col * round asize
                 cy = bsize + (toFloat cell.row) * height
                 cy' = round <| if Arithmetic.isOdd cell.col

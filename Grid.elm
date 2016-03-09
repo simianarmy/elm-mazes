@@ -238,27 +238,6 @@ toValidCell cell =
         Just cell -> cell
         Nothing -> Cell.createNilCell
 
-maybeGridCellToCell : Maybe GridCell -> BaseCell
-maybeGridCellToCell cell =
-    case cell of
-        Nothing -> Cell.createNilCell
-        Just (RectCellTag c) -> c
-        Just (PolarCellTag (c, _)) -> c
-        Just (HexCellTag c) -> c
-
-maybeGridCellToMaybeCell : Maybe GridCell -> Maybe Cell
-maybeGridCellToMaybeCell cell =
-    Maybe.map GridCell.base cell
-
--- defaults to RectCellTag
-maybeGridCellToGridCell : Maybe GridCell -> GridCell
-maybeGridCellToGridCell cell =
-    case cell of
-        Nothing -> RectCellTag Cell.createNilCell
-        Just (RectCellTag c) -> RectCellTag c
-        Just (PolarCellTag p) -> PolarCellTag p
-        Just (HexCellTag c) -> HexCellTag c
-
 north : Grid a -> Cell -> Maybe GridCell
 north grid cell =
     getCell grid (cell.row - 1) cell.col
@@ -336,6 +315,7 @@ linkCellsHelper grid cell cellToLinkId bidi =
                 RectCellTag rc -> RectCellTag (linker rc)
                 PolarCellTag (pc, data) -> PolarCellTag ((linker pc), data)
                 HexCellTag rc -> HexCellTag (linker rc)
+                TriangleCellTag rc -> TriangleCellTag (linker rc)
 
     in
        {grid | cells = cellsListToCellGrid <| List.map linkMatched (cellsList grid.cells)}

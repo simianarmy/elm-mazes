@@ -14,7 +14,7 @@ on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
 on startCellFn grid =
     let getRandomNeighbor : Grid a -> GridCell -> Maybe GridCell
         getRandomNeighbor grid' cell =
-            let acell = GridCell.toRectCell cell
+            let acell = GridCell.base cell
                 gcneighbors = GridUtils.smooshMaybes [
                     north grid' acell,
                     east grid' acell

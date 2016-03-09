@@ -5,6 +5,7 @@ import DistanceGrid
 import ColoredGrid
 import PolarGrid
 import HexGrid
+import TriangleGrid
 import Rnd
 import Mask
 import GridCell exposing (GridCell)
@@ -41,6 +42,7 @@ type Display = Ascii
 type Shape = Rect
             | Polar
             | Hex
+            | Triangle
 
 type alias Maze a = {
     grid : Grid a,
@@ -58,6 +60,7 @@ displays = [(Ascii, "ASCII")
 shapes = [(Rect, "Rectangular")
         , (Polar, "Polar")
         , (Hex, "Hexagonal")
+        , (Triangle, "Triangle")
         ]
 
 cellSize : Int
@@ -143,7 +146,10 @@ view maze =
                         let root = Grid.center maze.grid
                             coloredGrid = ColoredGrid.createGrid maze.grid root
                         in
-                           fromElement <| Grid.toElement coloredGrid HexGrid.painter HexGrid.cellBackgroundColor cellSize
+                           fromElement <| Grid.toElement coloredGrid HexGrid.painter ColoredGrid.cellBackgroundColor cellSize
+
+                    Triangle ->
+                        text "foo"
 
     in
        div [] [
