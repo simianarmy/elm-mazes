@@ -18,7 +18,7 @@ import Debug exposing (log)
 on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
 on startCellFn grid =
     let grid' = Grid.updateRnd grid
-        startCell = Debug.log "start cell: " <| GridCell.maybeGridCellToGridCell <| startCellFn grid
+        startCell = GridCell.maybeGridCellToGridCell <| startCellFn grid
         gridSize = case startCell of
             PolarCellTag c -> PolarGrid.size grid'
             _ -> Grid.size grid'

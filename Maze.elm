@@ -16,7 +16,7 @@ import Wilsons
 import HuntAndKill
 import RecursiveBacktracker
 
-import Random exposing (Seed)
+import Random.PCG as Random exposing (Seed, initialSeed, split)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 
@@ -33,9 +33,7 @@ type alias AlgAttr = {
     name : String
 }
 
--- TODO:
--- Display should be Ascii | Distance | Colored
--- Add Shape type: Rect | Polar | Hex
+-- We could have fancier displays someday
 type Display = Ascii
              | Colored
 
@@ -66,11 +64,6 @@ shapes = [(Rect, "Rectangular")
 cellSize : Int
 cellSize = 30
 
--- Possible functions for creating grids:
--- generateCells
-
-gridMaker (width, height) mask display seed =
-    True
 
 --init : Algorithm -> Int -> Int -> Seed -> Shape -> Display -> Maze a
 init algType width height seed shape display =
@@ -149,7 +142,7 @@ view maze =
                            fromElement <| Grid.toElement coloredGrid HexGrid.painter ColoredGrid.cellBackgroundColor cellSize
 
                     Triangle ->
-                        text "foo"
+                        text "TRIANGLE MAZE HERE"
 
     in
        div [] [

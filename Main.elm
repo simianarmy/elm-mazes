@@ -1,6 +1,5 @@
 module Main where
 
-import Random exposing (Seed)
 import Maze exposing (..)
 import Mask exposing (Mask)
 
@@ -11,17 +10,21 @@ import Signal exposing (Signal, Address)
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
+import Random.PCG as Random exposing (Seed, initialSeed, split)
+import Time exposing (Time, every, fps)
 
-initWidth   = 8
-initHeight  = 8
+initWidth   = 16
+initHeight  = 16
 initDisplay = Maze.Colored
-initShape   = Maze.Polar
+initShape   = Maze.Rect
 
 --- MODEL ---
 
 -- The full application state
 type alias AppState a = 
     { maze : Maze a
+    , seedInitialized : Bool
+    , seed: Random.Seed
     }
 
 type alias PngData =
@@ -39,6 +42,7 @@ type alias Model a = AppState a
 -- some alternatives: https://github.com/evancz/elm-architecture-tutorial/
 type Action = 
     NoOp
+    | Tick Float
     | Refresh
     | UpdateWidth String
     | UpdateHeight String
@@ -86,7 +90,7 @@ update action model =
                {model | maze = maze'}
 
         LoadAsciiMask lines ->
-            let mask = Mask.fromTxt <| Debug.log "lines from input file: " lines
+            let mask = Mask.fromTxt lines
             in
                {model | maze = Maze.setMask model.maze mask}
 
@@ -94,6 +98,10 @@ update action model =
             let mask = Mask.fromImage (png.width, png.height) png.blackFlags
             in
                {model | maze = Maze.setMask model.maze mask}
+
+        Tick dt ->
+            -- We can use this to display the maze-generation incrementally
+            model
 
 
 --- VIEW ---
@@ -114,9 +122,9 @@ view address model =
             option [selected ((fst opt) == model.maze.shape)] [text (snd opt)]
         maze = model.maze
     in
-    div [] [
+    div [ id "main" ] [
         -- title
-        header [] [ h1 [] [text "Amazeball Mazes" ]]
+        header [] [ h1 [] [text "Amaze Mazes" ]]
         -- the maze
         , Maze.view maze
         -- controls
@@ -135,7 +143,6 @@ view address model =
         , br [] []
         , text "Ascii Mask file: "
         , input [ type' "file", id "maskfileinput" ] []
-        --, text ("start time: " ++ (toString startTime)),
         , footer [] []
         ]
 
@@ -165,6 +172,7 @@ userInput =
         [ Signal.map LoadAsciiMask outputFromFileAscii
         , Signal.map LoadImageMask outputFromFilePNG
         , actions.signal
+        , tick
         ]
 
 -- manage the model of our application over time
@@ -176,6 +184,8 @@ model =
 initialModel =
     {
         maze = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initShape initDisplay
+      , seedInitialized = False
+      , seed = initialSeed 45 -- This will not get used.
     }
 
 -- actions from user input
@@ -183,7 +193,10 @@ actions : Signal.Mailbox Action
 actions =
     Signal.mailbox NoOp
 
-startTimeSeed : Seed
+tick : Signal Action 
+tick  = Signal.map (\dt -> Tick dt) (fps 16)
+
+startTimeSeed : Random.Seed
 -- uncomment to debug with consistent seed
 --startTimeSeed = Random.initialSeed 123
 startTimeSeed = Random.initialSeed <| round startTime

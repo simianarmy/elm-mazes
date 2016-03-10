@@ -6,7 +6,7 @@ import Rnd
 import GridCell exposing (GridCell)
 import Cell exposing (Cell)
 
-import Random
+import Random.PCG as Random
 import List
 import ListUtils
 import Array

@@ -1,6 +1,6 @@
 module Rnd where
 
-import Random exposing (..)
+import Random.PCG as Random exposing (..)
 
 type alias GridRnd = {
     seed : Seed,
