@@ -35,6 +35,9 @@ walkRandomly grid neighborsFn stack =
        then Done grid
        else
        let current = head stack |> GridCell.maybeGridCellToGridCell
+           -- foo = case current of
+           --     HexCellTag c -> current
+           --     _ -> Debug.crash "here is the failuer"
            -- Get the proper filter function
            neighbors = Grid.filterNeighbors2 neighborsFn (\c -> not <| Cell.hasLinks (GridCell.base c)) grid current
        in

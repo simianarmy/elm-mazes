@@ -12039,14 +12039,14 @@ Elm.Grid.make = function (_elm) {
    var rowCells = F2(function (grid,row) {    return $Array.toList(A2($Maybe.withDefault,$Array.empty,A2($Array.get,row,grid.cells)));});
    var rowMatcher = F2(function (cell,row) {    return _U.eq($GridCell.row(cell),row);});
    var gridCellID = function (gc) {    return $GridCell.id(gc);};
-   var filterNeighbors2 = F4(function (neighbors,pred,grid,cell) {    return A2($List.filter,pred,A2(neighbors,grid,cell));});
+   var filterNeighbors2 = F4(function (neighborsFn,pred,grid,cell) {    return A2($List.filter,pred,A2(neighborsFn,grid,cell));});
    var toValidCell = function (cell) {    var _p0 = cell;if (_p0.ctor === "Just") {    return _p0._0;} else {    return $Cell.createNilCell;}};
    var getCell = F3(function (grid,row,col) {
       if (_U.cmp(row,grid.rows) > -1 || (_U.cmp(row,0) < 0 || _U.cmp(col,0) < 0)) return $Maybe.Nothing; else {
             var rowCells = A2($Maybe.withDefault,$Array.empty,A2($Array.get,row,grid.cells));
             var sampleCell = A2($Array.get,0,rowCells);
             var _p1 = sampleCell;
-            _v1_2: do {
+            _v1_3: do {
                if (_p1.ctor === "Just") {
                      switch (_p1._0.ctor)
                      {case "RectCellTag": return _U.cmp(col,grid.cols) > -1 || _p1._0._0.masked ? $Maybe.Nothing : A2($Array.get,col,rowCells);
@@ -12054,11 +12054,12 @@ Elm.Grid.make = function (_elm) {
                                 var rowLen = $Array.length(rowCells);
                                 return A2($Array.get,A2($Basics._op["%"],col,rowLen),rowCells);
                              } else {
-                                break _v1_2;
+                                break _v1_3;
                              }
-                        default: break _v1_2;}
+                        case "HexCellTag": return _U.cmp(col,grid.cols) > -1 || _p1._0._0.masked ? $Maybe.Nothing : A2($Array.get,col,rowCells);
+                        default: break _v1_3;}
                   } else {
-                     break _v1_2;
+                     break _v1_3;
                   }
             } while (false);
             return $Maybe.Nothing;
@@ -12081,7 +12082,6 @@ Elm.Grid.make = function (_elm) {
             return _U.list([]);
          }
    });
-   var filterNeighbors = F3(function (pred,grid,cell) {    return A2($List.filter,pred,A2(neighbors,grid,cell));});
    var center = function (grid) {    return $GridCell.maybeGridCellToCell(A3(getCell,grid,grid.rows / 2 | 0,grid.cols / 2 | 0));};
    var randomCell = function (grid) {
       var _p4 = A2($Mask.randomLocation,grid.mask,grid.rnd);
@@ -12240,7 +12240,6 @@ Elm.Grid.make = function (_elm) {
                              ,center: center
                              ,randomCell: randomCell
                              ,neighbors: neighbors
-                             ,filterNeighbors: filterNeighbors
                              ,filterNeighbors2: filterNeighbors2
                              ,deadEnds: deadEnds
                              ,gridCellID: gridCellID

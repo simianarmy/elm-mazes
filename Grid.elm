@@ -205,6 +205,7 @@ cellsListToCellGrid cells =
 -- 0-based indices
 -- returns cell at an x,y index.
 -- returns nil cell if the index is invalid or the cell at that location is masked
+-- TODO: CLEANUP / REFACTOR NEEDED!!!
 getCell : {a | cells : CellGrid, rows : Int, cols : Int } 
     -> Int -> Int 
     -> Maybe GridCell
@@ -222,6 +223,7 @@ getCell grid row col =
                   if (col >= grid.cols) || c.masked
                      then Nothing
                      else Array.get col rowCells
+
               Just (PolarCellTag (c, o)) ->
                   -- This is ugly, but we want to recalculate col for polar grids
                   -- to remove the radial line on the right
@@ -229,6 +231,12 @@ getCell grid row col =
                      -- TODO: mask check
                   in
                       Array.get (col % rowLen) rowCells
+
+              Just (HexCellTag c) ->
+                  if (col >= grid.cols) || c.masked
+                     then Nothing
+                     else Array.get col rowCells
+
               _ -> Nothing
 
 -- commonly used to map a maybe cell to a cell
@@ -278,21 +286,13 @@ neighbors grid cell =
         _ -> []
 
 -- sometimes useful to filter the neighbors of a cell by some criteria
-filterNeighbors : (GridCell -> Bool) ->
-    Grid a ->
-    GridCell ->
-    List GridCell
-filterNeighbors pred grid cell =
-    List.filter pred <| neighbors grid cell
-
--- sometimes useful to filter the neighbors of a cell by some criteria
 filterNeighbors2 : (Grid a -> GridCell -> List GridCell) ->
     (GridCell -> Bool) ->
     Grid a ->
     GridCell ->
     List GridCell
-filterNeighbors2 neighbors pred grid cell =
-    List.filter pred <| neighbors grid cell
+filterNeighbors2 neighborsFn pred grid cell =
+    List.filter pred <| neighborsFn grid cell
 
 -- returns all cells with only 1 link
 --deadEnds : Grid a -> List GridCell
