@@ -10,8 +10,10 @@ import GridUtils
 import Grid exposing (..)
 import GridCell exposing (..)
 
-on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
-on startCellFn grid =
+on : (Grid a -> Maybe GridCell) ->
+     (Grid a -> GridCell -> List GridCell) ->
+     Grid a -> Grid a
+on startCellFn neighborsFn grid =
     let getRandomNeighbor : Grid a -> GridCell -> Maybe GridCell
         getRandomNeighbor grid' cell =
             let acell = GridCell.base cell

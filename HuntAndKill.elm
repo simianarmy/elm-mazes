@@ -13,21 +13,27 @@ import List.Extra as LE
 import Trampoline exposing (..)
 import Debug exposing (log)
 
-on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
-on startCellFn grid =
+on : (Grid a -> Maybe GridCell) ->
+     (Grid a -> GridCell -> List GridCell) ->
+     Grid a -> Grid a
+on startCellFn neighborsFn grid =
     let grid' = Grid.updateRnd grid
+        startCell = GridCell.maybeGridCellToGridCell (startCellFn grid)
     in
-       trampoline (walkRandomly grid' <| GridCell.maybeGridCellToGridCell (startCellFn grid))
+       trampoline (walkRandomly grid' startCell neighborsFn)
 
 -- Breaking out to try trampoline
-walkRandomly : Grid a -> GridCell -> Trampoline (Grid a)
-walkRandomly grid gcell =
+walkRandomly : Grid a ->
+    GridCell ->
+    (Grid a -> GridCell -> List GridCell) ->
+    Trampoline (Grid a)
+walkRandomly grid gcell neighborsFn =
     let cell = GridCell.toRectCell gcell
     in
        if Cell.isNilCell cell
           then Done grid
           else
-          let unvisitedNeighbors = Grid.filterNeighbors (\c -> not <| Cell.hasLinks (GridCell.toRectCell c)) grid gcell
+          let unvisitedNeighbors = Grid.filterNeighbors2 neighborsFn (\c -> not <| Cell.hasLinks (GridCell.toRectCell c)) grid gcell
           in
              if not <| isEmpty unvisitedNeighbors
                 then
@@ -37,18 +43,20 @@ walkRandomly grid gcell =
                     grid' = Grid.linkCells grid gcell neighbor True
                     grid'' = Grid.updateRnd grid'
                 in
-                   Continue (\() -> walkRandomly grid'' neighbor)
+                   Continue (\() -> walkRandomly grid'' neighbor neighborsFn)
                else
                -- hunt phase
-               let (grid', current) = hunt grid
+               let (grid', current) = hunt grid neighborsFn
                in
-                  Continue (\() -> walkRandomly grid' current)
+                  Continue (\() -> walkRandomly grid' current neighborsFn)
 
 
-hunt : Grid a -> (Grid a, GridCell)
-hunt grid =
+hunt : Grid a ->
+     (Grid a -> GridCell -> List GridCell) ->
+    (Grid a, GridCell)
+hunt grid neighborsFn =
     let visitedNeighbors : GridCell -> List GridCell
-        visitedNeighbors cell = Grid.filterNeighbors (\c -> Cell.hasLinks (GridCell.toRectCell c)) grid cell
+        visitedNeighbors cell = Grid.filterNeighbors2 neighborsFn (\c -> Cell.hasLinks (GridCell.toRectCell c)) grid cell
 
         huntUnvisitedNeighbor : GridCell -> Bool
         huntUnvisitedNeighbor gcell =

@@ -188,11 +188,6 @@ neighbors grid cell =
                List.append (List.concat [cw, ccw, inward]) outward
         _ -> []
 
--- sometimes useful to filter the neighbors of a cell by some criteria
-filterNeighbors : (GridCell -> Bool) -> Grid a -> GridCell -> List GridCell
-filterNeighbors pred grid cell =
-    List.filter pred <| neighbors grid cell
-
 painter :  (Grid a -> GridCell -> Color) -> Grid a -> Int -> GE.Element
 painter cellPainter grid cellSize =
     let imgSize = 2 * grid.rows * cellSize

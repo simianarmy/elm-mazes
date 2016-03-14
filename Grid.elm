@@ -277,15 +277,27 @@ neighbors grid cell =
 
         _ -> []
 
+-- sometimes useful to filter the neighbors of a cell by some criteria
+filterNeighbors : (GridCell -> Bool) ->
+    Grid a ->
+    GridCell ->
+    List GridCell
+filterNeighbors pred grid cell =
+    List.filter pred <| neighbors grid cell
+
+-- sometimes useful to filter the neighbors of a cell by some criteria
+filterNeighbors2 : (Grid a -> GridCell -> List GridCell) ->
+    (GridCell -> Bool) ->
+    Grid a ->
+    GridCell ->
+    List GridCell
+filterNeighbors2 neighbors pred grid cell =
+    List.filter pred <| neighbors grid cell
+
 -- returns all cells with only 1 link
 --deadEnds : Grid a -> List GridCell
 deadEnds grid =
     List.filter (\c -> (List.length (Set.toList c.links)) == 1) (gridCellsToBaseCells (cellsList grid.cells))
-
--- sometimes useful to filter the neighbors of a cell by some criteria
-filterNeighbors : (GridCell -> Bool) -> Grid a -> GridCell -> List GridCell
-filterNeighbors pred grid cell =
-    List.filter pred <| neighbors grid cell
 
 -- alias to GridCell.id
 gridCellID : GridCell -> CellID

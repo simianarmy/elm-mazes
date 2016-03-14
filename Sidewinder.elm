@@ -12,8 +12,11 @@ import Random exposing (..)
 
 type alias RowState a = {run : List GridCell, grid : Grid a}
 
-on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
-on startCellFn grid =
+on : (Grid a -> Maybe GridCell) ->
+     (Grid a -> GridCell -> List GridCell) ->
+     Grid a -> Grid a
+
+on startCellFn neighborsFn grid =
     let -- bias is to start at the bottom left...may not matter
         processCell : GridCell -> RowState a -> RowState a
         processCell cell rowState =

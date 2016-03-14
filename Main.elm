@@ -13,8 +13,8 @@ import Html.Events exposing (..)
 import Random.PCG as Random exposing (Seed, initialSeed, split)
 import Time exposing (Time, every, fps)
 
-initWidth   = 16
-initHeight  = 16
+initWidth   = 8
+initHeight  = 8
 initDisplay = Maze.Colored
 initShape   = Maze.Rect
 
@@ -72,10 +72,10 @@ update action model =
                {model | maze = maze'}
 
         SelectAlg str ->
-            let maze' = model.maze
-                maze'' = Maze.update {maze' | alg = Maze.algByName str}
+            let maze = model.maze
+                maze' = Maze.init (Maze.algByName str) maze.grid.cols maze.grid.rows maze.grid.rnd.seed maze.shape maze.display
             in
-               {model | maze = maze''}
+               {model | maze = Maze.update maze'}
 
         SelectView display ->
             let maze' = Maze.updateView model.maze display

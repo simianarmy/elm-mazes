@@ -46,10 +46,11 @@ type alias Maze a = {
     grid : Grid a,
     alg : Algorithm,
     shape: Shape,
-    display : Display
+    display : Display,
+    generator : Grid a -> Grid a
 }
 
-defaultAlgorithm = RecursiveBacktracker
+defaultAlgorithm = NoOp
 
 -- Data formatted for html selects
 displays = [(Ascii, "ASCII")
@@ -69,33 +70,48 @@ cellSize = 30
 init algType width height seed shape display =
     let mask = Mask.createMask width height
         cellGenFn = case shape of
+            Rect -> Grid.makeCells
             Polar -> PolarGrid.makeCells
-            _ -> Grid.makeCells
+            Hex -> HexGrid.makeCells
+            Triangle -> TriangleGrid.makeCells
         grid' = Grid.createGridFromMask mask seed cellGenFn
     in
        {
-           grid = applyAlg algType shape <| grid',
+           grid = grid',
+           generator = genAlg algType shape,
            alg = algType,
            shape = shape,
            display = display
        }
 
--- generates maze algorithm function taking a grid and random cell generator and
--- returning a grid
-applyAlg : Algorithm -> Shape -> (Grid a -> Grid a)
-applyAlg algName shape =
+-- generates maze algorithm function taking a grid and returning a grid
+genAlg : Algorithm -> Shape -> (Grid a -> Grid a)
+genAlg algName shape =
     let randCellFn = case shape of
-        Polar -> PolarGrid.randomCell
-        _ -> Grid.randomCell
+            Polar -> PolarGrid.randomCell
+            _ -> Grid.randomCell
+        neighborFn = case shape of
+            Polar -> PolarGrid.neighbors
+            Hex -> HexGrid.neighbors
+            Triangle -> TriangleGrid.neighbors
+            _ -> Grid.neighbors
     in
-        getAlgFn algName randCellFn
+       case algName of
+           NoOp -> identity
+           BinaryTree -> BinaryTree.on randCellFn neighborFn
+           Sidewinder -> Sidewinder.on randCellFn neighborFn
+           AldousBroder -> AldousBroder.on randCellFn neighborFn
+           Wilsons -> Wilsons.on randCellFn neighborFn
+           HuntAndKill -> HuntAndKill.on randCellFn neighborFn
+           RecursiveBacktracker -> RecursiveBacktracker.on randCellFn neighborFn
+
 
 --update : Maze a -> Maze a
 update maze =
     let grid' = Grid.update maze.grid
     in
        {
-           maze | grid = applyAlg maze.alg maze.shape <| grid'
+           maze | grid = maze.generator grid'
        }
 
 -- INVALIDATES MASK, SO REFRESH MAZE
@@ -112,7 +128,7 @@ setMask maze mask =
     let grid' = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker
     in
        {maze |
-           grid = applyAlg maze.alg maze.shape <| grid'
+           grid = maze.generator grid'
        }
 
 --view : Maze a -> Html
@@ -196,16 +212,6 @@ algorithms shape =
        case shape of
            Polar -> List.concat [algs, allAlgs]
            _ -> List.concat [algs, rectAlgs, allAlgs]
-
-getAlgFn algType randCellFn =
-    case algType of
-        NoOp -> identity
-        BinaryTree -> BinaryTree.on randCellFn
-        Sidewinder -> Sidewinder.on randCellFn
-        AldousBroder -> AldousBroder.on randCellFn
-        Wilsons -> Wilsons.on randCellFn
-        HuntAndKill -> HuntAndKill.on randCellFn
-        RecursiveBacktracker -> RecursiveBacktracker.on randCellFn
 
 algToString : Algorithm -> String
 algToString algType =

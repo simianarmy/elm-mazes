@@ -15,19 +15,23 @@ import Array
 import Trampoline exposing (..)
 import Debug exposing (log)
 
-on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
-on startCellFn grid =
+on : (Grid a -> Maybe GridCell) ->
+    (Grid a -> GridCell -> List GridCell) ->
+    Grid a -> Grid a
+on startCellFn neighborsFn grid =
     let grid' = Grid.updateRnd grid
         startCell = GridCell.maybeGridCellToGridCell <| startCellFn grid
         gridSize = case startCell of
             PolarCellTag c -> PolarGrid.size grid'
             _ -> Grid.size grid'
     in
-       trampoline (walkRandomly grid' startCell (gridSize - 1))
+       trampoline (walkRandomly grid' neighborsFn startCell (gridSize - 1))
 
 -- Breaking out to try trampoline
-walkRandomly : Grid a -> GridCell -> Int -> Trampoline (Grid a)
-walkRandomly grid cell unvisited =
+walkRandomly : Grid a -> 
+    (Grid a -> GridCell -> List GridCell) ->
+    GridCell -> Int -> Trampoline (Grid a)
+walkRandomly grid neighborsFn cell unvisited =
     if unvisited == 0
        then Done grid
        else
@@ -35,11 +39,7 @@ walkRandomly grid cell unvisited =
        let 
            -- refresh rng
            grid' = Grid.updateRnd grid
-           sample = case cell of
-               RectCellTag rc -> Grid.neighbors grid' cell
-               PolarCellTag pc -> PolarGrid.neighbors grid' cell
-               HexCellTag pc -> HexGrid.neighbors grid' cell
-               TriangleCellTag pc -> TriangleGrid.neighbors grid' cell
+           sample = neighborsFn grid' cell
            -- gridcell
            gcneighbor = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd
            -- basecell
@@ -51,8 +51,8 @@ walkRandomly grid cell unvisited =
              -- link cell to neighbor and move to the neighbor
              let grid'' = Grid.linkCells grid' cell gcneighbor True
              in
-                Continue (\() -> walkRandomly grid'' gcneighbor (unvisited - 1))
+                Continue (\() -> walkRandomly grid'' neighborsFn gcneighbor (unvisited - 1))
              else
              -- move to the neighbor w/out linking
-             Continue (\() -> walkRandomly grid' gcneighbor unvisited)
+             Continue (\() -> walkRandomly grid' neighborsFn gcneighbor unvisited)
 

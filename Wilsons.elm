@@ -20,8 +20,10 @@ type alias RandomWalkPath a = {
     unvisited : List GridCell
 }
 
-on : (Grid a -> Maybe GridCell) -> Grid a -> Grid a
-on startCellFn grid =
+on : (Grid a -> Maybe GridCell) ->
+     (Grid a -> GridCell -> List GridCell) ->
+     Grid a -> Grid a
+on startCellFn neighborsFn grid =
     let startCell = GridCell.maybeGridCellToGridCell <| startCellFn grid
         grid' = Grid.updateRnd grid
         -- get all cells but the sampled one
@@ -29,10 +31,13 @@ on startCellFn grid =
             not <| e.id == (GridCell.id startCell)
         ) <| Grid.cellsList grid.cells
     in
-       trampoline (work grid' unvisited)
+       trampoline (work grid' unvisited neighborsFn)
 
-work : Grid a -> List GridCell -> Trampoline (Grid a)
-work grid unvisited =
+work : Grid a -> 
+    List GridCell -> 
+    (Grid a -> GridCell -> List GridCell) ->
+    Trampoline (Grid a)
+work grid unvisited neighborsFn =
     if isEmpty unvisited
        then Done grid
        else
@@ -42,30 +47,28 @@ work grid unvisited =
                cell = cell,
                path = [cell],
                unvisited = unvisited
-           }
+           } neighborsFn
        in
-          Continue (\() -> (work rwp.grid rwp.unvisited))
+          Continue (\() -> (work rwp.grid rwp.unvisited neighborsFn))
 
-loopErasedRandomWalk : RandomWalkPath a -> RandomWalkPath a
-loopErasedRandomWalk rwp =
+loopErasedRandomWalk : RandomWalkPath a ->
+     (Grid a -> GridCell -> List GridCell) ->
+    RandomWalkPath a
+loopErasedRandomWalk rwp neighborsFn =
     -- while cell is in unvisited
     if not <| member rwp.cell rwp.unvisited
        then carvePassage rwp
        else
-       let 
-           neighborsFn = case rwp.cell of
-               PolarCellTag pc -> PolarGrid.neighbors
-               _ -> Grid.neighbors
-           gccell = GridCell.maybeGridCellToGridCell
+       let gccell = GridCell.maybeGridCellToGridCell
                <| GridUtils.sampleCell (neighborsFn rwp.grid rwp.cell) rwp.grid.rnd
            position = GridUtils.indexOfCell gccell rwp.path
            grid = Grid.updateRnd rwp.grid
        in
           if position >= 0
              then
-             loopErasedRandomWalk {rwp | grid = grid, cell = gccell, path = take (position + 1) rwp.path}
+             loopErasedRandomWalk {rwp | grid = grid, cell = gccell, path = take (position + 1) rwp.path} neighborsFn
              else
-             loopErasedRandomWalk {rwp | grid = grid, cell = gccell, path = List.concat [rwp.path, [gccell]]}
+             loopErasedRandomWalk {rwp | grid = grid, cell = gccell, path = List.concat [rwp.path, [gccell]]} neighborsFn
 
 carvePassage : RandomWalkPath a -> RandomWalkPath a
 carvePassage rwp =
