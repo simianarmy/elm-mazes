@@ -13225,6 +13225,7 @@ Elm.Maze.make = function (_elm) {
       var grid$ = A3($Grid.createGridFromMask,mask,maze.grid.rnd.seed,maze.grid.cellMaker);
       return _U.update(maze,{grid: maze.generator(grid$)});
    });
+   var updateView = F2(function (maze,displayType) {    return _U.update(maze,{display: displayType});});
    var update = function (maze) {    var grid$ = $Grid.update(maze.grid);return _U.update(maze,{grid: maze.generator(grid$)});};
    var genAlg = F2(function (algName,shape) {
       var neighborFn = function () {
@@ -13260,7 +13261,6 @@ Elm.Maze.make = function (_elm) {
       return {grid: grid$,generator: A2(genAlg,algType,shape),alg: algType,shape: shape,display: display};
    });
    var updateSize = F3(function (maze,width,height) {    return A6(init,maze.alg,width,height,maze.grid.rnd.seed,maze.shape,maze.display);});
-   var updateView = F2(function (maze,displayType) {    return A6(init,maze.alg,maze.grid.cols,maze.grid.rows,maze.grid.rnd.seed,maze.shape,displayType);});
    var cellSize = 30;
    var view = function (maze) {
       var gridHtml = function () {
@@ -13335,7 +13335,7 @@ Elm.Maze.make = function (_elm) {
       if (_p9.ctor === "Just") {
             return _p9._0.alg;
          } else {
-            return A2(_U.crash("Maze",{start: {line: 233,column: 17},end: {line: 233,column: 28}}),"Unknown algorithm",BinaryTree);
+            return A2(_U.crash("Maze",{start: {line: 227,column: 17},end: {line: 227,column: 28}}),"Unknown algorithm",BinaryTree);
          }
    };
    return _elm.Maze.values = {_op: _op

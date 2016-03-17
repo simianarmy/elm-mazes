@@ -205,7 +205,8 @@ cellsListToCellGrid cells =
 -- 0-based indices
 -- returns cell at an x,y index.
 -- returns nil cell if the index is invalid or the cell at that location is masked
--- TODO: CLEANUP / REFACTOR NEEDED!!!
+-- TODO: CLEANUP / REFACTOR NEEDED UNLESS WE'RE OK WITH THIS FUNCTION KNOWING ABOUT 
+-- ALL THE POSSIBLE GRID SHAPES.
 getCell : {a | cells : CellGrid, rows : Int, cols : Int } 
     -> Int -> Int 
     -> Maybe GridCell

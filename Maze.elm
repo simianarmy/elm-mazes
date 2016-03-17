@@ -109,10 +109,7 @@ genAlg algName shape =
 --update : Maze a -> Maze a
 update maze =
     let grid' = Grid.update maze.grid
-    in
-       {
-           maze | grid = maze.generator grid'
-       }
+    in {maze | grid = maze.generator grid'}
 
 -- INVALIDATES MASK, SO REFRESH MAZE
 --updateSize : Maze a -> Int -> Int -> Maze a
@@ -121,15 +118,12 @@ updateSize maze width height =
 
 -- updateView : Maze a -> Display -> Maze b
 updateView maze displayType =
-    init maze.alg maze.grid.cols maze.grid.rows maze.grid.rnd.seed maze.shape displayType
+    {maze | display = displayType}
 
 -- setMask : Maze a -> Mask -> Maze a
 setMask maze mask =
     let grid' = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker
-    in
-       {maze |
-           grid = maze.generator grid'
-       }
+    in {maze | grid = maze.generator grid'}
 
 --view : Maze a -> Html
 view maze =
