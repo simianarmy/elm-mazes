@@ -12614,8 +12614,6 @@ Elm.TriangleGrid.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var west = F2(function (grid,cell) {    return A2($Grid.west,grid,cell);});
-   var east = F2(function (grid,cell) {    return A2($Grid.east,grid,cell);});
    var upright = function (_p0) {    var _p1 = _p0;return $Arithmetic.isEven(_p1.row + _p1.col);};
    var north = F2(function (grid,cell) {    return upright(cell) ? $Maybe.Nothing : A3($Grid.getCell,grid,cell.row - 1,cell.col);});
    var south = F2(function (grid,cell) {    return upright(cell) ? A3($Grid.getCell,grid,cell.row + 1,cell.col) : $Maybe.Nothing;});
@@ -12623,7 +12621,7 @@ Elm.TriangleGrid.make = function (_elm) {
       var _p2 = gc;
       if (_p2.ctor === "TriangleCellTag") {
             var _p3 = _p2._0;
-            return $GridUtils.smooshMaybes(_U.list([A2(north,grid,_p3),A2(south,grid,_p3),A2(west,grid,_p3),A2(east,grid,_p3)]));
+            return $GridUtils.smooshMaybes(_U.list([A2($Grid.west,grid,_p3),A2($Grid.east,grid,_p3),A2(north,grid,_p3),A2(south,grid,_p3)]));
          } else {
             return _U.crashCase("TriangleGrid",
             {start: {line: 61,column: 5},end: {line: 70,column: 96}},
@@ -12647,8 +12645,6 @@ Elm.TriangleGrid.make = function (_elm) {
                                      ,upright: upright
                                      ,north: north
                                      ,south: south
-                                     ,east: east
-                                     ,west: west
                                      ,neighbors: neighbors};
 };
 Elm.AldousBroder = Elm.AldousBroder || {};
