@@ -200,6 +200,9 @@ algorithms shape =
             , {alg = Sidewinder, name = algToString Sidewinder}
             , {alg = HuntAndKill, name = algToString HuntAndKill}
         ]
+        triangleAlgs = [
+            {alg = HuntAndKill, name = algToString HuntAndKill}
+        ]
         allAlgs = [
             {alg = AldousBroder, name = algToString AldousBroder}
             , {alg = Wilsons, name = algToString Wilsons}
@@ -208,6 +211,7 @@ algorithms shape =
     in
        case shape of
            Polar -> List.concat [algs, allAlgs]
+           Triangle -> List.concat [algs, triangleAlgs, allAlgs]
            _ -> List.concat [algs, rectAlgs, allAlgs]
 
 algToString : Algorithm -> String

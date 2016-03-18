@@ -13373,16 +13373,16 @@ Elm.Maze.make = function (_elm) {
       var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)}
                             ,{alg: Wilsons,name: algToString(Wilsons)}
                             ,{alg: RecursiveBacktracker,name: algToString(RecursiveBacktracker)}]);
+      var triangleAlgs = _U.list([{alg: HuntAndKill,name: algToString(HuntAndKill)}]);
       var rectAlgs = _U.list([{alg: BinaryTree,name: algToString(BinaryTree)}
                              ,{alg: Sidewinder,name: algToString(Sidewinder)}
                              ,{alg: HuntAndKill,name: algToString(HuntAndKill)}]);
       var algs = _U.list([{alg: NoOp,name: algToString(NoOp)}]);
       var _p8 = shape;
-      if (_p8.ctor === "Polar") {
-            return $List.concat(_U.list([algs,allAlgs]));
-         } else {
-            return $List.concat(_U.list([algs,rectAlgs,allAlgs]));
-         }
+      switch (_p8.ctor)
+      {case "Polar": return $List.concat(_U.list([algs,allAlgs]));
+         case "Triangle": return $List.concat(_U.list([algs,triangleAlgs,allAlgs]));
+         default: return $List.concat(_U.list([algs,rectAlgs,allAlgs]));}
    };
    var algByName = function (str) {
       var res = $List.head(A2($List.filter,function (a) {    return _U.eq(a.name,str);},algorithms(Rect)));
@@ -13390,7 +13390,7 @@ Elm.Maze.make = function (_elm) {
       if (_p9.ctor === "Just") {
             return _p9._0.alg;
          } else {
-            return A2(_U.crash("Maze",{start: {line: 230,column: 17},end: {line: 230,column: 28}}),"Unknown algorithm",BinaryTree);
+            return A2(_U.crash("Maze",{start: {line: 234,column: 17},end: {line: 234,column: 28}}),"Unknown algorithm",BinaryTree);
          }
    };
    return _elm.Maze.values = {_op: _op
