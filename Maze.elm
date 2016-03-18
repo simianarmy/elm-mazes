@@ -152,7 +152,10 @@ view maze =
                            fromElement <| Grid.toElement coloredGrid HexGrid.painter ColoredGrid.cellBackgroundColor cellSize
 
                     Triangle ->
-                        text "TRIANGLE MAZE HERE"
+                        let root = Grid.center maze.grid
+                            coloredGrid = ColoredGrid.createGrid maze.grid root
+                        in
+                           fromElement <| Grid.toElement coloredGrid TriangleGrid.painter ColoredGrid.cellBackgroundColor cellSize
 
     in
        div [] [

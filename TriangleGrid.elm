@@ -70,29 +70,29 @@ neighbors grid gc =
         _ -> Debug.crash "Illegal call to HexGrid.neighbors with non-TriangleCellTag type cell"
 
 type alias Points = {
-    westX : Int,
-    midX : Int,
-    eastX : Int,
-    apexY : Int,
-    baseY : Int
+    westX : Float,
+    midX : Float,
+    eastX : Float,
+    apexY : Float,
+    baseY : Float
 }
 
 painter :  (Grid a -> GridCell -> Color) -> Grid a -> Int -> GE.Element
 painter cellPainter grid cellSize =
-    let width = cellSize
-        halfWidth = width / 2
-        height = cellSize * (sqrt 3) / 2
+    let halfWidth = (toFloat cellSize) / 2
+        height = (toFloat cellSize) * (sqrt 3) / 2
         halfHeight = height / 2
-        imgWidth = round(size * (grid.cols + 1) / 2)
-        imgHeight = round(height * grid.rows)
+        imgWidth = round((toFloat cellSize) * (toFloat grid.cols + 1) / 2)
+        imgHeight = round(height * toFloat grid.rows)
+        ox = negate (toFloat imgWidth) / 2.0
+        oy = negate (toFloat imgHeight) / 2.0
 
-        background = Color.white
-        wall = Color.black
+        wallColor = Color.black
 
         cellBackground : GridCell -> Points -> GC.Form
         cellBackground gc vx = 
             let color = cellPainter grid gc
-                ngon = GC.polygon [(vx.x_fw, vx.y_m), (vx.x_nw, vx.y_n), (vx.x_ne, vx.y_n), (vx.x_fe, vx.y_m), (vx.x_ne, vx.y_s), (vx.x_nw, vx.y_s)]
+                ngon = GC.polygon [(vx.westX, vx.baseY), (vx.midX, vx.apexY), (vx.eastX, vx.baseY)]
                 outline = GC.solid color
             in
                GC.group [(GC.filled color ngon), (GC.outlined outline ngon)]
@@ -106,36 +106,35 @@ painter cellPainter grid cellSize =
         cellWalls : GC.LineStyle -> GridCell -> Points -> List GC.Form
         cellWalls style gc vx =
             let cell = GridCell.base gc
+                noSouth = upright cell && (not <| GridCell.isValidCell (south grid cell))
+                notLinked = (not <| upright cell) && (not <| Cell.isLinked cell (maybeGridCellToCell (north grid cell)))
             in
                if cell.masked
                   then []
                   else List.concatMap (maybeVisibleLine style)
                   [
-                      ((not <| GridCell.isValidCell (southwest grid cell)), (GC.segment (vx.x_fw, vx.y_m) (vx.x_nw, vx.y_s))),
-                      ((not <| GridCell.isValidCell (northwest grid cell)), (GC.segment (vx.x_fw, vx.y_m) (vx.x_nw, vx.y_n))),
-                      ((not <| GridCell.isValidCell (north grid cell)), (GC.segment (vx.x_nw, vx.y_n) (vx.x_ne, vx.y_n))),
-                      ((not <| Cell.isLinked cell (maybeGridCellToCell (northeast grid cell))), (GC.segment (vx.x_ne, vx.y_n) (vx.x_fe, vx.y_m))),
-                      ((not <| Cell.isLinked cell (maybeGridCellToCell (southeast grid cell))), (GC.segment (vx.x_fe, vx.y_m) (vx.x_ne, vx.y_s))),
-                      ((not <| Cell.isLinked cell (maybeGridCellToCell (south grid cell))), (GC.segment (vx.x_ne, vx.y_s) (vx.x_nw, vx.y_s)))
-                      ]
+                      ((not <| GridCell.isValidCell (west grid cell)), (GC.segment (vx.westX, vx.baseY) (vx.midX, vx.apexY))),
+                      ((not <| Cell.isLinked cell (maybeGridCellToCell (east grid cell))), (GC.segment (vx.eastX, vx.baseY) (vx.midX, vx.apexY))),
+                      ((noSouth || notLinked), (GC.segment (vx.eastX, vx.baseY) (vx.westX, vx.baseY)))
+                  ]
 
         paintCell : GridCell -> GC.Form
         paintCell gc =
             let cell = GridCell.base gc
                 dl = GC.defaultLine
-                style = { dl | width = 3 }
-                cx = halfWidth + cell.col * halfWidth
-                cy = halfHeight + cell.row * height
+                style = { dl | width = 3, color = wallColor }
+                cx = halfWidth + (toFloat cell.col) * halfWidth
+                cy = halfHeight + (toFloat cell.row) * height
                 points = {
-                    westX = round(cx - halfWidth)
-                    midX = round(cx)
-                    eastX = round(cx + halfWidth)
+                    westX = cx - halfWidth,
+                    midX = cx,
+                    eastX = cx + halfWidth,
                     apexY = if upright cell
-                               then round(cy - halfHeight)
-                               else round(cy + halfHeight)
+                               then cy - halfHeight
+                               else cy + halfHeight,
                     baseY = if upright cell
-                               then round(cy + halfHeight)
-                               else round(cy - halfHeight)
+                               then cy + halfHeight
+                               else cy - halfHeight
                 }
             in
                GC.group <| ((cellBackground gc points) :: (cellWalls style gc points))

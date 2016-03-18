@@ -238,6 +238,11 @@ getCell grid row col =
                      then Nothing
                      else Array.get col rowCells
 
+              Just (TriangleCellTag c) ->
+                  if (col >= grid.cols) || c.masked
+                     then Nothing
+                     else Array.get col rowCells
+
               _ -> Nothing
 
 -- commonly used to map a maybe cell to a cell
