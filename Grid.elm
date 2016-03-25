@@ -301,9 +301,28 @@ filterNeighbors2 neighborsFn pred grid cell =
     List.filter pred <| neighborsFn grid cell
 
 -- returns all cells with only 1 link
---deadEnds : Grid a -> List GridCell
+deadEnds : Grid a -> List GridCell
 deadEnds grid =
-    List.filter (\c -> (List.length (Set.toList c.links)) == 1) (gridCellsToBaseCells (cellsList grid.cells))
+    List.filter (\c -> (List.length (Set.toList (GridCell.base c).links)) == 1) (cellsList grid.cells)
+
+-- creates braids by removing deadends
+braid : Grid a -> Float -> Grid a
+braid grid p =
+    let rmDeadEnd : Grid a -> GridCell -> Grid a
+        rmDeadEnd g deadEnd =
+            g
+
+        processDeadEnds : List GridCell -> Grid a -> Grid a
+        processDeadEnds list g =
+            if List.isEmpty list
+               then g
+               else let deadEnd = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell list g.rnd
+                        g' = updateRnd g
+                        g'' = rmDeadEnd g' deadEnd
+                    in
+                       processDeadEnds (List.filter (\c -> not (GridCell.id c == GridCell.id deadEnd)) list) g''
+    in
+       List.foldl processDeadEnds grid <| deadEnds grid
 
 -- alias to GridCell.id
 gridCellID : GridCell -> CellID
