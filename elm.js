@@ -11870,6 +11870,7 @@ Elm.GridCell.make = function (_elm) {
          case "HexCellTag": return _p1._0;
          default: return _p1._0;}
    };
+   var links = function (gc) {    return function (_) {    return _.links;}(base(gc));};
    var toRectCell = function (cell) {    return base(cell);};
    var maybeGridCellToMaybeCell = function (cell) {    return A2($Maybe.map,base,cell);};
    var filterGridCells = F2(function (fn,cells) {    return A2($List.filter,function (_p2) {    return fn(base(_p2));},cells);});
@@ -11936,6 +11937,7 @@ Elm.GridCell.make = function (_elm) {
                                  ,col: col
                                  ,isValidCell: isValidCell
                                  ,base: base
+                                 ,links: links
                                  ,cellToPolarCell: cellToPolarCell
                                  ,toRectCell: toRectCell
                                  ,toPolarCell: toPolarCell
@@ -11945,6 +11947,40 @@ Elm.GridCell.make = function (_elm) {
                                  ,maybeGridCellToMaybeCell: maybeGridCellToMaybeCell
                                  ,maybeGridCellToGridCell: maybeGridCellToGridCell
                                  ,filterGridCells: filterGridCells};
+};
+Elm.RandomExtras = Elm.RandomExtras || {};
+Elm.RandomExtras.make = function (_elm) {
+   "use strict";
+   _elm.RandomExtras = _elm.RandomExtras || {};
+   if (_elm.RandomExtras.values) return _elm.RandomExtras.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Random$PCG = Elm.Random.PCG.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var generate = F2(function (_p0,seed) {    var _p1 = _p0;return _p1._0(seed);});
+   var Generator = function (a) {    return {ctor: "Generator",_0: a};};
+   var permutation = function (list) {
+      var randomMove = F2(function (n,_p2) {
+         var _p3 = _p2;
+         var _p5 = _p3._1;
+         var _p4 = A2($Random$PCG.generate,A2($Random$PCG.$int,0,n - 1),_p3._0._1);
+         var rand = _p4._0;
+         var newSeed = _p4._1;
+         var output$ = A2($List.append,_p3._0._0,A2($List.take,1,A2($List.drop,rand,_p5)));
+         var input$ = A2($Basics._op["++"],A2($List.take,rand,_p5),A2($List.drop,rand + 1,_p5));
+         return {ctor: "_Tuple2",_0: {ctor: "_Tuple2",_0: output$,_1: newSeed},_1: input$};
+      });
+      var length = $List.length(list);
+      return Generator(function (seed) {
+         return $Basics.fst(A3($List.foldr,randomMove,{ctor: "_Tuple2",_0: {ctor: "_Tuple2",_0: _U.list([]),_1: seed},_1: list},_U.range(1,length)));
+      });
+   };
+   return _elm.RandomExtras.values = {_op: _op,generate: generate,permutation: permutation};
 };
 Elm.ListUtils = Elm.ListUtils || {};
 Elm.ListUtils.make = function (_elm) {
@@ -11956,9 +11992,12 @@ Elm.ListUtils.make = function (_elm) {
    $Debug = Elm.Debug.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Random$PCG = Elm.Random.PCG.make(_elm),
+   $RandomExtras = Elm.RandomExtras.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
+   var shuffle = F2(function (l,seed) {    var generator = $RandomExtras.permutation(l);return A2($RandomExtras.generate,generator,seed);});
    var indicesOf = F2(function (thing,things) {
       return A2($List.map,
       $Basics.fst,
@@ -11970,7 +12009,7 @@ Elm.ListUtils.make = function (_elm) {
       A2($List.indexedMap,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),things)));
    });
    var firstIndexOf = F2(function (thing,things) {    return A2($Maybe.withDefault,-1,$List.minimum(A2(indicesOf,thing,things)));});
-   return _elm.ListUtils.values = {_op: _op,indicesOf: indicesOf,firstIndexOf: firstIndexOf};
+   return _elm.ListUtils.values = {_op: _op,indicesOf: indicesOf,firstIndexOf: firstIndexOf,shuffle: shuffle};
 };
 Elm.GridUtils = Elm.GridUtils || {};
 Elm.GridUtils.make = function (_elm) {
@@ -12019,8 +12058,10 @@ Elm.Grid.make = function (_elm) {
    $GridCell = Elm.GridCell.make(_elm),
    $GridUtils = Elm.GridUtils.make(_elm),
    $List = Elm.List.make(_elm),
+   $ListUtils = Elm.ListUtils.make(_elm),
    $Mask = Elm.Mask.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Random$PCG = Elm.Random.PCG.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Rnd = Elm.Rnd.make(_elm),
    $Set = Elm.Set.make(_elm),
@@ -12105,7 +12146,7 @@ Elm.Grid.make = function (_elm) {
    };
    var cellsList = function (cells) {    return $List.concat($Array.toList(A2($Array.map,$Array.toList,cells)));};
    var deadEnds = function (grid) {
-      return A2($List.filter,function (c) {    return _U.eq($List.length($Set.toList(c.links)),1);},gridCellsToBaseCells(cellsList(grid.cells)));
+      return A2($List.filter,function (c) {    return _U.eq($List.length($Set.toList($GridCell.base(c).links)),1);},cellsList(grid.cells));
    };
    var linkCellsHelper = F4(function (grid,cell,cellToLinkId,bidi) {
       var linkCell = F2(function (cell1,id) {    return _U.update(cell1,{links: A2($Set.insert,id,cell1.links)});});
@@ -12204,6 +12245,32 @@ Elm.Grid.make = function (_elm) {
    };
    var update = function (grid) {    return _U.update(grid,{cells: grid.cellMaker(grid.mask)});};
    var updateRnd = function (grid) {    return _U.update(grid,{rnd: $Rnd.refresh(grid.rnd)});};
+   var braid = F3(function (grid,neighborsFn,p) {
+      var grid$ = updateRnd(grid);
+      var randomDeadEnds = $Basics.fst(A2($ListUtils.shuffle,deadEnds(grid),grid.rnd.seed));
+      var linkNeighbor = F2(function (g,deadEnd) {
+         var g$ = updateRnd(g);
+         var neighbors = A4(filterNeighbors2,
+         neighborsFn,
+         function (c) {
+            return $Basics.not(A2($Cell.isLinked,$GridCell.base(deadEnd),$GridCell.base(c)));
+         },
+         g,
+         deadEnd);
+         var best = A2($List.filter,function (c) {    return _U.eq($Set.size($GridCell.links(c)),1);},neighbors);
+         var neighbor = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,best,g.rnd));
+         var best$ = $List.isEmpty(best) ? neighbors : best;
+         return A4(linkCells,g$,deadEnd,neighbor,true);
+      });
+      var randpGen = $Random$PCG.generate(A2($Random$PCG.$float,0,1.0));
+      var processDeadEnd = F2(function (deadEnd,g) {
+         var g$ = updateRnd(g);
+         var _p8 = randpGen(g.rnd.seed);
+         var randp = _p8._0;
+         return _U.cmp(randp,p) > 0 || $Basics.not(_U.eq($Set.size($GridCell.links(deadEnd)),1)) ? g$ : A2(linkNeighbor,g$,deadEnd);
+      });
+      return A3($List.foldl,processDeadEnd,grid$,randomDeadEnds);
+   });
    var createGridFromMask = F3(function (mask,initSeed,cellMaker) {
       return {rows: mask.rows
              ,cols: mask.cols
@@ -12242,6 +12309,7 @@ Elm.Grid.make = function (_elm) {
                              ,neighbors: neighbors
                              ,filterNeighbors2: filterNeighbors2
                              ,deadEnds: deadEnds
+                             ,braid: braid
                              ,gridCellID: gridCellID
                              ,linkCellsHelper: linkCellsHelper
                              ,linkCells: linkCells
@@ -13325,7 +13393,8 @@ Elm.Maze.make = function (_elm) {
                switch (_p6.ctor)
                {case "Rect": var root = $Grid.center(maze.grid);
                     var coloredGrid = A2($ColoredGrid.createGrid,maze.grid,root);
-                    return $Html.fromElement(A4($Grid.toElement,coloredGrid,$Grid.painter,$ColoredGrid.cellBackgroundColor,cellSize));
+                    var braided = A3($Grid.braid,coloredGrid,$Grid.neighbors,0.5);
+                    return $Html.fromElement(A4($Grid.toElement,braided,$Grid.painter,$ColoredGrid.cellBackgroundColor,cellSize));
                   case "Polar": var _p7 = $GridCell.toPolarCell($PolarGrid.center(maze.grid));
                     var root = _p7._0;
                     var coloredGrid = A2($ColoredGrid.createGrid,maze.grid,root);
@@ -13390,7 +13459,7 @@ Elm.Maze.make = function (_elm) {
       if (_p9.ctor === "Just") {
             return _p9._0.alg;
          } else {
-            return A2(_U.crash("Maze",{start: {line: 234,column: 17},end: {line: 234,column: 28}}),"Unknown algorithm",BinaryTree);
+            return A2(_U.crash("Maze",{start: {line: 235,column: 17},end: {line: 235,column: 28}}),"Unknown algorithm",BinaryTree);
          }
    };
    return _elm.Maze.values = {_op: _op

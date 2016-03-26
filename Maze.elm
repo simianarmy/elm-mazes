@@ -136,8 +136,9 @@ view maze =
                     Rect ->
                         let root = Grid.center maze.grid
                             coloredGrid = ColoredGrid.createGrid maze.grid root
+                            braided = Grid.braid coloredGrid Grid.neighbors 0.5
                         in
-                           fromElement <| Grid.toElement coloredGrid Grid.painter ColoredGrid.cellBackgroundColor cellSize
+                           fromElement <| Grid.toElement braided Grid.painter ColoredGrid.cellBackgroundColor cellSize
 
                     Polar ->
                         let (root, _) = GridCell.toPolarCell <| PolarGrid.center maze.grid

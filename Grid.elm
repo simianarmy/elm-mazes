@@ -7,11 +7,12 @@ import GridUtils
 
 import Set exposing (Set)
 import List
+import ListUtils
 import Array exposing (Array)
 import String
 import Color
 import Rnd exposing (..)
-import Random exposing (..)
+import Random.PCG as Random
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (Element)
 import Color exposing (..)
@@ -306,23 +307,41 @@ deadEnds grid =
     List.filter (\c -> (List.length (Set.toList (GridCell.base c).links)) == 1) (cellsList grid.cells)
 
 -- creates braids by removing deadends
-braid : Grid a -> Float -> Grid a
-braid grid p =
-    let rmDeadEnd : Grid a -> GridCell -> Grid a
-        rmDeadEnd g deadEnd =
-            g
+-- p (0 - 1.0) controls braid factor 0 is none, 1.0 is all deadends processed
+-- braid : Grid a -> 
+--     -- neighbors fn
+--     (Grid a -> GridCell -> List GridCell) ->
+--     Float -> Grid a
+braid grid neighborsFn p =
+    let randpGen = Random.generate (Random.float 0 1.0)
 
-        processDeadEnds : List GridCell -> Grid a -> Grid a
-        processDeadEnds list g =
-            if List.isEmpty list
-               then g
-               else let deadEnd = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell list g.rnd
-                        g' = updateRnd g
-                        g'' = rmDeadEnd g' deadEnd
-                    in
-                       processDeadEnds (List.filter (\c -> not (GridCell.id c == GridCell.id deadEnd)) list) g''
+        linkNeighbor : Grid a -> GridCell -> Grid a
+        linkNeighbor g deadEnd =
+            -- get all neighbors not linked to the cell
+            let neighbors = filterNeighbors2 neighborsFn (\c -> not <| Cell.isLinked (GridCell.base deadEnd) (GridCell.base c)) g deadEnd
+                -- select best neighbor
+                best = List.filter (\c -> Set.size (GridCell.links c) == 1) neighbors
+                best' = if List.isEmpty best
+                           then neighbors
+                           else best
+                neighbor = maybeGridCellToGridCell <| GridUtils.sampleCell best g.rnd
+                g' = updateRnd g
+            in
+               linkCells g' deadEnd neighbor True
+
+        processDeadEnd : GridCell -> Grid a -> Grid a
+        processDeadEnd deadEnd g =
+            let (randp, _) = randpGen g.rnd.seed
+                g' = updateRnd g
+            in
+               if (randp > p) || (not <| Set.size (GridCell.links deadEnd) == 1)
+                  then g'
+                  else linkNeighbor g' deadEnd
+
+        randomDeadEnds = fst <| ListUtils.shuffle (deadEnds grid) grid.rnd.seed
+        grid' = updateRnd grid
     in
-       List.foldl processDeadEnds grid <| deadEnds grid
+       List.foldl processDeadEnd grid' randomDeadEnds
 
 -- alias to GridCell.id
 gridCellID : GridCell -> CellID

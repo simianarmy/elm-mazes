@@ -43,6 +43,10 @@ base gc =
         HexCellTag bc -> bc
         TriangleCellTag bc -> bc
 
+links : GridCell -> CellLinks
+links gc =
+    .links <| base gc
+
 cellToPolarCell : BaseCell -> GridCell
 cellToPolarCell base =
     PolarCellTag (base, ((-1, -1), Set.empty))
