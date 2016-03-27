@@ -304,7 +304,7 @@ filterNeighbors2 neighborsFn pred grid cell =
 -- returns all cells with only 1 link
 deadEnds : Grid a -> List GridCell
 deadEnds grid =
-    List.filter (\c -> (List.length (Set.toList (GridCell.base c).links)) == 1) (cellsList grid.cells)
+    List.filter (\c -> (List.length (Set.toList (GridCell.links c)) == 1)) (cellsList grid.cells)
 
 -- creates braids by removing deadends
 -- p (0 - 1.0) controls braid factor 0 is none, 1.0 is all deadends processed

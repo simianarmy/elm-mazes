@@ -47,10 +47,12 @@ type alias Maze a = {
     alg : Algorithm,
     shape: Shape,
     display : Display,
-    generator : Grid a -> Grid a
+    generator : Grid a -> Grid a,
+    braidFactor : Float
 }
 
 defaultAlgorithm = NoOp
+defaultBraidFactor = 0
 
 -- Data formatted for html selects
 displays = [(Ascii, "ASCII")
@@ -81,7 +83,8 @@ init algType width height seed shape display =
            generator = genAlg algType shape,
            alg = algType,
            shape = shape,
-           display = display
+           display = display,
+           braidFactor = defaultBraidFactor
        }
 
 -- generates maze algorithm function taking a grid and returning a grid
@@ -105,11 +108,27 @@ genAlg algName shape =
            HuntAndKill -> HuntAndKill.on randCellFn neighborFn
            RecursiveBacktracker -> RecursiveBacktracker.on randCellFn neighborFn
 
+-- returns neighbors function for the grid type
+neighborsFn : Maze a -> (Grid a -> GridCell -> List GridCell)
+neighborsFn maze =
+    case maze.shape of
+        Rect -> Grid.neighbors
+        Polar -> PolarGrid.neighbors
+        Hex -> HexGrid.neighbors
+        Triangle -> TriangleGrid.neighbors
 
 --update : Maze a -> Maze a
 update maze =
+    -- update rngs
     let grid' = Grid.update maze.grid
-    in {maze | grid = maze.generator grid'}
+        -- apply maze generation algoritm
+        grid'' = maze.generator grid'
+        -- apply braiding
+        grid''' = Grid.braid grid'' (neighborsFn maze) maze.braidFactor
+    in 
+       {
+           maze | grid = grid'''
+       }
 
 -- INVALIDATES MASK, SO REFRESH MAZE
 --updateSize : Maze a -> Int -> Int -> Maze a
@@ -125,6 +144,11 @@ setMask maze mask =
     let grid' = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker
     in {maze | grid = maze.generator grid'}
 
+updateBraiding: Maze a -> Float -> Maze a
+updateBraiding maze factor =
+    let maze' = {maze | braidFactor = factor}
+    in update maze'
+
 --view : Maze a -> Html
 view maze =
     let gridHtml = case maze.display of
@@ -136,9 +160,8 @@ view maze =
                     Rect ->
                         let root = Grid.center maze.grid
                             coloredGrid = ColoredGrid.createGrid maze.grid root
-                            braided = Grid.braid coloredGrid Grid.neighbors 0.5
                         in
-                           fromElement <| Grid.toElement braided Grid.painter ColoredGrid.cellBackgroundColor cellSize
+                           fromElement <| Grid.toElement coloredGrid Grid.painter ColoredGrid.cellBackgroundColor cellSize
 
                     Polar ->
                         let (root, _) = GridCell.toPolarCell <| PolarGrid.center maze.grid

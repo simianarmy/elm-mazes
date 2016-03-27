@@ -12,6 +12,7 @@ import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
 import Random.PCG as Random exposing (Seed, initialSeed, split)
 import Time exposing (Time, every, fps)
+import Slider
 
 initWidth   = 8
 initHeight  = 8
@@ -25,6 +26,7 @@ type alias AppState a =
     { maze : Maze a
     , seedInitialized : Bool
     , seed: Random.Seed
+    , braidSlider: Slider.Model
     }
 
 type alias PngData =
@@ -49,6 +51,7 @@ type Action =
     | SelectAlg String
     | SelectView Maze.Display
     | SelectShape Maze.Shape
+    | Braid Slider.Action
     | LoadAsciiMask (List String)
     | LoadImageMask PngData
 
@@ -88,6 +91,15 @@ update action model =
                 maze' = Maze.init maze.alg maze.grid.cols maze.grid.rows maze.grid.rnd.seed shape maze.display
             in
                {model | maze = maze'}
+
+        Braid act ->
+            let factor = Result.withDefault Maze.defaultBraidFactor (String.toFloat model.braidSlider.value)
+                maze' = Maze.updateBraiding model.maze factor
+            in
+               {model |
+                   maze = maze',
+                   braidSlider = Slider.update act model.braidSlider
+               }
 
         LoadAsciiMask lines ->
             let mask = Mask.fromTxt lines
@@ -139,6 +151,9 @@ view address model =
         , select [ selectAlg ] (List.map algToOptions <| Maze.algorithms maze.shape)
         , select [ selectView ] (List.map viewToOption Maze.displays)
         , select [ selectShape ] (List.map shapeToOption Maze.shapes)
+        , br [] []
+        , text "Braids (1 = no deadends):"
+        , Slider.view (Signal.forwardTo address Braid) model.braidSlider
         , button [ onClick address Refresh ] [ text "REFRESH" ]
         , br [] []
         , text "Ascii Mask file: "
@@ -186,6 +201,7 @@ initialModel =
         maze = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initShape initDisplay
       , seedInitialized = False
       , seed = initialSeed 45 -- This will not get used.
+      , braidSlider = Slider.init { id="braid", label="Braid Factor", value=(toString Maze.defaultBraidFactor), min=0, max=1, step=0.1 }
     }
 
 -- actions from user input

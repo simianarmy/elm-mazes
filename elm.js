@@ -7020,502 +7020,6 @@ Elm.List.Extra.make = function (_elm) {
                                    ,lift3: lift3
                                    ,lift4: lift4};
 };
-Elm.Native.Json = {};
-
-Elm.Native.Json.make = function(localRuntime) {
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Json = localRuntime.Native.Json || {};
-	if (localRuntime.Native.Json.values) {
-		return localRuntime.Native.Json.values;
-	}
-
-	var ElmArray = Elm.Native.Array.make(localRuntime);
-	var List = Elm.Native.List.make(localRuntime);
-	var Maybe = Elm.Maybe.make(localRuntime);
-	var Result = Elm.Result.make(localRuntime);
-	var Utils = Elm.Native.Utils.make(localRuntime);
-
-
-	function crash(expected, actual) {
-		throw new Error(
-			'expecting ' + expected + ' but got ' + JSON.stringify(actual)
-		);
-	}
-
-
-	// PRIMITIVE VALUES
-
-	function decodeNull(successValue) {
-		return function(value) {
-			if (value === null) {
-				return successValue;
-			}
-			crash('null', value);
-		};
-	}
-
-
-	function decodeString(value) {
-		if (typeof value === 'string' || value instanceof String) {
-			return value;
-		}
-		crash('a String', value);
-	}
-
-
-	function decodeFloat(value) {
-		if (typeof value === 'number') {
-			return value;
-		}
-		crash('a Float', value);
-	}
-
-
-	function decodeInt(value) {
-		if (typeof value !== 'number') {
-			crash('an Int', value);
-		}
-
-		if (value < 2147483647 && value > -2147483647 && (value | 0) === value) {
-			return value;
-		}
-
-		if (isFinite(value) && !(value % 1)) {
-			return value;
-		}
-
-		crash('an Int', value);
-	}
-
-
-	function decodeBool(value) {
-		if (typeof value === 'boolean') {
-			return value;
-		}
-		crash('a Bool', value);
-	}
-
-
-	// ARRAY
-
-	function decodeArray(decoder) {
-		return function(value) {
-			if (value instanceof Array) {
-				var len = value.length;
-				var array = new Array(len);
-				for (var i = len; i--; ) {
-					array[i] = decoder(value[i]);
-				}
-				return ElmArray.fromJSArray(array);
-			}
-			crash('an Array', value);
-		};
-	}
-
-
-	// LIST
-
-	function decodeList(decoder) {
-		return function(value) {
-			if (value instanceof Array) {
-				var len = value.length;
-				var list = List.Nil;
-				for (var i = len; i--; ) {
-					list = List.Cons( decoder(value[i]), list );
-				}
-				return list;
-			}
-			crash('a List', value);
-		};
-	}
-
-
-	// MAYBE
-
-	function decodeMaybe(decoder) {
-		return function(value) {
-			try {
-				return Maybe.Just(decoder(value));
-			} catch(e) {
-				return Maybe.Nothing;
-			}
-		};
-	}
-
-
-	// FIELDS
-
-	function decodeField(field, decoder) {
-		return function(value) {
-			var subValue = value[field];
-			if (subValue !== undefined) {
-				return decoder(subValue);
-			}
-			crash("an object with field '" + field + "'", value);
-		};
-	}
-
-
-	// OBJECTS
-
-	function decodeKeyValuePairs(decoder) {
-		return function(value) {
-			var isObject =
-				typeof value === 'object'
-					&& value !== null
-					&& !(value instanceof Array);
-
-			if (isObject) {
-				var keyValuePairs = List.Nil;
-				for (var key in value)
-				{
-					var elmValue = decoder(value[key]);
-					var pair = Utils.Tuple2(key, elmValue);
-					keyValuePairs = List.Cons(pair, keyValuePairs);
-				}
-				return keyValuePairs;
-			}
-
-			crash('an object', value);
-		};
-	}
-
-	function decodeObject1(f, d1) {
-		return function(value) {
-			return f(d1(value));
-		};
-	}
-
-	function decodeObject2(f, d1, d2) {
-		return function(value) {
-			return A2( f, d1(value), d2(value) );
-		};
-	}
-
-	function decodeObject3(f, d1, d2, d3) {
-		return function(value) {
-			return A3( f, d1(value), d2(value), d3(value) );
-		};
-	}
-
-	function decodeObject4(f, d1, d2, d3, d4) {
-		return function(value) {
-			return A4( f, d1(value), d2(value), d3(value), d4(value) );
-		};
-	}
-
-	function decodeObject5(f, d1, d2, d3, d4, d5) {
-		return function(value) {
-			return A5( f, d1(value), d2(value), d3(value), d4(value), d5(value) );
-		};
-	}
-
-	function decodeObject6(f, d1, d2, d3, d4, d5, d6) {
-		return function(value) {
-			return A6( f,
-				d1(value),
-				d2(value),
-				d3(value),
-				d4(value),
-				d5(value),
-				d6(value)
-			);
-		};
-	}
-
-	function decodeObject7(f, d1, d2, d3, d4, d5, d6, d7) {
-		return function(value) {
-			return A7( f,
-				d1(value),
-				d2(value),
-				d3(value),
-				d4(value),
-				d5(value),
-				d6(value),
-				d7(value)
-			);
-		};
-	}
-
-	function decodeObject8(f, d1, d2, d3, d4, d5, d6, d7, d8) {
-		return function(value) {
-			return A8( f,
-				d1(value),
-				d2(value),
-				d3(value),
-				d4(value),
-				d5(value),
-				d6(value),
-				d7(value),
-				d8(value)
-			);
-		};
-	}
-
-
-	// TUPLES
-
-	function decodeTuple1(f, d1) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 1 ) {
-				crash('a Tuple of length 1', value);
-			}
-			return f( d1(value[0]) );
-		};
-	}
-
-	function decodeTuple2(f, d1, d2) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 2 ) {
-				crash('a Tuple of length 2', value);
-			}
-			return A2( f, d1(value[0]), d2(value[1]) );
-		};
-	}
-
-	function decodeTuple3(f, d1, d2, d3) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 3 ) {
-				crash('a Tuple of length 3', value);
-			}
-			return A3( f, d1(value[0]), d2(value[1]), d3(value[2]) );
-		};
-	}
-
-
-	function decodeTuple4(f, d1, d2, d3, d4) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 4 ) {
-				crash('a Tuple of length 4', value);
-			}
-			return A4( f, d1(value[0]), d2(value[1]), d3(value[2]), d4(value[3]) );
-		};
-	}
-
-
-	function decodeTuple5(f, d1, d2, d3, d4, d5) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 5 ) {
-				crash('a Tuple of length 5', value);
-			}
-			return A5( f,
-				d1(value[0]),
-				d2(value[1]),
-				d3(value[2]),
-				d4(value[3]),
-				d5(value[4])
-			);
-		};
-	}
-
-
-	function decodeTuple6(f, d1, d2, d3, d4, d5, d6) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 6 ) {
-				crash('a Tuple of length 6', value);
-			}
-			return A6( f,
-				d1(value[0]),
-				d2(value[1]),
-				d3(value[2]),
-				d4(value[3]),
-				d5(value[4]),
-				d6(value[5])
-			);
-		};
-	}
-
-	function decodeTuple7(f, d1, d2, d3, d4, d5, d6, d7) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 7 ) {
-				crash('a Tuple of length 7', value);
-			}
-			return A7( f,
-				d1(value[0]),
-				d2(value[1]),
-				d3(value[2]),
-				d4(value[3]),
-				d5(value[4]),
-				d6(value[5]),
-				d7(value[6])
-			);
-		};
-	}
-
-
-	function decodeTuple8(f, d1, d2, d3, d4, d5, d6, d7, d8) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 8 ) {
-				crash('a Tuple of length 8', value);
-			}
-			return A8( f,
-				d1(value[0]),
-				d2(value[1]),
-				d3(value[2]),
-				d4(value[3]),
-				d5(value[4]),
-				d6(value[5]),
-				d7(value[6]),
-				d8(value[7])
-			);
-		};
-	}
-
-
-	// CUSTOM DECODERS
-
-	function decodeValue(value) {
-		return value;
-	}
-
-	function runDecoderValue(decoder, value) {
-		try {
-			return Result.Ok(decoder(value));
-		} catch(e) {
-			return Result.Err(e.message);
-		}
-	}
-
-	function customDecoder(decoder, callback) {
-		return function(value) {
-			var result = callback(decoder(value));
-			if (result.ctor === 'Err') {
-				throw new Error('custom decoder failed: ' + result._0);
-			}
-			return result._0;
-		};
-	}
-
-	function andThen(decode, callback) {
-		return function(value) {
-			var result = decode(value);
-			return callback(result)(value);
-		};
-	}
-
-	function fail(msg) {
-		return function(value) {
-			throw new Error(msg);
-		};
-	}
-
-	function succeed(successValue) {
-		return function(value) {
-			return successValue;
-		};
-	}
-
-
-	// ONE OF MANY
-
-	function oneOf(decoders) {
-		return function(value) {
-			var errors = [];
-			var temp = decoders;
-			while (temp.ctor !== '[]') {
-				try {
-					return temp._0(value);
-				} catch(e) {
-					errors.push(e.message);
-				}
-				temp = temp._1;
-			}
-			throw new Error('expecting one of the following:\n    ' + errors.join('\n    '));
-		};
-	}
-
-	function get(decoder, value) {
-		try {
-			return Result.Ok(decoder(value));
-		} catch(e) {
-			return Result.Err(e.message);
-		}
-	}
-
-
-	// ENCODE / DECODE
-
-	function runDecoderString(decoder, string) {
-		try {
-			return Result.Ok(decoder(JSON.parse(string)));
-		} catch(e) {
-			return Result.Err(e.message);
-		}
-	}
-
-	function encode(indentLevel, value) {
-		return JSON.stringify(value, null, indentLevel);
-	}
-
-	function identity(value) {
-		return value;
-	}
-
-	function encodeObject(keyValuePairs) {
-		var obj = {};
-		while (keyValuePairs.ctor !== '[]') {
-			var pair = keyValuePairs._0;
-			obj[pair._0] = pair._1;
-			keyValuePairs = keyValuePairs._1;
-		}
-		return obj;
-	}
-
-	return localRuntime.Native.Json.values = {
-		encode: F2(encode),
-		runDecoderString: F2(runDecoderString),
-		runDecoderValue: F2(runDecoderValue),
-
-		get: F2(get),
-		oneOf: oneOf,
-
-		decodeNull: decodeNull,
-		decodeInt: decodeInt,
-		decodeFloat: decodeFloat,
-		decodeString: decodeString,
-		decodeBool: decodeBool,
-
-		decodeMaybe: decodeMaybe,
-
-		decodeList: decodeList,
-		decodeArray: decodeArray,
-
-		decodeField: F2(decodeField),
-
-		decodeObject1: F2(decodeObject1),
-		decodeObject2: F3(decodeObject2),
-		decodeObject3: F4(decodeObject3),
-		decodeObject4: F5(decodeObject4),
-		decodeObject5: F6(decodeObject5),
-		decodeObject6: F7(decodeObject6),
-		decodeObject7: F8(decodeObject7),
-		decodeObject8: F9(decodeObject8),
-		decodeKeyValuePairs: decodeKeyValuePairs,
-
-		decodeTuple1: F2(decodeTuple1),
-		decodeTuple2: F3(decodeTuple2),
-		decodeTuple3: F4(decodeTuple3),
-		decodeTuple4: F5(decodeTuple4),
-		decodeTuple5: F6(decodeTuple5),
-		decodeTuple6: F7(decodeTuple6),
-		decodeTuple7: F8(decodeTuple7),
-		decodeTuple8: F9(decodeTuple8),
-
-		andThen: F2(andThen),
-		decodeValue: decodeValue,
-		customDecoder: F2(customDecoder),
-		fail: fail,
-		succeed: succeed,
-
-		identity: identity,
-		encodeNull: null,
-		encodeArray: ElmArray.toJSArray,
-		encodeList: List.toArray,
-		encodeObject: encodeObject
-
-	};
-};
-
 Elm.Native.Array = {};
 Elm.Native.Array.make = function(localRuntime) {
 
@@ -8557,151 +8061,6 @@ Elm.Array.make = function (_elm) {
                               ,foldl: foldl
                               ,foldr: foldr};
 };
-Elm.Json = Elm.Json || {};
-Elm.Json.Encode = Elm.Json.Encode || {};
-Elm.Json.Encode.make = function (_elm) {
-   "use strict";
-   _elm.Json = _elm.Json || {};
-   _elm.Json.Encode = _elm.Json.Encode || {};
-   if (_elm.Json.Encode.values) return _elm.Json.Encode.values;
-   var _U = Elm.Native.Utils.make(_elm),$Array = Elm.Array.make(_elm),$Native$Json = Elm.Native.Json.make(_elm);
-   var _op = {};
-   var list = $Native$Json.encodeList;
-   var array = $Native$Json.encodeArray;
-   var object = $Native$Json.encodeObject;
-   var $null = $Native$Json.encodeNull;
-   var bool = $Native$Json.identity;
-   var $float = $Native$Json.identity;
-   var $int = $Native$Json.identity;
-   var string = $Native$Json.identity;
-   var encode = $Native$Json.encode;
-   var Value = {ctor: "Value"};
-   return _elm.Json.Encode.values = {_op: _op
-                                    ,encode: encode
-                                    ,string: string
-                                    ,$int: $int
-                                    ,$float: $float
-                                    ,bool: bool
-                                    ,$null: $null
-                                    ,list: list
-                                    ,array: array
-                                    ,object: object};
-};
-Elm.Json = Elm.Json || {};
-Elm.Json.Decode = Elm.Json.Decode || {};
-Elm.Json.Decode.make = function (_elm) {
-   "use strict";
-   _elm.Json = _elm.Json || {};
-   _elm.Json.Decode = _elm.Json.Decode || {};
-   if (_elm.Json.Decode.values) return _elm.Json.Decode.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Array = Elm.Array.make(_elm),
-   $Dict = Elm.Dict.make(_elm),
-   $Json$Encode = Elm.Json.Encode.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Native$Json = Elm.Native.Json.make(_elm),
-   $Result = Elm.Result.make(_elm);
-   var _op = {};
-   var tuple8 = $Native$Json.decodeTuple8;
-   var tuple7 = $Native$Json.decodeTuple7;
-   var tuple6 = $Native$Json.decodeTuple6;
-   var tuple5 = $Native$Json.decodeTuple5;
-   var tuple4 = $Native$Json.decodeTuple4;
-   var tuple3 = $Native$Json.decodeTuple3;
-   var tuple2 = $Native$Json.decodeTuple2;
-   var tuple1 = $Native$Json.decodeTuple1;
-   var succeed = $Native$Json.succeed;
-   var fail = $Native$Json.fail;
-   var andThen = $Native$Json.andThen;
-   var customDecoder = $Native$Json.customDecoder;
-   var decodeValue = $Native$Json.runDecoderValue;
-   var value = $Native$Json.decodeValue;
-   var maybe = $Native$Json.decodeMaybe;
-   var $null = $Native$Json.decodeNull;
-   var array = $Native$Json.decodeArray;
-   var list = $Native$Json.decodeList;
-   var bool = $Native$Json.decodeBool;
-   var $int = $Native$Json.decodeInt;
-   var $float = $Native$Json.decodeFloat;
-   var string = $Native$Json.decodeString;
-   var oneOf = $Native$Json.oneOf;
-   var keyValuePairs = $Native$Json.decodeKeyValuePairs;
-   var object8 = $Native$Json.decodeObject8;
-   var object7 = $Native$Json.decodeObject7;
-   var object6 = $Native$Json.decodeObject6;
-   var object5 = $Native$Json.decodeObject5;
-   var object4 = $Native$Json.decodeObject4;
-   var object3 = $Native$Json.decodeObject3;
-   var object2 = $Native$Json.decodeObject2;
-   var object1 = $Native$Json.decodeObject1;
-   _op[":="] = $Native$Json.decodeField;
-   var at = F2(function (fields,decoder) {    return A3($List.foldr,F2(function (x,y) {    return A2(_op[":="],x,y);}),decoder,fields);});
-   var decodeString = $Native$Json.runDecoderString;
-   var map = $Native$Json.decodeObject1;
-   var dict = function (decoder) {    return A2(map,$Dict.fromList,keyValuePairs(decoder));};
-   var Decoder = {ctor: "Decoder"};
-   return _elm.Json.Decode.values = {_op: _op
-                                    ,decodeString: decodeString
-                                    ,decodeValue: decodeValue
-                                    ,string: string
-                                    ,$int: $int
-                                    ,$float: $float
-                                    ,bool: bool
-                                    ,$null: $null
-                                    ,list: list
-                                    ,array: array
-                                    ,tuple1: tuple1
-                                    ,tuple2: tuple2
-                                    ,tuple3: tuple3
-                                    ,tuple4: tuple4
-                                    ,tuple5: tuple5
-                                    ,tuple6: tuple6
-                                    ,tuple7: tuple7
-                                    ,tuple8: tuple8
-                                    ,at: at
-                                    ,object1: object1
-                                    ,object2: object2
-                                    ,object3: object3
-                                    ,object4: object4
-                                    ,object5: object5
-                                    ,object6: object6
-                                    ,object7: object7
-                                    ,object8: object8
-                                    ,keyValuePairs: keyValuePairs
-                                    ,dict: dict
-                                    ,maybe: maybe
-                                    ,oneOf: oneOf
-                                    ,map: map
-                                    ,fail: fail
-                                    ,succeed: succeed
-                                    ,andThen: andThen
-                                    ,value: value
-                                    ,customDecoder: customDecoder};
-};
-Elm.Trampoline = Elm.Trampoline || {};
-Elm.Trampoline.make = function (_elm) {
-   "use strict";
-   _elm.Trampoline = _elm.Trampoline || {};
-   if (_elm.Trampoline.values) return _elm.Trampoline.values;
-   var _U = Elm.Native.Utils.make(_elm);
-   var _op = {};
-   var trampoline = function (tramp) {
-      trampoline: while (true) {
-         var _p0 = tramp;
-         if (_p0.ctor === "Done") {
-               return _p0._0;
-            } else {
-               var _v1 = _p0._0({ctor: "_Tuple0"});
-               tramp = _v1;
-               continue trampoline;
-            }
-      }
-   };
-   var Continue = function (a) {    return {ctor: "Continue",_0: a};};
-   var Done = function (a) {    return {ctor: "Done",_0: a};};
-   return _elm.Trampoline.values = {_op: _op,trampoline: trampoline,Done: Done,Continue: Continue};
-};
 Elm.Native.Bitwise = {};
 Elm.Native.Bitwise.make = function(localRuntime) {
 	localRuntime.Native = localRuntime.Native || {};
@@ -8908,6 +8267,624 @@ Elm.Time.make = function (_elm) {
                              ,timestamp: timestamp
                              ,delay: delay
                              ,since: since};
+};
+Elm.Native.Json = {};
+
+Elm.Native.Json.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Json = localRuntime.Native.Json || {};
+	if (localRuntime.Native.Json.values) {
+		return localRuntime.Native.Json.values;
+	}
+
+	var ElmArray = Elm.Native.Array.make(localRuntime);
+	var List = Elm.Native.List.make(localRuntime);
+	var Maybe = Elm.Maybe.make(localRuntime);
+	var Result = Elm.Result.make(localRuntime);
+	var Utils = Elm.Native.Utils.make(localRuntime);
+
+
+	function crash(expected, actual) {
+		throw new Error(
+			'expecting ' + expected + ' but got ' + JSON.stringify(actual)
+		);
+	}
+
+
+	// PRIMITIVE VALUES
+
+	function decodeNull(successValue) {
+		return function(value) {
+			if (value === null) {
+				return successValue;
+			}
+			crash('null', value);
+		};
+	}
+
+
+	function decodeString(value) {
+		if (typeof value === 'string' || value instanceof String) {
+			return value;
+		}
+		crash('a String', value);
+	}
+
+
+	function decodeFloat(value) {
+		if (typeof value === 'number') {
+			return value;
+		}
+		crash('a Float', value);
+	}
+
+
+	function decodeInt(value) {
+		if (typeof value !== 'number') {
+			crash('an Int', value);
+		}
+
+		if (value < 2147483647 && value > -2147483647 && (value | 0) === value) {
+			return value;
+		}
+
+		if (isFinite(value) && !(value % 1)) {
+			return value;
+		}
+
+		crash('an Int', value);
+	}
+
+
+	function decodeBool(value) {
+		if (typeof value === 'boolean') {
+			return value;
+		}
+		crash('a Bool', value);
+	}
+
+
+	// ARRAY
+
+	function decodeArray(decoder) {
+		return function(value) {
+			if (value instanceof Array) {
+				var len = value.length;
+				var array = new Array(len);
+				for (var i = len; i--; ) {
+					array[i] = decoder(value[i]);
+				}
+				return ElmArray.fromJSArray(array);
+			}
+			crash('an Array', value);
+		};
+	}
+
+
+	// LIST
+
+	function decodeList(decoder) {
+		return function(value) {
+			if (value instanceof Array) {
+				var len = value.length;
+				var list = List.Nil;
+				for (var i = len; i--; ) {
+					list = List.Cons( decoder(value[i]), list );
+				}
+				return list;
+			}
+			crash('a List', value);
+		};
+	}
+
+
+	// MAYBE
+
+	function decodeMaybe(decoder) {
+		return function(value) {
+			try {
+				return Maybe.Just(decoder(value));
+			} catch(e) {
+				return Maybe.Nothing;
+			}
+		};
+	}
+
+
+	// FIELDS
+
+	function decodeField(field, decoder) {
+		return function(value) {
+			var subValue = value[field];
+			if (subValue !== undefined) {
+				return decoder(subValue);
+			}
+			crash("an object with field '" + field + "'", value);
+		};
+	}
+
+
+	// OBJECTS
+
+	function decodeKeyValuePairs(decoder) {
+		return function(value) {
+			var isObject =
+				typeof value === 'object'
+					&& value !== null
+					&& !(value instanceof Array);
+
+			if (isObject) {
+				var keyValuePairs = List.Nil;
+				for (var key in value)
+				{
+					var elmValue = decoder(value[key]);
+					var pair = Utils.Tuple2(key, elmValue);
+					keyValuePairs = List.Cons(pair, keyValuePairs);
+				}
+				return keyValuePairs;
+			}
+
+			crash('an object', value);
+		};
+	}
+
+	function decodeObject1(f, d1) {
+		return function(value) {
+			return f(d1(value));
+		};
+	}
+
+	function decodeObject2(f, d1, d2) {
+		return function(value) {
+			return A2( f, d1(value), d2(value) );
+		};
+	}
+
+	function decodeObject3(f, d1, d2, d3) {
+		return function(value) {
+			return A3( f, d1(value), d2(value), d3(value) );
+		};
+	}
+
+	function decodeObject4(f, d1, d2, d3, d4) {
+		return function(value) {
+			return A4( f, d1(value), d2(value), d3(value), d4(value) );
+		};
+	}
+
+	function decodeObject5(f, d1, d2, d3, d4, d5) {
+		return function(value) {
+			return A5( f, d1(value), d2(value), d3(value), d4(value), d5(value) );
+		};
+	}
+
+	function decodeObject6(f, d1, d2, d3, d4, d5, d6) {
+		return function(value) {
+			return A6( f,
+				d1(value),
+				d2(value),
+				d3(value),
+				d4(value),
+				d5(value),
+				d6(value)
+			);
+		};
+	}
+
+	function decodeObject7(f, d1, d2, d3, d4, d5, d6, d7) {
+		return function(value) {
+			return A7( f,
+				d1(value),
+				d2(value),
+				d3(value),
+				d4(value),
+				d5(value),
+				d6(value),
+				d7(value)
+			);
+		};
+	}
+
+	function decodeObject8(f, d1, d2, d3, d4, d5, d6, d7, d8) {
+		return function(value) {
+			return A8( f,
+				d1(value),
+				d2(value),
+				d3(value),
+				d4(value),
+				d5(value),
+				d6(value),
+				d7(value),
+				d8(value)
+			);
+		};
+	}
+
+
+	// TUPLES
+
+	function decodeTuple1(f, d1) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 1 ) {
+				crash('a Tuple of length 1', value);
+			}
+			return f( d1(value[0]) );
+		};
+	}
+
+	function decodeTuple2(f, d1, d2) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 2 ) {
+				crash('a Tuple of length 2', value);
+			}
+			return A2( f, d1(value[0]), d2(value[1]) );
+		};
+	}
+
+	function decodeTuple3(f, d1, d2, d3) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 3 ) {
+				crash('a Tuple of length 3', value);
+			}
+			return A3( f, d1(value[0]), d2(value[1]), d3(value[2]) );
+		};
+	}
+
+
+	function decodeTuple4(f, d1, d2, d3, d4) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 4 ) {
+				crash('a Tuple of length 4', value);
+			}
+			return A4( f, d1(value[0]), d2(value[1]), d3(value[2]), d4(value[3]) );
+		};
+	}
+
+
+	function decodeTuple5(f, d1, d2, d3, d4, d5) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 5 ) {
+				crash('a Tuple of length 5', value);
+			}
+			return A5( f,
+				d1(value[0]),
+				d2(value[1]),
+				d3(value[2]),
+				d4(value[3]),
+				d5(value[4])
+			);
+		};
+	}
+
+
+	function decodeTuple6(f, d1, d2, d3, d4, d5, d6) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 6 ) {
+				crash('a Tuple of length 6', value);
+			}
+			return A6( f,
+				d1(value[0]),
+				d2(value[1]),
+				d3(value[2]),
+				d4(value[3]),
+				d5(value[4]),
+				d6(value[5])
+			);
+		};
+	}
+
+	function decodeTuple7(f, d1, d2, d3, d4, d5, d6, d7) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 7 ) {
+				crash('a Tuple of length 7', value);
+			}
+			return A7( f,
+				d1(value[0]),
+				d2(value[1]),
+				d3(value[2]),
+				d4(value[3]),
+				d5(value[4]),
+				d6(value[5]),
+				d7(value[6])
+			);
+		};
+	}
+
+
+	function decodeTuple8(f, d1, d2, d3, d4, d5, d6, d7, d8) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 8 ) {
+				crash('a Tuple of length 8', value);
+			}
+			return A8( f,
+				d1(value[0]),
+				d2(value[1]),
+				d3(value[2]),
+				d4(value[3]),
+				d5(value[4]),
+				d6(value[5]),
+				d7(value[6]),
+				d8(value[7])
+			);
+		};
+	}
+
+
+	// CUSTOM DECODERS
+
+	function decodeValue(value) {
+		return value;
+	}
+
+	function runDecoderValue(decoder, value) {
+		try {
+			return Result.Ok(decoder(value));
+		} catch(e) {
+			return Result.Err(e.message);
+		}
+	}
+
+	function customDecoder(decoder, callback) {
+		return function(value) {
+			var result = callback(decoder(value));
+			if (result.ctor === 'Err') {
+				throw new Error('custom decoder failed: ' + result._0);
+			}
+			return result._0;
+		};
+	}
+
+	function andThen(decode, callback) {
+		return function(value) {
+			var result = decode(value);
+			return callback(result)(value);
+		};
+	}
+
+	function fail(msg) {
+		return function(value) {
+			throw new Error(msg);
+		};
+	}
+
+	function succeed(successValue) {
+		return function(value) {
+			return successValue;
+		};
+	}
+
+
+	// ONE OF MANY
+
+	function oneOf(decoders) {
+		return function(value) {
+			var errors = [];
+			var temp = decoders;
+			while (temp.ctor !== '[]') {
+				try {
+					return temp._0(value);
+				} catch(e) {
+					errors.push(e.message);
+				}
+				temp = temp._1;
+			}
+			throw new Error('expecting one of the following:\n    ' + errors.join('\n    '));
+		};
+	}
+
+	function get(decoder, value) {
+		try {
+			return Result.Ok(decoder(value));
+		} catch(e) {
+			return Result.Err(e.message);
+		}
+	}
+
+
+	// ENCODE / DECODE
+
+	function runDecoderString(decoder, string) {
+		try {
+			return Result.Ok(decoder(JSON.parse(string)));
+		} catch(e) {
+			return Result.Err(e.message);
+		}
+	}
+
+	function encode(indentLevel, value) {
+		return JSON.stringify(value, null, indentLevel);
+	}
+
+	function identity(value) {
+		return value;
+	}
+
+	function encodeObject(keyValuePairs) {
+		var obj = {};
+		while (keyValuePairs.ctor !== '[]') {
+			var pair = keyValuePairs._0;
+			obj[pair._0] = pair._1;
+			keyValuePairs = keyValuePairs._1;
+		}
+		return obj;
+	}
+
+	return localRuntime.Native.Json.values = {
+		encode: F2(encode),
+		runDecoderString: F2(runDecoderString),
+		runDecoderValue: F2(runDecoderValue),
+
+		get: F2(get),
+		oneOf: oneOf,
+
+		decodeNull: decodeNull,
+		decodeInt: decodeInt,
+		decodeFloat: decodeFloat,
+		decodeString: decodeString,
+		decodeBool: decodeBool,
+
+		decodeMaybe: decodeMaybe,
+
+		decodeList: decodeList,
+		decodeArray: decodeArray,
+
+		decodeField: F2(decodeField),
+
+		decodeObject1: F2(decodeObject1),
+		decodeObject2: F3(decodeObject2),
+		decodeObject3: F4(decodeObject3),
+		decodeObject4: F5(decodeObject4),
+		decodeObject5: F6(decodeObject5),
+		decodeObject6: F7(decodeObject6),
+		decodeObject7: F8(decodeObject7),
+		decodeObject8: F9(decodeObject8),
+		decodeKeyValuePairs: decodeKeyValuePairs,
+
+		decodeTuple1: F2(decodeTuple1),
+		decodeTuple2: F3(decodeTuple2),
+		decodeTuple3: F4(decodeTuple3),
+		decodeTuple4: F5(decodeTuple4),
+		decodeTuple5: F6(decodeTuple5),
+		decodeTuple6: F7(decodeTuple6),
+		decodeTuple7: F8(decodeTuple7),
+		decodeTuple8: F9(decodeTuple8),
+
+		andThen: F2(andThen),
+		decodeValue: decodeValue,
+		customDecoder: F2(customDecoder),
+		fail: fail,
+		succeed: succeed,
+
+		identity: identity,
+		encodeNull: null,
+		encodeArray: ElmArray.toJSArray,
+		encodeList: List.toArray,
+		encodeObject: encodeObject
+
+	};
+};
+
+Elm.Json = Elm.Json || {};
+Elm.Json.Encode = Elm.Json.Encode || {};
+Elm.Json.Encode.make = function (_elm) {
+   "use strict";
+   _elm.Json = _elm.Json || {};
+   _elm.Json.Encode = _elm.Json.Encode || {};
+   if (_elm.Json.Encode.values) return _elm.Json.Encode.values;
+   var _U = Elm.Native.Utils.make(_elm),$Array = Elm.Array.make(_elm),$Native$Json = Elm.Native.Json.make(_elm);
+   var _op = {};
+   var list = $Native$Json.encodeList;
+   var array = $Native$Json.encodeArray;
+   var object = $Native$Json.encodeObject;
+   var $null = $Native$Json.encodeNull;
+   var bool = $Native$Json.identity;
+   var $float = $Native$Json.identity;
+   var $int = $Native$Json.identity;
+   var string = $Native$Json.identity;
+   var encode = $Native$Json.encode;
+   var Value = {ctor: "Value"};
+   return _elm.Json.Encode.values = {_op: _op
+                                    ,encode: encode
+                                    ,string: string
+                                    ,$int: $int
+                                    ,$float: $float
+                                    ,bool: bool
+                                    ,$null: $null
+                                    ,list: list
+                                    ,array: array
+                                    ,object: object};
+};
+Elm.Json = Elm.Json || {};
+Elm.Json.Decode = Elm.Json.Decode || {};
+Elm.Json.Decode.make = function (_elm) {
+   "use strict";
+   _elm.Json = _elm.Json || {};
+   _elm.Json.Decode = _elm.Json.Decode || {};
+   if (_elm.Json.Decode.values) return _elm.Json.Decode.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
+   $Json$Encode = Elm.Json.Encode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$Json = Elm.Native.Json.make(_elm),
+   $Result = Elm.Result.make(_elm);
+   var _op = {};
+   var tuple8 = $Native$Json.decodeTuple8;
+   var tuple7 = $Native$Json.decodeTuple7;
+   var tuple6 = $Native$Json.decodeTuple6;
+   var tuple5 = $Native$Json.decodeTuple5;
+   var tuple4 = $Native$Json.decodeTuple4;
+   var tuple3 = $Native$Json.decodeTuple3;
+   var tuple2 = $Native$Json.decodeTuple2;
+   var tuple1 = $Native$Json.decodeTuple1;
+   var succeed = $Native$Json.succeed;
+   var fail = $Native$Json.fail;
+   var andThen = $Native$Json.andThen;
+   var customDecoder = $Native$Json.customDecoder;
+   var decodeValue = $Native$Json.runDecoderValue;
+   var value = $Native$Json.decodeValue;
+   var maybe = $Native$Json.decodeMaybe;
+   var $null = $Native$Json.decodeNull;
+   var array = $Native$Json.decodeArray;
+   var list = $Native$Json.decodeList;
+   var bool = $Native$Json.decodeBool;
+   var $int = $Native$Json.decodeInt;
+   var $float = $Native$Json.decodeFloat;
+   var string = $Native$Json.decodeString;
+   var oneOf = $Native$Json.oneOf;
+   var keyValuePairs = $Native$Json.decodeKeyValuePairs;
+   var object8 = $Native$Json.decodeObject8;
+   var object7 = $Native$Json.decodeObject7;
+   var object6 = $Native$Json.decodeObject6;
+   var object5 = $Native$Json.decodeObject5;
+   var object4 = $Native$Json.decodeObject4;
+   var object3 = $Native$Json.decodeObject3;
+   var object2 = $Native$Json.decodeObject2;
+   var object1 = $Native$Json.decodeObject1;
+   _op[":="] = $Native$Json.decodeField;
+   var at = F2(function (fields,decoder) {    return A3($List.foldr,F2(function (x,y) {    return A2(_op[":="],x,y);}),decoder,fields);});
+   var decodeString = $Native$Json.runDecoderString;
+   var map = $Native$Json.decodeObject1;
+   var dict = function (decoder) {    return A2(map,$Dict.fromList,keyValuePairs(decoder));};
+   var Decoder = {ctor: "Decoder"};
+   return _elm.Json.Decode.values = {_op: _op
+                                    ,decodeString: decodeString
+                                    ,decodeValue: decodeValue
+                                    ,string: string
+                                    ,$int: $int
+                                    ,$float: $float
+                                    ,bool: bool
+                                    ,$null: $null
+                                    ,list: list
+                                    ,array: array
+                                    ,tuple1: tuple1
+                                    ,tuple2: tuple2
+                                    ,tuple3: tuple3
+                                    ,tuple4: tuple4
+                                    ,tuple5: tuple5
+                                    ,tuple6: tuple6
+                                    ,tuple7: tuple7
+                                    ,tuple8: tuple8
+                                    ,at: at
+                                    ,object1: object1
+                                    ,object2: object2
+                                    ,object3: object3
+                                    ,object4: object4
+                                    ,object5: object5
+                                    ,object6: object6
+                                    ,object7: object7
+                                    ,object8: object8
+                                    ,keyValuePairs: keyValuePairs
+                                    ,dict: dict
+                                    ,maybe: maybe
+                                    ,oneOf: oneOf
+                                    ,map: map
+                                    ,fail: fail
+                                    ,succeed: succeed
+                                    ,andThen: andThen
+                                    ,value: value
+                                    ,customDecoder: customDecoder};
 };
 Elm.Random = Elm.Random || {};
 Elm.Random.make = function (_elm) {
@@ -9135,6 +9112,29 @@ Elm.Random.make = function (_elm) {
                                ,maxInt: maxInt
                                ,generate: generate
                                ,initialSeed: initialSeed};
+};
+Elm.Trampoline = Elm.Trampoline || {};
+Elm.Trampoline.make = function (_elm) {
+   "use strict";
+   _elm.Trampoline = _elm.Trampoline || {};
+   if (_elm.Trampoline.values) return _elm.Trampoline.values;
+   var _U = Elm.Native.Utils.make(_elm);
+   var _op = {};
+   var trampoline = function (tramp) {
+      trampoline: while (true) {
+         var _p0 = tramp;
+         if (_p0.ctor === "Done") {
+               return _p0._0;
+            } else {
+               var _v1 = _p0._0({ctor: "_Tuple0"});
+               tramp = _v1;
+               continue trampoline;
+            }
+      }
+   };
+   var Continue = function (a) {    return {ctor: "Continue",_0: a};};
+   var Done = function (a) {    return {ctor: "Done",_0: a};};
+   return _elm.Trampoline.values = {_op: _op,trampoline: trampoline,Done: Done,Continue: Continue};
 };
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
@@ -11304,21 +11304,27 @@ Elm.Random.PCG.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $Bitwise = Elm.Bitwise.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $Json$Encode = Elm.Json.Encode.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
+   var toJson = function (_p0) {
+      var _p1 = _p0;
+      return $Json$Encode.list(A2($List.map,$Json$Encode.$int,_U.list([_p1._0._0,_p1._0._1,_p1._1._0,_p1._1._1])));
+   };
    var listHelp = F4(function (list,n,generate,seed) {
       listHelp: while (true) if (_U.cmp(n,1) < 0) return {ctor: "_Tuple2",_0: $List.reverse(list),_1: seed}; else {
-            var _p0 = generate(seed);
-            var value = _p0._0;
-            var newSeed = _p0._1;
-            var _v0 = A2($List._op["::"],value,list),_v1 = n - 1,_v2 = generate,_v3 = newSeed;
-            list = _v0;
-            n = _v1;
-            generate = _v2;
-            seed = _v3;
+            var _p2 = generate(seed);
+            var value = _p2._0;
+            var newSeed = _p2._1;
+            var _v1 = A2($List._op["::"],value,list),_v2 = n - 1,_v3 = generate,_v4 = newSeed;
+            list = _v1;
+            n = _v2;
+            generate = _v3;
+            seed = _v4;
             continue listHelp;
          }
    });
@@ -11327,130 +11333,131 @@ Elm.Random.PCG.make = function (_elm) {
    var bit27 = 1.34217728e8;
    var bit53 = 9.007199254740992e15;
    var Seed = F2(function (a,b) {    return {ctor: "Seed",_0: a,_1: b};});
-   var generate = F2(function (_p1,seed) {    var _p2 = _p1;return _p2._0(seed);});
+   var generate = F2(function (_p3,seed) {    var _p4 = _p3;return _p4._0(seed);});
    var Generator = function (a) {    return {ctor: "Generator",_0: a};};
-   var list = F2(function (n,_p3) {    var _p4 = _p3;return Generator(function (seed) {    return A4(listHelp,_U.list([]),n,_p4._0,seed);});});
+   var list = F2(function (n,_p5) {    var _p6 = _p5;return Generator(function (seed) {    return A4(listHelp,_U.list([]),n,_p6._0,seed);});});
    var constant = function (value) {    return Generator(function (seed) {    return {ctor: "_Tuple2",_0: value,_1: seed};});};
-   var map = F2(function (func,_p5) {
-      var _p6 = _p5;
-      return Generator(function (seed0) {    var _p7 = _p6._0(seed0);var a = _p7._0;var seed1 = _p7._1;return {ctor: "_Tuple2",_0: func(a),_1: seed1};});
+   var map = F2(function (func,_p7) {
+      var _p8 = _p7;
+      return Generator(function (seed0) {    var _p9 = _p8._0(seed0);var a = _p9._0;var seed1 = _p9._1;return {ctor: "_Tuple2",_0: func(a),_1: seed1};});
    });
-   var map2 = F3(function (func,_p9,_p8) {
-      var _p10 = _p9;
-      var _p11 = _p8;
+   var map2 = F3(function (func,_p11,_p10) {
+      var _p12 = _p11;
+      var _p13 = _p10;
       return Generator(function (seed0) {
-         var _p12 = _p10._0(seed0);
-         var a = _p12._0;
-         var seed1 = _p12._1;
-         var _p13 = _p11._0(seed1);
-         var b = _p13._0;
-         var seed2 = _p13._1;
+         var _p14 = _p12._0(seed0);
+         var a = _p14._0;
+         var seed1 = _p14._1;
+         var _p15 = _p13._0(seed1);
+         var b = _p15._0;
+         var seed2 = _p15._1;
          return {ctor: "_Tuple2",_0: A2(func,a,b),_1: seed2};
       });
    });
    var pair = F2(function (genA,genB) {    return A3(map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),genA,genB);});
    var andMap = map2(F2(function (x,y) {    return x(y);}));
-   var map3 = F4(function (func,_p16,_p15,_p14) {
-      var _p17 = _p16;
-      var _p18 = _p15;
-      var _p19 = _p14;
+   var map3 = F4(function (func,_p18,_p17,_p16) {
+      var _p19 = _p18;
+      var _p20 = _p17;
+      var _p21 = _p16;
       return Generator(function (seed0) {
-         var _p20 = _p17._0(seed0);
-         var a = _p20._0;
-         var seed1 = _p20._1;
-         var _p21 = _p18._0(seed1);
-         var b = _p21._0;
-         var seed2 = _p21._1;
-         var _p22 = _p19._0(seed2);
-         var c = _p22._0;
-         var seed3 = _p22._1;
+         var _p22 = _p19._0(seed0);
+         var a = _p22._0;
+         var seed1 = _p22._1;
+         var _p23 = _p20._0(seed1);
+         var b = _p23._0;
+         var seed2 = _p23._1;
+         var _p24 = _p21._0(seed2);
+         var c = _p24._0;
+         var seed3 = _p24._1;
          return {ctor: "_Tuple2",_0: A3(func,a,b,c),_1: seed3};
       });
    });
-   var map4 = F5(function (func,_p26,_p25,_p24,_p23) {
-      var _p27 = _p26;
-      var _p28 = _p25;
-      var _p29 = _p24;
-      var _p30 = _p23;
+   var map4 = F5(function (func,_p28,_p27,_p26,_p25) {
+      var _p29 = _p28;
+      var _p30 = _p27;
+      var _p31 = _p26;
+      var _p32 = _p25;
       return Generator(function (seed0) {
-         var _p31 = _p27._0(seed0);
-         var a = _p31._0;
-         var seed1 = _p31._1;
-         var _p32 = _p28._0(seed1);
-         var b = _p32._0;
-         var seed2 = _p32._1;
-         var _p33 = _p29._0(seed2);
-         var c = _p33._0;
-         var seed3 = _p33._1;
-         var _p34 = _p30._0(seed3);
-         var d = _p34._0;
-         var seed4 = _p34._1;
+         var _p33 = _p29._0(seed0);
+         var a = _p33._0;
+         var seed1 = _p33._1;
+         var _p34 = _p30._0(seed1);
+         var b = _p34._0;
+         var seed2 = _p34._1;
+         var _p35 = _p31._0(seed2);
+         var c = _p35._0;
+         var seed3 = _p35._1;
+         var _p36 = _p32._0(seed3);
+         var d = _p36._0;
+         var seed4 = _p36._1;
          return {ctor: "_Tuple2",_0: A4(func,a,b,c,d),_1: seed4};
       });
    });
-   var map5 = F6(function (func,_p39,_p38,_p37,_p36,_p35) {
-      var _p40 = _p39;
-      var _p41 = _p38;
-      var _p42 = _p37;
-      var _p43 = _p36;
-      var _p44 = _p35;
+   var map5 = F6(function (func,_p41,_p40,_p39,_p38,_p37) {
+      var _p42 = _p41;
+      var _p43 = _p40;
+      var _p44 = _p39;
+      var _p45 = _p38;
+      var _p46 = _p37;
       return Generator(function (seed0) {
-         var _p45 = _p40._0(seed0);
-         var a = _p45._0;
-         var seed1 = _p45._1;
-         var _p46 = _p41._0(seed1);
-         var b = _p46._0;
-         var seed2 = _p46._1;
-         var _p47 = _p42._0(seed2);
-         var c = _p47._0;
-         var seed3 = _p47._1;
-         var _p48 = _p43._0(seed3);
-         var d = _p48._0;
-         var seed4 = _p48._1;
-         var _p49 = _p44._0(seed4);
-         var e = _p49._0;
-         var seed5 = _p49._1;
+         var _p47 = _p42._0(seed0);
+         var a = _p47._0;
+         var seed1 = _p47._1;
+         var _p48 = _p43._0(seed1);
+         var b = _p48._0;
+         var seed2 = _p48._1;
+         var _p49 = _p44._0(seed2);
+         var c = _p49._0;
+         var seed3 = _p49._1;
+         var _p50 = _p45._0(seed3);
+         var d = _p50._0;
+         var seed4 = _p50._1;
+         var _p51 = _p46._0(seed4);
+         var e = _p51._0;
+         var seed5 = _p51._1;
          return {ctor: "_Tuple2",_0: A5(func,a,b,c,d,e),_1: seed5};
       });
    });
-   var andThen = F2(function (_p50,callback) {
-      var _p51 = _p50;
+   var andThen = F2(function (_p52,callback) {
+      var _p53 = _p52;
       return Generator(function (seed) {
-         var _p52 = _p51._0(seed);
-         var result = _p52._0;
-         var newSeed = _p52._1;
-         var _p53 = callback(result);
-         var generateB = _p53._0;
+         var _p54 = _p53._0(seed);
+         var result = _p54._0;
+         var newSeed = _p54._1;
+         var _p55 = callback(result);
+         var generateB = _p55._0;
          return generateB(newSeed);
       });
    });
    var filter = F2(function (predicate,generator) {
       return A2(andThen,generator,function (a) {    return predicate(a) ? constant(a) : A2(filter,predicate,generator);});
    });
+   var maybe = F2(function (genBool,genA) {    return A2(andThen,genBool,function (b) {    return b ? A2(map,$Maybe.Just,genA) : constant($Maybe.Nothing);});});
    var Int64 = F2(function (a,b) {    return {ctor: "Int64",_0: a,_1: b};});
    var magicFactor = A2(Int64,1481765933,1284865837);
    _op[">>>"] = $Bitwise.shiftRightLogical;
-   var add64 = F2(function (_p55,_p54) {
-      var _p56 = _p55;
-      var _p58 = _p56._1;
-      var _p57 = _p54;
-      var lo = A2(_op[">>>"],_p58 + _p57._1,0);
-      var hi = A2(_op[">>>"],_p56._0 + _p57._0,0);
-      var hi$ = _U.cmp(A2(_op[">>>"],lo,0),A2(_op[">>>"],_p58,0)) < 0 ? A2($Bitwise.or,hi + 1,0) : hi;
+   var add64 = F2(function (_p57,_p56) {
+      var _p58 = _p57;
+      var _p60 = _p58._1;
+      var _p59 = _p56;
+      var lo = A2(_op[">>>"],_p60 + _p59._1,0);
+      var hi = A2(_op[">>>"],_p58._0 + _p59._0,0);
+      var hi$ = _U.cmp(A2(_op[">>>"],lo,0),A2(_op[">>>"],_p60,0)) < 0 ? A2($Bitwise.or,hi + 1,0) : hi;
       return A2(Int64,hi$,lo);
    });
    _op["<<"] = $Bitwise.shiftLeft;
    _op["&"] = $Bitwise.and;
-   var peel = function (_p59) {
-      var _p60 = _p59;
-      var _p62 = _p60._0._1;
-      var _p61 = _p60._0._0;
-      var rot = A2(_op[">>>"],_p61,27);
+   var peel = function (_p61) {
+      var _p62 = _p61;
+      var _p64 = _p62._0._1;
+      var _p63 = _p62._0._0;
+      var rot = A2(_op[">>>"],_p63,27);
       var rot2 = A2(_op[">>>"],A2(_op["&"],A2(_op[">>>"],0 - rot,0),31),0);
-      var xsLo = A2(_op[">>>"],A2($Bitwise.or,A2(_op[">>>"],_p62,18),A2(_op["<<"],_p61,14)),0);
-      var xsLo$ = A2(_op[">>>"],A2($Bitwise.xor,xsLo,_p62),0);
-      var xsHi = A2(_op[">>>"],_p61,18);
-      var xsHi$ = A2(_op[">>>"],A2($Bitwise.xor,xsHi,_p61),0);
+      var xsLo = A2(_op[">>>"],A2($Bitwise.or,A2(_op[">>>"],_p64,18),A2(_op["<<"],_p63,14)),0);
+      var xsLo$ = A2(_op[">>>"],A2($Bitwise.xor,xsLo,_p64),0);
+      var xsHi = A2(_op[">>>"],_p63,18);
+      var xsHi$ = A2(_op[">>>"],A2($Bitwise.xor,xsHi,_p63),0);
       var xorshifted = A2(_op[">>>"],A2($Bitwise.or,A2(_op[">>>"],xsLo$,27),A2(_op["<<"],xsHi$,5)),0);
       return A2(_op[">>>"],A2($Bitwise.or,A2(_op[">>>"],xorshifted,rot),A2(_op["<<"],xorshifted,rot2)),0);
    };
@@ -11461,42 +11468,51 @@ Elm.Random.PCG.make = function (_elm) {
       var ah = A2(_op["&"],A2(_op[">>>"],a,16),65535);
       return A2($Bitwise.or,0,al * bl + A2(_op[">>>"],A2(_op["<<"],ah * bl + al * bh,16),0));
    });
-   var mul64 = F2(function (_p64,_p63) {
-      var _p65 = _p64;
-      var _p68 = _p65._1;
-      var _p66 = _p63;
-      var _p67 = _p66._1;
-      var lo = A2(_op[">>>"],A2(_op["&"],_p68,65535) * A2(_op["&"],_p67,65535),0);
-      var c0 = A2(_op["&"],_p68,65535) * A2(_op[">>>"],A2(_op[">>>"],_p67,16),0);
+   var mul64 = F2(function (_p66,_p65) {
+      var _p67 = _p66;
+      var _p70 = _p67._1;
+      var _p68 = _p65;
+      var _p69 = _p68._1;
+      var lo = A2(_op[">>>"],A2(_op["&"],_p70,65535) * A2(_op["&"],_p69,65535),0);
+      var c0 = A2(_op["&"],_p70,65535) * A2(_op[">>>"],A2(_op[">>>"],_p69,16),0);
       var c0$ = A2(_op[">>>"],A2(_op["<<"],c0,16),0);
       var lo$ = A2(_op[">>>"],lo + c0$,0);
-      var c1 = A2(_op[">>>"],_p68,16) * A2(_op[">>>"],A2(_op["&"],_p67,65535),0);
-      var hi = A2(_op[">>>"],_p68,16) * A2(_op[">>>"],_p67,16) + A2(_op[">>>"],A2(_op[">>>"],c0,16) + A2(_op[">>>"],c1,16),0);
+      var c1 = A2(_op[">>>"],_p70,16) * A2(_op[">>>"],A2(_op["&"],_p69,65535),0);
+      var hi = A2(_op[">>>"],_p70,16) * A2(_op[">>>"],_p69,16) + A2(_op[">>>"],A2(_op[">>>"],c0,16) + A2(_op[">>>"],c1,16),0);
       var hi$ = _U.cmp(A2(_op[">>>"],lo$,0),A2(_op[">>>"],c0$,0)) < 0 ? A2(_op[">>>"],hi + 1,0) : hi;
       var c1$ = A2(_op[">>>"],A2(_op["<<"],c1,16),0);
       var lo$$ = A2(_op[">>>"],lo$ + c1$,0);
       var hi$$ = _U.cmp(A2(_op[">>>"],lo$$,0),A2(_op[">>>"],c1$,0)) < 0 ? A2(_op[">>>"],hi$ + 1,0) : hi$;
-      var hi$$$ = A2(_op[">>>"],hi$$ + A2(mul32,_p68,_p66._0),0);
-      var hi$$$$ = A2(_op[">>>"],hi$$$ + A2(mul32,_p65._0,_p67),0);
+      var hi$$$ = A2(_op[">>>"],hi$$ + A2(mul32,_p70,_p68._0),0);
+      var hi$$$$ = A2(_op[">>>"],hi$$$ + A2(mul32,_p67._0,_p69),0);
       return A2(Int64,hi$$$$,lo$$);
    });
-   var next = function (_p69) {
-      var _p70 = _p69;
-      var _p71 = _p70._1;
-      var state1 = A2(mul64,_p70._0,magicFactor);
-      var state2 = A2(add64,state1,_p71);
-      return A2(Seed,state2,_p71);
+   var next = function (_p71) {
+      var _p72 = _p71;
+      var _p73 = _p72._1;
+      var state1 = A2(mul64,_p72._0,magicFactor);
+      var state2 = A2(add64,state1,_p73);
+      return A2(Seed,state2,_p73);
    };
    var initialSeed2 = F2(function (stateHi,stateLo) {
       var incr = A2(Int64,335903614,4150755663);
       var zero = A2(Int64,0,0);
       var seed0 = A2(Seed,zero,incr);
-      var _p72 = next(seed0);
-      var state1 = _p72._0;
+      var _p74 = next(seed0);
+      var state1 = _p74._0;
       var state2 = A2(add64,state1,A2(Int64,A2(_op[">>>"],stateHi,0),A2(_op[">>>"],stateLo,0)));
       return next(A2(Seed,state2,incr));
    });
    var initialSeed = initialSeed2(0);
+   var fromJson = $Json$Decode.oneOf(_U.list([A5($Json$Decode.tuple4,
+                                             F4(function (a,b,c,d) {    return A2(Seed,A2(Int64,a,b),A2(Int64,c,d));}),
+                                             $Json$Decode.$int,
+                                             $Json$Decode.$int,
+                                             $Json$Decode.$int,
+                                             $Json$Decode.$int)
+                                             ,A3($Json$Decode.tuple2,initialSeed2,$Json$Decode.$int,$Json$Decode.$int)
+                                             ,A2($Json$Decode.tuple1,initialSeed,$Json$Decode.$int)
+                                             ,A2($Json$Decode.map,initialSeed,$Json$Decode.$int)]));
    var integer = F2(function (max,seed0) {
       if (_U.eq(A2(_op["&"],max,max - 1),0)) return {ctor: "_Tuple2",_0: A2(_op[">>>"],A2(_op["&"],peel(seed0),max - 1),0),_1: next(seed0)}; else {
             var threshhold = A2(_op[">>>"],A2($Basics._op["%"],A2(_op[">>>"],0 - max,0),max),0);
@@ -11505,8 +11521,8 @@ Elm.Random.PCG.make = function (_elm) {
                   var seedN = next(seed);
                   var x = peel(seed);
                   if (_U.cmp(x,threshhold) < 0) {
-                        var _v28 = seedN;
-                        seed = _v28;
+                        var _v29 = seedN;
+                        seed = _v29;
                         continue accountForBias;
                      } else return {ctor: "_Tuple2",_0: A2($Basics._op["%"],x,max),_1: seedN};
                }
@@ -11518,14 +11534,16 @@ Elm.Random.PCG.make = function (_elm) {
       return Generator(function (seed0) {
          if (_U.eq(min,max)) return {ctor: "_Tuple2",_0: min,_1: seed0}; else {
                var range = $Basics.abs(max - min) + 1;
-               var _p73 = A2(integer,range,seed0);
-               var i = _p73._0;
-               var seed1 = _p73._1;
+               var _p75 = A2(integer,range,seed0);
+               var i = _p75._0;
+               var seed1 = _p75._1;
                return {ctor: "_Tuple2",_0: i + min,_1: seed1};
             }
       });
    });
    var bool = A2(map,F2(function (x,y) {    return _U.eq(x,y);})(1),A2($int,0,1));
+   var choice = F2(function (x,y) {    return A2(map,function (b) {    return b ? x : y;},bool);});
+   var oneIn = function (n) {    return A2(map,F2(function (x,y) {    return _U.eq(x,y);})(1),A2($int,1,n));};
    var $float = F2(function (min,max) {
       return Generator(function (seed0) {
          var range = $Basics.abs(max - min);
@@ -11539,22 +11557,23 @@ Elm.Random.PCG.make = function (_elm) {
          return {ctor: "_Tuple2",_0: scaled,_1: next(seed1)};
       });
    });
-   var split = function (seed0) {
+   var independentSeed = Generator(function (seed0) {
       var gen1 = A2($int,minInt,maxInt);
       var gen4 = A5(map4,F4(function (v0,v1,v2,v3) {    return {ctor: "_Tuple4",_0: v0,_1: v1,_2: v2,_3: v3};}),gen1,gen1,gen1,gen1);
-      var _p74 = A2(generate,gen4,seed0);
-      var a = _p74._0._0;
-      var b = _p74._0._1;
-      var c = _p74._0._2;
-      var d = _p74._0._3;
-      var seed1 = _p74._1;
+      var _p76 = A2(generate,gen4,seed0);
+      var a = _p76._0._0;
+      var b = _p76._0._1;
+      var c = _p76._0._2;
+      var d = _p76._0._3;
+      var seed1 = _p76._1;
       var dOdd = A2(_op[">>>"],A2($Bitwise.or,d,1),0);
       var seed2 = A2(Seed,A2(Int64,a,b),A2(Int64,c,dOdd));
-      return {ctor: "_Tuple2",_0: next(seed1),_1: next(seed2)};
-   };
-   var fastForward = F2(function (delta0,_p75) {
-      var _p76 = _p75;
-      var _p78 = _p76._1;
+      return {ctor: "_Tuple2",_0: next(seed2),_1: next(seed1)};
+   });
+   var split = generate(independentSeed);
+   var fastForward = F2(function (delta0,_p77) {
+      var _p78 = _p77;
+      var _p80 = _p78._1;
       var zero = A2(Int64,0,0);
       var one = A2(Int64,0,1);
       var helper = F6(function (accMult,accPlus,curMult,curPlus,delta,repeat) {
@@ -11566,38 +11585,41 @@ Elm.Random.PCG.make = function (_elm) {
             var accMult$ = deltaOdd ? A2(mul64,accMult,curMult) : accMult;
             var accPlus$ = deltaOdd ? A2(add64,A2(mul64,accPlus,curMult),curPlus) : accPlus;
             if (_U.eq(newDelta,0)) if (_U.cmp(delta0,0) < 0 && repeat) {
-                     var _v30 = accMult$,_v31 = accPlus$,_v32 = curMult$,_v33 = curPlus$,_v34 = -1,_v35 = false;
-                     accMult = _v30;
-                     accPlus = _v31;
-                     curMult = _v32;
-                     curPlus = _v33;
-                     delta = _v34;
-                     repeat = _v35;
+                     var _v31 = accMult$,_v32 = accPlus$,_v33 = curMult$,_v34 = curPlus$,_v35 = -1,_v36 = false;
+                     accMult = _v31;
+                     accPlus = _v32;
+                     curMult = _v33;
+                     curPlus = _v34;
+                     delta = _v35;
+                     repeat = _v36;
                      continue helper;
                   } else return {ctor: "_Tuple2",_0: accMult$,_1: accPlus$}; else {
-                  var _v36 = accMult$,_v37 = accPlus$,_v38 = curMult$,_v39 = curPlus$,_v40 = newDelta,_v41 = repeat;
-                  accMult = _v36;
-                  accPlus = _v37;
-                  curMult = _v38;
-                  curPlus = _v39;
-                  delta = _v40;
-                  repeat = _v41;
+                  var _v37 = accMult$,_v38 = accPlus$,_v39 = curMult$,_v40 = curPlus$,_v41 = newDelta,_v42 = repeat;
+                  accMult = _v37;
+                  accPlus = _v38;
+                  curMult = _v39;
+                  curPlus = _v40;
+                  delta = _v41;
+                  repeat = _v42;
                   continue helper;
                }
          }
       });
-      var _p77 = A6(helper,one,zero,magicFactor,_p78,delta0,true);
-      var accMultFinal = _p77._0;
-      var accPlusFinal = _p77._1;
-      var state1 = A2(add64,accPlusFinal,A2(mul64,accMultFinal,_p76._0));
-      return A2(Seed,state1,_p78);
+      var _p79 = A6(helper,one,zero,magicFactor,_p80,delta0,true);
+      var accMultFinal = _p79._0;
+      var accPlusFinal = _p79._1;
+      var state1 = A2(add64,accPlusFinal,A2(mul64,accMultFinal,_p78._0));
+      return A2(Seed,state1,_p80);
    });
    return _elm.Random.PCG.values = {_op: _op
                                    ,bool: bool
                                    ,$int: $int
                                    ,$float: $float
-                                   ,list: list
+                                   ,oneIn: oneIn
                                    ,pair: pair
+                                   ,list: list
+                                   ,maybe: maybe
+                                   ,choice: choice
                                    ,map: map
                                    ,map2: map2
                                    ,map3: map3
@@ -11613,7 +11635,10 @@ Elm.Random.PCG.make = function (_elm) {
                                    ,initialSeed2: initialSeed2
                                    ,initialSeed: initialSeed
                                    ,split: split
-                                   ,fastForward: fastForward};
+                                   ,independentSeed: independentSeed
+                                   ,fastForward: fastForward
+                                   ,toJson: toJson
+                                   ,fromJson: fromJson};
 };
 Elm.Rnd = Elm.Rnd || {};
 Elm.Rnd.make = function (_elm) {
@@ -12146,7 +12171,7 @@ Elm.Grid.make = function (_elm) {
    };
    var cellsList = function (cells) {    return $List.concat($Array.toList(A2($Array.map,$Array.toList,cells)));};
    var deadEnds = function (grid) {
-      return A2($List.filter,function (c) {    return _U.eq($List.length($Set.toList($GridCell.base(c).links)),1);},cellsList(grid.cells));
+      return A2($List.filter,function (c) {    return _U.eq($List.length($Set.toList($GridCell.links(c))),1);},cellsList(grid.cells));
    };
    var linkCellsHelper = F4(function (grid,cell,cellToLinkId,bidi) {
       var linkCell = F2(function (cell1,id) {    return _U.update(cell1,{links: A2($Set.insert,id,cell1.links)});});
@@ -13347,19 +13372,33 @@ Elm.Maze.make = function (_elm) {
       return _U.update(maze,{grid: maze.generator(grid$)});
    });
    var updateView = F2(function (maze,displayType) {    return _U.update(maze,{display: displayType});});
-   var update = function (maze) {    var grid$ = $Grid.update(maze.grid);return _U.update(maze,{grid: maze.generator(grid$)});};
+   var neighborsFn = function (maze) {
+      var _p1 = maze.shape;
+      switch (_p1.ctor)
+      {case "Rect": return $Grid.neighbors;
+         case "Polar": return $PolarGrid.neighbors;
+         case "Hex": return $HexGrid.neighbors;
+         default: return $TriangleGrid.neighbors;}
+   };
+   var update = function (maze) {
+      var grid$ = $Grid.update(maze.grid);
+      var grid$$ = maze.generator(grid$);
+      var grid$$$ = A3($Grid.braid,grid$$,neighborsFn(maze),maze.braidFactor);
+      return _U.update(maze,{grid: grid$$$});
+   };
+   var updateBraiding = F2(function (maze,factor) {    var maze$ = _U.update(maze,{braidFactor: factor});return update(maze$);});
    var genAlg = F2(function (algName,shape) {
       var neighborFn = function () {
-         var _p1 = shape;
-         switch (_p1.ctor)
+         var _p2 = shape;
+         switch (_p2.ctor)
          {case "Polar": return $PolarGrid.neighbors;
             case "Hex": return $HexGrid.neighbors;
             case "Triangle": return $TriangleGrid.neighbors;
             default: return $Grid.neighbors;}
       }();
-      var randCellFn = function () {    var _p2 = shape;if (_p2.ctor === "Polar") {    return $PolarGrid.randomCell;} else {    return $Grid.randomCell;}}();
-      var _p3 = algName;
-      switch (_p3.ctor)
+      var randCellFn = function () {    var _p3 = shape;if (_p3.ctor === "Polar") {    return $PolarGrid.randomCell;} else {    return $Grid.randomCell;}}();
+      var _p4 = algName;
+      switch (_p4.ctor)
       {case "NoOp": return $Basics.identity;
          case "BinaryTree": return A2($BinaryTree.on,randCellFn,neighborFn);
          case "Sidewinder": return A2($Sidewinder.on,randCellFn,neighborFn);
@@ -13368,20 +13407,6 @@ Elm.Maze.make = function (_elm) {
          case "HuntAndKill": return A2($HuntAndKill.on,randCellFn,neighborFn);
          default: return A2($RecursiveBacktracker.on,randCellFn,neighborFn);}
    });
-   var init = F6(function (algType,width,height,seed,shape,display) {
-      var cellGenFn = function () {
-         var _p4 = shape;
-         switch (_p4.ctor)
-         {case "Rect": return $Grid.makeCells;
-            case "Polar": return $PolarGrid.makeCells;
-            case "Hex": return $HexGrid.makeCells;
-            default: return $TriangleGrid.makeCells;}
-      }();
-      var mask = A2($Mask.createMask,width,height);
-      var grid$ = A3($Grid.createGridFromMask,mask,seed,cellGenFn);
-      return {grid: grid$,generator: A2(genAlg,algType,shape),alg: algType,shape: shape,display: display};
-   });
-   var updateSize = F3(function (maze,width,height) {    return A6(init,maze.alg,width,height,maze.grid.rnd.seed,maze.shape,maze.display);});
    var cellSize = 30;
    var view = function (maze) {
       var gridHtml = function () {
@@ -13393,8 +13418,7 @@ Elm.Maze.make = function (_elm) {
                switch (_p6.ctor)
                {case "Rect": var root = $Grid.center(maze.grid);
                     var coloredGrid = A2($ColoredGrid.createGrid,maze.grid,root);
-                    var braided = A3($Grid.braid,coloredGrid,$Grid.neighbors,0.5);
-                    return $Html.fromElement(A4($Grid.toElement,braided,$Grid.painter,$ColoredGrid.cellBackgroundColor,cellSize));
+                    return $Html.fromElement(A4($Grid.toElement,coloredGrid,$Grid.painter,$ColoredGrid.cellBackgroundColor,cellSize));
                   case "Polar": var _p7 = $GridCell.toPolarCell($PolarGrid.center(maze.grid));
                     var root = _p7._0;
                     var coloredGrid = A2($ColoredGrid.createGrid,maze.grid,root);
@@ -13417,7 +13441,22 @@ Elm.Maze.make = function (_elm) {
               ,gridHtml
               ,A2($Html.br,_U.list([]),_U.list([]))]));
    };
-   var Maze = F5(function (a,b,c,d,e) {    return {grid: a,alg: b,shape: c,display: d,generator: e};});
+   var defaultBraidFactor = 0;
+   var init = F6(function (algType,width,height,seed,shape,display) {
+      var cellGenFn = function () {
+         var _p8 = shape;
+         switch (_p8.ctor)
+         {case "Rect": return $Grid.makeCells;
+            case "Polar": return $PolarGrid.makeCells;
+            case "Hex": return $HexGrid.makeCells;
+            default: return $TriangleGrid.makeCells;}
+      }();
+      var mask = A2($Mask.createMask,width,height);
+      var grid$ = A3($Grid.createGridFromMask,mask,seed,cellGenFn);
+      return {grid: grid$,generator: A2(genAlg,algType,shape),alg: algType,shape: shape,display: display,braidFactor: defaultBraidFactor};
+   });
+   var updateSize = F3(function (maze,width,height) {    return A6(init,maze.alg,width,height,maze.grid.rnd.seed,maze.shape,maze.display);});
+   var Maze = F6(function (a,b,c,d,e,f) {    return {grid: a,alg: b,shape: c,display: d,generator: e,braidFactor: f};});
    var Triangle = {ctor: "Triangle"};
    var Hex = {ctor: "Hex"};
    var Polar = {ctor: "Polar"};
@@ -13447,19 +13486,19 @@ Elm.Maze.make = function (_elm) {
                              ,{alg: Sidewinder,name: algToString(Sidewinder)}
                              ,{alg: HuntAndKill,name: algToString(HuntAndKill)}]);
       var algs = _U.list([{alg: NoOp,name: algToString(NoOp)}]);
-      var _p8 = shape;
-      switch (_p8.ctor)
+      var _p9 = shape;
+      switch (_p9.ctor)
       {case "Polar": return $List.concat(_U.list([algs,allAlgs]));
          case "Triangle": return $List.concat(_U.list([algs,triangleAlgs,allAlgs]));
          default: return $List.concat(_U.list([algs,rectAlgs,allAlgs]));}
    };
    var algByName = function (str) {
       var res = $List.head(A2($List.filter,function (a) {    return _U.eq(a.name,str);},algorithms(Rect)));
-      var _p9 = res;
-      if (_p9.ctor === "Just") {
-            return _p9._0.alg;
+      var _p10 = res;
+      if (_p10.ctor === "Just") {
+            return _p10._0.alg;
          } else {
-            return A2(_U.crash("Maze",{start: {line: 235,column: 17},end: {line: 235,column: 28}}),"Unknown algorithm",BinaryTree);
+            return A2(_U.crash("Maze",{start: {line: 258,column: 17},end: {line: 258,column: 28}}),"Unknown algorithm",BinaryTree);
          }
    };
    return _elm.Maze.values = {_op: _op
@@ -13479,20 +13518,64 @@ Elm.Maze.make = function (_elm) {
                              ,Triangle: Triangle
                              ,Maze: Maze
                              ,defaultAlgorithm: defaultAlgorithm
+                             ,defaultBraidFactor: defaultBraidFactor
                              ,displays: displays
                              ,shapes: shapes
                              ,cellSize: cellSize
                              ,init: init
                              ,genAlg: genAlg
+                             ,neighborsFn: neighborsFn
                              ,update: update
                              ,updateSize: updateSize
                              ,updateView: updateView
                              ,setMask: setMask
+                             ,updateBraiding: updateBraiding
                              ,view: view
                              ,viewDistances: viewDistances
                              ,algorithms: algorithms
                              ,algToString: algToString
                              ,algByName: algByName};
+};
+Elm.Slider = Elm.Slider || {};
+Elm.Slider.make = function (_elm) {
+   "use strict";
+   _elm.Slider = _elm.Slider || {};
+   if (_elm.Slider.values) return _elm.Slider.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var onInput = F2(function (addr,f) {
+      return A3($Html$Events.on,"input",$Html$Events.targetValue,function (value) {    return A2($Signal.message,addr,f(value));});
+   });
+   var update = F2(function (action,model) {    var _p0 = action;return _U.update(model,{value: _p0._0});});
+   var Change = function (a) {    return {ctor: "Change",_0: a};};
+   var view = F2(function (address,model) {
+      return A2($Html.div,
+      _U.list([$Html$Attributes.id(model.id),$Html$Attributes.$class("slider")]),
+      _U.list([A2($Html.input,
+              _U.list([$Html$Attributes.$class("slider-range")
+                      ,$Html$Attributes.type$("range")
+                      ,$Html$Attributes.value(model.value)
+                      ,$Html$Attributes.min($Basics.toString(model.min))
+                      ,$Html$Attributes.max($Basics.toString(model.max))
+                      ,$Html$Attributes.step($Basics.toString(model.step))
+                      ,A2(onInput,address,Change)]),
+              _U.list([]))
+              ,A2($Html.input,
+              _U.list([$Html$Attributes.$class("slider-text"),$Html$Attributes.type$("number"),$Html$Attributes.value(model.value),A2(onInput,address,Change)]),
+              _U.list([]))]));
+   });
+   var init = function (model) {    return model;};
+   var Model = F6(function (a,b,c,d,e,f) {    return {id: a,label: b,value: c,min: d,max: e,step: f};});
+   return _elm.Slider.values = {_op: _op,init: init,update: update,view: view,Model: Model};
 };
 Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
@@ -13513,6 +13596,7 @@ Elm.Main.make = function (_elm) {
    $Random$PCG = Elm.Random.PCG.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
+   $Slider = Elm.Slider.make(_elm),
    $String = Elm.String.make(_elm),
    $Time = Elm.Time.make(_elm);
    var _op = {};
@@ -13572,6 +13656,9 @@ Elm.Main.make = function (_elm) {
          case "SelectShape": var maze = model.maze;
            var maze$ = A6($Maze.init,maze.alg,maze.grid.cols,maze.grid.rows,maze.grid.rnd.seed,_p0._0,maze.display);
            return _U.update(model,{maze: maze$});
+         case "Braid": var factor = A2($Result.withDefault,$Maze.defaultBraidFactor,$String.toFloat(model.braidSlider.value));
+           var maze$ = A2($Maze.updateBraiding,model.maze,factor);
+           return _U.update(model,{maze: maze$,braidSlider: A2($Slider.update,_p0._0,model.braidSlider)});
          case "LoadAsciiMask": var mask = $Mask.fromTxt(_p0._0);
            return _U.update(model,{maze: A2($Maze.setMask,model.maze,mask)});
          case "LoadImageMask": var _p1 = _p0._0;
@@ -13581,6 +13668,7 @@ Elm.Main.make = function (_elm) {
    });
    var LoadImageMask = function (a) {    return {ctor: "LoadImageMask",_0: a};};
    var LoadAsciiMask = function (a) {    return {ctor: "LoadAsciiMask",_0: a};};
+   var Braid = function (a) {    return {ctor: "Braid",_0: a};};
    var SelectShape = function (a) {    return {ctor: "SelectShape",_0: a};};
    var SelectView = function (a) {    return {ctor: "SelectView",_0: a};};
    var SelectAlg = function (a) {    return {ctor: "SelectAlg",_0: a};};
@@ -13596,7 +13684,7 @@ Elm.Main.make = function (_elm) {
                                              ,actions.signal
                                              ,tick]));
    var PngData = F3(function (a,b,c) {    return {width: a,height: b,blackFlags: c};});
-   var AppState = F3(function (a,b,c) {    return {maze: a,seedInitialized: b,seed: c};});
+   var AppState = F4(function (a,b,c,d) {    return {maze: a,seedInitialized: b,seed: c,braidSlider: d};});
    var initShape = $Maze.Rect;
    var shapeFromString = function (str) {
       var s = A2($List.filter,function (e) {    return _U.eq($Basics.snd(e),str);},$Maze.shapes);
@@ -13652,6 +13740,9 @@ Elm.Main.make = function (_elm) {
               ,A2($Html.select,_U.list([selectAlg]),A2($List.map,algToOptions,$Maze.algorithms(maze.shape)))
               ,A2($Html.select,_U.list([selectView]),A2($List.map,viewToOption,$Maze.displays))
               ,A2($Html.select,_U.list([selectShape]),A2($List.map,shapeToOption,$Maze.shapes))
+              ,A2($Html.br,_U.list([]),_U.list([]))
+              ,$Html.text("Braids (1 = no deadends):")
+              ,A2($Slider.view,A2($Signal.forwardTo,address,Braid),model.braidSlider)
               ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Refresh)]),_U.list([$Html.text("REFRESH")]))
               ,A2($Html.br,_U.list([]),_U.list([]))
               ,$Html.text("Ascii Mask file: ")
@@ -13663,7 +13754,13 @@ Elm.Main.make = function (_elm) {
    var initWidth = 8;
    var initialModel = {maze: A6($Maze.init,$Maze.defaultAlgorithm,initWidth,initHeight,startTimeSeed,initShape,initDisplay)
                       ,seedInitialized: false
-                      ,seed: $Random$PCG.initialSeed(45)};
+                      ,seed: $Random$PCG.initialSeed(45)
+                      ,braidSlider: $Slider.init({id: "braid"
+                                                 ,label: "Braid Factor"
+                                                 ,value: $Basics.toString($Maze.defaultBraidFactor)
+                                                 ,min: 0
+                                                 ,max: 1
+                                                 ,step: 0.1})};
    var model = A3($Signal.foldp,update,initialModel,userInput);
    var main = A2($Signal.map,view(actions.address),model);
    return _elm.Main.values = {_op: _op
@@ -13681,6 +13778,7 @@ Elm.Main.make = function (_elm) {
                              ,SelectAlg: SelectAlg
                              ,SelectView: SelectView
                              ,SelectShape: SelectShape
+                             ,Braid: Braid
                              ,LoadAsciiMask: LoadAsciiMask
                              ,LoadImageMask: LoadImageMask
                              ,update: update
