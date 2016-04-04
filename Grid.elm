@@ -328,7 +328,7 @@ braid grid neighborsFn p =
                 g' = updateRnd g
             in
                if Cell.isNilCellID (GridCell.id neighbor)
-                  then Debug.crash ("NIL NEIGHBOR" ++ Cell.cellToString (GridCell.base neighbor)) g'
+                  then Debug.crash "NIL NEIGHBOR in braid:linkNeighbor!" g'
                   else linkCells g' deadEnd neighbor True
 
         processDeadEnd : GridCell -> Grid a -> Grid a

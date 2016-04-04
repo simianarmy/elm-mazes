@@ -12283,9 +12283,11 @@ Elm.Grid.make = function (_elm) {
          g,
          deadEnd);
          var best = A2($List.filter,function (c) {    return _U.eq($Set.size($GridCell.links(c)),1);},neighbors);
-         var neighbor = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,best,g.rnd));
          var best$ = $List.isEmpty(best) ? neighbors : best;
-         return A4(linkCells,g$,deadEnd,neighbor,true);
+         var neighbor = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,best$,g.rnd));
+         return $Cell.isNilCellID($GridCell.id(neighbor)) ? A2(_U.crash("Grid",{start: {line: 331,column: 24},end: {line: 331,column: 35}}),
+         A2($Basics._op["++"],"NIL NEIGHBOR",$Cell.cellToString($GridCell.base(neighbor))),
+         g$) : A4(linkCells,g$,deadEnd,neighbor,true);
       });
       var randpGen = $Random$PCG.generate(A2($Random$PCG.$float,0,1.0));
       var processDeadEnd = F2(function (deadEnd,g) {
