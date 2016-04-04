@@ -324,10 +324,12 @@ braid grid neighborsFn p =
                 best' = if List.isEmpty best
                            then neighbors
                            else best
-                neighbor = maybeGridCellToGridCell <| GridUtils.sampleCell best g.rnd
+                neighbor = maybeGridCellToGridCell <| GridUtils.sampleCell best' g.rnd
                 g' = updateRnd g
             in
-               linkCells g' deadEnd neighbor True
+               if Cell.isNilCellID (GridCell.id neighbor)
+                  then Debug.crash ("NIL NEIGHBOR" ++ Cell.cellToString (GridCell.base neighbor)) g'
+                  else linkCells g' deadEnd neighbor True
 
         processDeadEnd : GridCell -> Grid a -> Grid a
         processDeadEnd deadEnd g =
