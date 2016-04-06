@@ -3,6 +3,7 @@ module Maze where
 import Grid exposing (..)
 import DistanceGrid
 import ColoredGrid
+import WeightedGrid
 import PolarGrid
 import HexGrid
 import TriangleGrid

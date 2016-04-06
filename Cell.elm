@@ -12,7 +12,8 @@ type alias BaseCell = {
     row: Int,
     col: Int,
     masked: Bool,
-    links: CellLinks
+    links: CellLinks,
+    weight: Int
 }
 
 -- Standard cell
@@ -26,7 +27,8 @@ createCell row col =
         row = row,
         col = col,
         masked = False,
-        links = Set.empty
+        links = Set.empty,
+        weight = 1
     }
 
 -- helper to create a nil cell

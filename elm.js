@@ -11829,10 +11829,10 @@ Elm.Cell.make = function (_elm) {
    var isNilCell = function (cell) {    return _U.eq(cell.row,-1) && _U.eq(cell.col,-1);};
    var isNilCellID = function (_p1) {    var _p2 = _p1;return _U.eq(_p2._0,-1) && _U.eq(_p2._1,-1);};
    var createCellID = F2(function (a,b) {    return {ctor: "_Tuple2",_0: a,_1: b};});
-   var createCell = F2(function (row,col) {    return {id: A2(createCellID,row,col),row: row,col: col,masked: false,links: $Set.empty};});
+   var createCell = F2(function (row,col) {    return {id: A2(createCellID,row,col),row: row,col: col,masked: false,links: $Set.empty,weight: 1};});
    var createMaskedCell = F2(function (row,col) {    var cell = A2(createCell,row,col);return _U.update(cell,{masked: true});});
    var createNilCell = A2(createCell,-1,-1);
-   var BaseCell = F5(function (a,b,c,d,e) {    return {id: a,row: b,col: c,masked: d,links: e};});
+   var BaseCell = F6(function (a,b,c,d,e,f) {    return {id: a,row: b,col: c,masked: d,links: e,weight: f};});
    return _elm.Cell.values = {_op: _op
                              ,BaseCell: BaseCell
                              ,createCell: createCell
@@ -12286,7 +12286,7 @@ Elm.Grid.make = function (_elm) {
          var best$ = $List.isEmpty(best) ? neighbors : best;
          var neighbor = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,best$,g.rnd));
          return $Cell.isNilCellID($GridCell.id(neighbor)) ? A2(_U.crash("Grid",{start: {line: 331,column: 24},end: {line: 331,column: 35}}),
-         A2($Basics._op["++"],"NIL NEIGHBOR",$Cell.cellToString($GridCell.base(neighbor))),
+         "NIL NEIGHBOR in braid:linkNeighbor!",
          g$) : A4(linkCells,g$,deadEnd,neighbor,true);
       });
       var randpGen = $Random$PCG.generate(A2($Random$PCG.$float,0,1.0));
@@ -13168,6 +13168,60 @@ Elm.HuntAndKill.make = function (_elm) {
    });
    return _elm.HuntAndKill.values = {_op: _op,on: on};
 };
+Elm.WeightedGrid = Elm.WeightedGrid || {};
+Elm.WeightedGrid.make = function (_elm) {
+   "use strict";
+   _elm.WeightedGrid = _elm.WeightedGrid || {};
+   if (_elm.WeightedGrid.values) return _elm.WeightedGrid.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Distances = Elm.Distances.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridCell = Elm.GridCell.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var distances = F2(function (grid,root) {
+      var scanCellLinks = F2(function (neighbor,acc) {
+         var ncell = $GridCell.base(neighbor);
+         var totalWeight = A2($Distances.lookup,acc.weights,$GridCell.base(acc.curCell)) + ncell.weight;
+         var nWeight = A2($Distances.lookup,acc.weights,ncell);
+         return _U.cmp(nWeight,0) < 0 || _U.cmp(totalWeight,nWeight) < 0 ? _U.update(acc,
+         {weights: A3($Distances.add,acc.weights,ncell,totalWeight),pending: A2($List.append,acc.pending,_U.list([neighbor]))}) : acc;
+      });
+      var pendingAcc = function (acc) {
+         pendingAcc: while (true) if ($List.isEmpty(acc.pending)) return acc; else {
+               var sortedByWeight = A2($List.sortBy,function (c) {    return $GridCell.base(c).weight;},acc.pending);
+               var cell = $GridCell.maybeGridCellToGridCell($List.head(sortedByWeight));
+               var cid = $GridCell.id(cell);
+               var acc$ = _U.update(acc,
+               {curCell: cell,pending: A2($GridCell.filterGridCells,function (c) {    return $Basics.not(_U.eq(c.id,cid));},acc.pending)});
+               var _v0 = A3($List.foldl,scanCellLinks,acc$,A2($Grid.linkedCells,grid,cell));
+               acc = _v0;
+               continue pendingAcc;
+            }
+      };
+      var weights = $Distances.init($GridCell.base(root));
+      var acc = {curCell: root,weights: weights,pending: _U.list([root])};
+      return function (_) {
+         return _.weights;
+      }(pendingAcc(acc));
+   });
+   var Diter = F3(function (a,b,c) {    return {curCell: a,weights: b,pending: c};});
+   var cellBackgroundColor = F2(function (grid,gc) {
+      if (_U.cmp($GridCell.base(gc).weight,1) > 0) return A3($Color.rgb,255,0,0); else {
+            var distance = A2($Distances.lookup,grid.dists,$GridCell.base(gc));
+            var distance$ = _U.eq(distance,-1) ? 0 : distance;
+            var intensity = 64 + (191 * (grid.maximum - distance$) / grid.maximum | 0);
+            return A3($Color.rgb,intensity,intensity,0);
+         }
+   });
+   return _elm.WeightedGrid.values = {_op: _op,cellBackgroundColor: cellBackgroundColor,Diter: Diter,distances: distances};
+};
 Elm.Sidewinder = Elm.Sidewinder || {};
 Elm.Sidewinder.make = function (_elm) {
    "use strict";
@@ -13500,7 +13554,7 @@ Elm.Maze.make = function (_elm) {
       if (_p10.ctor === "Just") {
             return _p10._0.alg;
          } else {
-            return A2(_U.crash("Maze",{start: {line: 258,column: 17},end: {line: 258,column: 28}}),"Unknown algorithm",BinaryTree);
+            return A2(_U.crash("Maze",{start: {line: 259,column: 17},end: {line: 259,column: 28}}),"Unknown algorithm",BinaryTree);
          }
    };
    return _elm.Maze.values = {_op: _op
