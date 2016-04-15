@@ -165,7 +165,7 @@ view maze =
                            fromElement <| Grid.toElement coloredGrid Grid.painter ColoredGrid.cellBackgroundColor cellSize
 
                     Polar ->
-                        let (root, _) = GridCell.toPolarCell <| PolarGrid.center maze.grid
+                        let root = PolarGrid.center maze.grid
                             coloredGrid = ColoredGrid.createGrid maze.grid root
                         in
                             fromElement <| Grid.toElement coloredGrid PolarGrid.painter ColoredGrid.cellBackgroundColor cellSize

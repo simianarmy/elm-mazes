@@ -3,35 +3,24 @@ module WeightedGrid where
 import Distances exposing (Distances)
 import DistanceGrid exposing (CellDistances)
 import GridCell exposing (GridCell)
-import Grid
+import Grid exposing (Grid)
 
 import Color exposing (Color, rgb)
 
 -- this means we have a dists property
 type alias Weighted a = {
     a |
-        dists : Distances,
         maximum : Int
     }
 
-createGrid grid root =
-    let grid' = {grid |
-            dists = distances grid root
-        }
-        (farthest, max) = Distances.max grid'.dists
+-- init : Grid a -> GridCell -> Weighted (CellDistances (Grid a))
+init grid start =
+    let ds = distances grid start
     in
-       {grid' | maximum = max}
-
-cellBackgroundColor : Weighted a -> GridCell -> Color
-cellBackgroundColor grid gc =
-    if (GridCell.base gc).weight > 1
-       then Color.rgb 255 0 0
-       else
-       let distance = Distances.lookup grid.dists (GridCell.base gc)
-           distance' = if distance == -1 then 0 else distance
-           intensity = 64 + 191 * (grid.maximum - distance') // grid.maximum
-       in
-          Color.rgb intensity intensity 0
+       {grid |
+           dists = ds,
+           maximum = 1
+       }
 
 -- Accumulator for distances function
 type alias Diter = {
@@ -41,8 +30,11 @@ type alias Diter = {
 }
 
 -- Our modified Dijkstra's returns a Distances type
+-- distances : Grid a -> GridCell -> Distances
 distances grid root =
-    let weights = Distances.init (GridCell.base root)
+    -- create a CellDistances grid
+    let dgrid = DistanceGrid.createGrid grid root
+        weights = dgrid.dists
         acc = {
             curCell = root,
             weights = weights,
@@ -81,4 +73,15 @@ distances grid root =
     in
        .weights (pendingAcc acc)
 
+
+cellBackgroundColor : Weighted (CellDistances (Grid a)) -> GridCell -> Color
+cellBackgroundColor grid gc =
+    if (GridCell.base gc).weight > 1
+       then Color.rgb 255 0 0
+       else
+       let distance = Distances.lookup grid.dists (GridCell.base gc)
+           distance' = if distance == -1 then 0 else distance
+           intensity = 64 + 191 * (grid.maximum - distance') // grid.maximum
+       in
+          Color.rgb intensity intensity 0
 

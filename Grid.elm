@@ -269,9 +269,9 @@ east : Grid a -> Cell -> Maybe GridCell
 east grid cell =
     getCell grid cell.row (cell.col + 1)
 
-center : Grid a -> Cell
+center : Grid a -> GridCell
 center grid =
-    maybeGridCellToCell <| getCell grid (grid.rows // 2) (grid.cols // 2)
+    maybeGridCellToGridCell <| getCell grid (grid.rows // 2) (grid.cols // 2)
 
 randomCell : Grid a -> Maybe GridCell
 randomCell grid =

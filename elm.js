@@ -13220,7 +13220,14 @@ Elm.WeightedGrid.make = function (_elm) {
             return A3($Color.rgb,intensity,intensity,0);
          }
    });
-   return _elm.WeightedGrid.values = {_op: _op,cellBackgroundColor: cellBackgroundColor,Diter: Diter,distances: distances};
+   var createGrid = F2(function (grid,root) {
+      var grid$ = _U.update(grid,{dists: A2(distances,grid,root)});
+      var _p0 = $Distances.max(grid$.dists);
+      var farthest = _p0._0;
+      var max = _p0._1;
+      return _U.update(grid$,{maximum: max});
+   });
+   return _elm.WeightedGrid.values = {_op: _op,createGrid: createGrid,cellBackgroundColor: cellBackgroundColor,Diter: Diter,distances: distances};
 };
 Elm.Sidewinder = Elm.Sidewinder || {};
 Elm.Sidewinder.make = function (_elm) {

@@ -12,10 +12,10 @@ import Html exposing (..)
 type alias CellDistances a = {
     a |
         dists : Distances
-}
+    }
 
 -- Creates grid with distances from Grid
---createGrid : Grid a -> Cell -> CellDistances (Grid a)
+-- createGrid : Grid a -> GridCell -> CellDistances (Grid a)
 createGrid grid root =
     let cellDistances = distances grid root
     in
@@ -24,9 +24,9 @@ createGrid grid root =
        }
 
 -- Returns all distances from a root cell
---distances : CellDistances (Grid a) -> Cell -> Distances
+distances : CellDistances (Grid a) -> GridCell -> Distances
 distances grid root =
-    Dijkstra.cellDistances grid root
+    Dijkstra.cellDistances grid (GridCell.base root)
 
 cellToAscii : CellDistances (Grid a) -> Cell -> String
 cellToAscii dgrid cell =
@@ -42,9 +42,11 @@ viewDistances dgrid =
     toAscii dgrid cellToAscii
 
 ---- Finds shortest path between 2 cells
-pathTo : CellDistances (Grid a) -> Cell -> Cell -> Distances
-pathTo grid root goal =
-    let dgrid = createGrid grid root
+pathTo : CellDistances (Grid a) -> GridCell -> GridCell -> Distances
+pathTo grid gcroot gcgoal =
+    let root = GridCell.base gcroot
+        goal = GridCell.base gcgoal
+        dgrid = createGrid grid gcroot
         current = goal
         breadcrumbs = Distances.add (Distances.init root) current (lookup dgrid.dists current)
 
@@ -72,13 +74,13 @@ pathTo grid root goal =
        walkPath breadcrumbs current
 
 ---- Finds longest path from a cell
-longestPath : CellDistances (Grid a) -> Cell -> Distances
+longestPath : CellDistances (Grid a) -> GridCell -> Distances
 longestPath grid root =
     let dgrid = createGrid grid root
         (cellId, foo) = Distances.max dgrid.dists
-        newStartCell = GridCell.toRectCell <| Grid.cellIdToCell grid cellId
+        newStartCell = Grid.cellIdToCell grid cellId
         dgrid' = createGrid grid newStartCell
         (goalId, foo') = Distances.max dgrid'.dists
-        goal = GridCell.toRectCell <| Grid.cellIdToCell grid goalId
+        goal = Grid.cellIdToCell grid goalId
     in
        pathTo grid newStartCell goal
