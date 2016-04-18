@@ -13,7 +13,7 @@ type alias Weighted a = {
         maximum : Int
     }
 
--- init : Grid a -> GridCell -> Weighted (CellDistances (Grid a))
+init : Grid a -> GridCell -> Weighted (CellDistances (Grid a))
 init grid start =
     let ds = distances grid start
     in
