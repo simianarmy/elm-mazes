@@ -4,22 +4,20 @@ import Distances exposing (Distances)
 import DistanceGrid exposing (CellDistances)
 import GridCell exposing (GridCell)
 import Grid exposing (Grid)
+import ColoredGrid exposing (Colored)
 
 import Color exposing (Color, rgb)
 
 -- this means we have a dists property
-type alias Weighted a = {
-    a |
-        maximum : Int
-    }
 
-init : Grid a -> GridCell -> Weighted (CellDistances (Grid a))
+-- init : Grid a -> GridCell -> Colored (CellDistances (Grid a))
 init grid start =
     let ds = distances grid start
+        (farthest, max) = Distances.max ds
     in
        {grid |
            dists = ds,
-           maximum = 1
+           maximum = max
        }
 
 -- Accumulator for distances function
@@ -74,7 +72,7 @@ distances grid root =
        .weights (pendingAcc acc)
 
 
-cellBackgroundColor : Weighted (CellDistances (Grid a)) -> GridCell -> Color
+cellBackgroundColor : Colored (CellDistances (Grid a)) -> GridCell -> Color
 cellBackgroundColor grid gc =
     if (GridCell.base gc).weight > 1
        then Color.rgb 255 0 0

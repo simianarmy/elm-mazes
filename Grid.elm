@@ -50,10 +50,10 @@ createGridFromMask mask initSeed cellMaker =
         cells = cellMaker mask,
         cellMaker = cellMaker,
         rnd = createGridRnd mask.rows mask.cols initSeed,
-        mask = mask
+        mask = mask,
         -- WELP, NOW I HAVE TO ADD OTHER TYPES' PROPS :(
-        -- maximum = 0,
-        -- dists = []
+        maximum = 0,
+        dists = []
     }
 
 -- updates all rngs with fresh seeds
