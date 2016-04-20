@@ -82,13 +82,17 @@ makeCells mask =
     in
        Array.initialize mask.rows (\n -> makeRow n mask.cols)
 
+-- We need to pass Colored but that would mean Grid would have a cyclic 
+-- dependency on it, so what I need to do is probably move cellPainter to
+-- ColoredGrid.
+--
 -- generates collage object (Element) of the grid
 -- Takes 2 painter functions: one for the whole grid and one for each cell
-toElement : {b : Grid a} ->
+toElement : Colored a ->
     -- grid painter
-    (({b: Grid a} -> GridCell -> Color) -> {b: Grid a} -> Int -> Element) -> 
+    ((Grid a -> GridCell -> Color) -> Grid a -> Int -> Element) -> 
     -- cell painter
-    ({b: Grid a} -> GridCell -> Color) -> 
+    (Grid a -> GridCell -> Color) -> 
     -- cell size
     Int ->
     -- returns

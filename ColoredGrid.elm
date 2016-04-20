@@ -9,10 +9,9 @@ import Grid exposing (Grid)
 
 import Color exposing (Color, rgb)
 
-type alias Colored a = {
-    a |
-        grid : CellDistances a,
-        maximum : Int
+type alias Colored a =
+    { grid : CellDistances a
+    , maximum : Int
     }
 
 createGrid : Grid a -> GridCell -> Colored a

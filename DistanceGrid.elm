@@ -9,10 +9,9 @@ import IntToBaseX exposing (toBaseX)
 
 import Html exposing (..)
 
-type alias CellDistances a = {
-    a |
-        grid : Grid a,
-        dists : Distances
+type alias CellDistances a =
+    { grid : Grid a
+    , dists : Distances
     }
 
 -- Creates grid with distances from Grid
