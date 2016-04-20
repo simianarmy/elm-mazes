@@ -50,10 +50,10 @@ createGridFromMask mask initSeed cellMaker =
         cells = cellMaker mask,
         cellMaker = cellMaker,
         rnd = createGridRnd mask.rows mask.cols initSeed,
-        mask = mask,
+        mask = mask
         -- WELP, NOW I HAVE TO ADD OTHER TYPES' PROPS :(
-        maximum = 0,
-        dists = []
+        -- maximum = 0,
+        -- dists = []
     }
 
 -- updates all rngs with fresh seeds
@@ -311,7 +311,7 @@ deadEnds grid =
 -- braid : Grid a -> 
 --     -- neighbors fn
 --     (Grid a -> GridCell -> List GridCell) ->
---     Float -> Grid a
+--         Float -> Grid a
 braid grid neighborsFn p =
     let randpGen = Random.generate (Random.float 0 1.0)
 

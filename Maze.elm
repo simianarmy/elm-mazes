@@ -3,7 +3,7 @@ module Maze where
 import Grid exposing (..)
 import DistanceGrid
 import ColoredGrid
-import WeightedGrid
+--import WeightedGrid
 import PolarGrid
 import HexGrid
 import TriangleGrid
@@ -199,7 +199,7 @@ viewDistances maze =
     let --root = toValidCell <| getCell maze.grid 1 1
         root = Grid.center maze.grid
         --goal = toValidCell <| getCell maze.grid maze.grid.rows 1
-        dgrid = DistanceGrid.createGrid maze.grid root
+        -- dgrid = DistanceGrid.createGrid maze.grid root
         --pathDistances = DistanceGrid.pathTo maze.grid root goal
         --pathGrid = {dgrid | dists = pathDistances}
         --longDistances = DistanceGrid.longestPath maze.grid root
@@ -209,7 +209,7 @@ viewDistances maze =
        div [] [
           br [] [] 
            --, text <| "Cell distances from " ++ rootStr ++ ":"
-           , pre [] [text <| DistanceGrid.viewDistances dgrid]
+           -- , pre [] [text <| DistanceGrid.viewDistances dgrid]
            --, text <| "Shortest path from " ++ rootStr ++ " to SW corner:"
            --, pre [] [text <| DistanceGrid.viewDistances pathGrid]
 --           , text "Longest path:"

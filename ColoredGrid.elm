@@ -14,7 +14,7 @@ type alias Colored a = {
         maximum : Int
     }
 
---createGrid : Grid a -> Cell -> Colored (CellDistances (Grid a))
+createGrid : Grid a -> GridCell -> Colored (CellDistances (Grid a))
 createGrid grid root =
     let grid' = DistanceGrid.createGrid grid root
         (farthest, max) = Distances.max grid'.dists
