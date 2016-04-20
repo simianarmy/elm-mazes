@@ -84,11 +84,11 @@ makeCells mask =
 
 -- generates collage object (Element) of the grid
 -- Takes 2 painter functions: one for the whole grid and one for each cell
-toElement : Grid a -> 
+toElement : {b : Grid a} ->
     -- grid painter
-    ((Grid a -> GridCell -> Color) -> Grid a -> Int -> Element) -> 
+    (({b: Grid a} -> GridCell -> Color) -> {b: Grid a} -> Int -> Element) -> 
     -- cell painter
-    (Grid a -> GridCell -> Color) -> 
+    ({b: Grid a} -> GridCell -> Color) -> 
     -- cell size
     Int ->
     -- returns
