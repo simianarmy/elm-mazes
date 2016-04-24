@@ -7,6 +7,7 @@ import ColoredGrid
 import PolarGrid
 import HexGrid
 import TriangleGrid
+import GridRenderer
 import Rnd
 import Mask
 import GridCell exposing (GridCell)
@@ -18,8 +19,9 @@ import HuntAndKill
 import RecursiveBacktracker
 
 import Random.PCG as Random exposing (Seed, initialSeed, split)
-import Html exposing (..)
+import Html exposing (pre, br, text, div)
 import Html.Attributes exposing (..)
+import Graphics.Element exposing (Element)
 
 type Algorithm = NoOp
                | BinaryTree
@@ -157,30 +159,7 @@ view maze =
                 pre [] [text <| Grid.toAscii maze.grid Grid.cellToAscii]
 
             Colored ->
-                case maze.shape of
-                    Rect ->
-                        let root = Grid.center maze.grid
-                            coloredGrid = ColoredGrid.createGrid maze.grid root
-                        in
-                           fromElement <| Grid.toElement coloredGrid Grid.painter ColoredGrid.cellBackgroundColor cellSize
-
-                    Polar ->
-                        let root = PolarGrid.center maze.grid
-                            coloredGrid = ColoredGrid.createGrid maze.grid root
-                        in
-                            fromElement <| Grid.toElement coloredGrid PolarGrid.painter ColoredGrid.cellBackgroundColor cellSize
-
-                    Hex ->
-                        let root = Grid.center maze.grid
-                            coloredGrid = ColoredGrid.createGrid maze.grid root
-                        in
-                           fromElement <| Grid.toElement coloredGrid HexGrid.painter ColoredGrid.cellBackgroundColor cellSize
-
-                    Triangle ->
-                        let root = Grid.center maze.grid
-                            coloredGrid = ColoredGrid.createGrid maze.grid root
-                        in
-                           fromElement <| Grid.toElement coloredGrid TriangleGrid.painter ColoredGrid.cellBackgroundColor cellSize
+                Html.fromElement <| mazeToElement maze
 
     in
        div [] [
@@ -215,6 +194,34 @@ viewDistances maze =
 --           , text "Longest path:"
 --           , pre [] [text <| DistanceGrid.viewDistances longGrid]
            ]
+
+-- Renders maze as an HTML element
+mazeToElement : Maze a -> Element
+mazeToElement maze =
+    let cellPainter = ColoredGrid.cellBackgroundColor
+        renderer = GridRenderer.toElement maze.grid
+        renderer' = case maze.shape of
+            Rect ->
+                let root = Grid.center maze.grid
+                in
+                   renderer Grid.painter root
+
+            Polar ->
+                let root = PolarGrid.center maze.grid
+                in
+                   renderer PolarGrid.painter root
+
+            Hex ->
+                let root = Grid.center maze.grid
+                in
+                   renderer HexGrid.painter root
+
+            Triangle ->
+                let root = Grid.center maze.grid
+                in
+                   renderer TriangleGrid.painter root
+    in
+       renderer' ColoredGrid.cellBackgroundColor cellSize
 
 -- returns available maze algorithms for the maze shape
 algorithms : Shape -> List AlgAttr

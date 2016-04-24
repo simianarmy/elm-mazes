@@ -25,7 +25,7 @@ createGrid grid root =
        }
 
 -- Returns all distances from a root cell
-distances : CellDistances a -> GridCell -> Distances
+distances : Grid a -> GridCell -> Distances
 distances grid root =
     Dijkstra.cellDistances grid (GridCell.base root)
 
@@ -34,22 +34,22 @@ cellToAscii dgrid cell =
     let dist = lookup dgrid.dists cell
     in
        if dist == -1
-          then Grid.cellToAscii dgrid cell
+          then Grid.cellToAscii dgrid.grid cell
           else toBaseX dist 36
 
 ---- distances view
-viewDistances : CellDistances a -> String
-viewDistances dgrid =
-    toAscii dgrid cellToAscii
+--viewDistances : CellDistances a -> String
+--viewDistances dgrid =
+--    toAscii dgrid.grid cellToAscii
 
 ---- Finds shortest path between 2 cells
 pathTo : CellDistances a -> GridCell -> GridCell -> Distances
-pathTo grid gcroot gcgoal =
+pathTo dgrid gcroot gcgoal =
     let root = GridCell.base gcroot
         goal = GridCell.base gcgoal
-        dgrid = createGrid grid gcroot
+        dgrid' = createGrid dgrid.grid gcroot
         current = goal
-        breadcrumbs = Distances.add (Distances.init root) current (lookup dgrid.dists current)
+        breadcrumbs = Distances.add (Distances.init root) current (lookup dgrid'.dists current)
 
         walkPath : Distances -> Cell -> Distances
         walkPath xpbreadcrumbs xpcurrent =
@@ -57,7 +57,7 @@ pathTo grid gcroot gcgoal =
                then xpbreadcrumbs
                else
                -- scan each linked cell
-               let links = Grid.gridCellsToBaseCells <| Grid.linkedCells grid (RectCellTag xpcurrent)
+               let links = Grid.gridCellsToBaseCells <| Grid.linkedCells dgrid.grid (RectCellTag xpcurrent)
                    currentDistance = lookup dgrid.dists xpcurrent
                    res = List.filter (\neighbor ->
                        (lookup dgrid.dists neighbor) < currentDistance
@@ -76,12 +76,12 @@ pathTo grid gcroot gcgoal =
 
 ---- Finds longest path from a cell
 longestPath : CellDistances a -> GridCell -> Distances
-longestPath grid root =
-    let dgrid = createGrid grid root
-        (cellId, foo) = Distances.max dgrid.dists
-        newStartCell = Grid.cellIdToCell grid cellId
-        dgrid' = createGrid grid newStartCell
-        (goalId, foo') = Distances.max dgrid'.dists
-        goal = Grid.cellIdToCell grid goalId
+longestPath dgrid root =
+    let dgrid' = createGrid dgrid.grid root
+        (cellId, foo) = Distances.max dgrid'.dists
+        newStartCell = Grid.cellIdToCell dgrid.grid cellId
+        dgrid'' = createGrid dgrid.grid newStartCell
+        (goalId, foo') = Distances.max dgrid''.dists
+        goal = Grid.cellIdToCell dgrid.grid goalId
     in
-       pathTo grid newStartCell goal
+       pathTo dgrid newStartCell goal

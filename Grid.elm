@@ -82,24 +82,6 @@ makeCells mask =
     in
        Array.initialize mask.rows (\n -> makeRow n mask.cols)
 
--- We need to pass Colored but that would mean Grid would have a cyclic 
--- dependency on it, so what I need to do is probably move cellPainter to
--- ColoredGrid.
---
--- generates collage object (Element) of the grid
--- Takes 2 painter functions: one for the whole grid and one for each cell
-toElement : Colored a ->
-    -- grid painter
-    ((Grid a -> GridCell -> Color) -> Grid a -> Int -> Element) -> 
-    -- cell painter
-    (Grid a -> GridCell -> Color) -> 
-    -- cell size
-    Int ->
-    -- returns
-    Element
-toElement grid gridPainter cellPainter cellSize =
-    gridPainter cellPainter grid cellSize
-
 -- Returns string ASCII representation of a grid
 toAscii : Grid a -> (Grid a -> Cell -> String) -> String
 toAscii grid cellViewer =
@@ -132,8 +114,9 @@ toAscii grid cellViewer =
        String.concat (List.map rowToStrings [0..grid.rows-1])
 
 -- generates rectangular grid element
-painter : (Grid a -> GridCell -> Color) -> Grid a -> Int -> Element
-painter cellPainter grid cellSize =
+-- Can cellPainter be used in such a way that a ColoredGrid type does not have to be mentioned or used?
+painter : Grid a -> (GridCell -> Color) -> Int -> Element
+painter grid cellPainter cellSize =
     let imgWidth = cellSize * grid.cols
         imgHeight = cellSize * grid.rows
         ox = toFloat (negate imgWidth) / 2.0
@@ -167,7 +150,7 @@ painter cellPainter grid cellSize =
         cellBackground : LineStyle -> GridCell -> Form
         cellBackground style cell =
             let rectcell = GridCell.base cell
-                bgRect = filled (cellPainter grid cell) (cellToRect rectcell)
+                bgRect = filled (cellPainter cell) (cellToRect rectcell)
                 --dbg = outlinedText style (Text.fromString " C ")
                 halfSize = (toFloat cellSize) / 2.0
                 cx = toFloat (rectcell.col * cellSize) + halfSize

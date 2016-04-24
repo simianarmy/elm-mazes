@@ -101,8 +101,8 @@ type alias HexVertices = {
     y_s : Float
 }
 
-painter :  (Grid a -> GridCell -> Color) -> Grid a -> Int -> GE.Element
-painter cellPainter grid cellSize =
+painter : Grid a -> (GridCell -> Color) -> Int -> GE.Element
+painter grid cellPainter cellSize =
     let asize = cellSize / 2
         bsize = cellSize * (sqrt 3) / 2
         width = cellSize * 2
@@ -116,7 +116,7 @@ painter cellPainter grid cellSize =
 
         cellBackground : GridCell -> HexVertices -> GC.Form
         cellBackground gc vx = 
-            let color = cellPainter grid gc
+            let color = cellPainter gc
                 ngon = GC.polygon [(vx.x_fw, vx.y_m), (vx.x_nw, vx.y_n), (vx.x_ne, vx.y_n), (vx.x_fe, vx.y_m), (vx.x_ne, vx.y_s), (vx.x_nw, vx.y_s)]
                 outline = GC.solid color
             in

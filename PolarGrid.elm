@@ -188,8 +188,8 @@ neighbors grid cell =
                List.append (List.concat [cw, ccw, inward]) outward
         _ -> []
 
-painter :  (Grid a -> GridCell -> Color) -> Grid a -> Int -> GE.Element
-painter cellPainter grid cellSize =
+painter : Grid a -> (GridCell -> Color) -> Int -> GE.Element
+painter grid cellPainter cellSize =
     let imgSize = 2 * grid.rows * cellSize
         wall = Color.black
         center = (toFloat imgSize) / 2
@@ -223,7 +223,7 @@ painter cellPainter grid cellSize =
                 line2 = if not linkedCw
                            then [GC.segment (cx, cy) (dx, dy)]
                            else []
-                filled = GC.filled (cellPainter grid gc) <| (GC.polygon [(ax, ay), (bx, by), (midX, midY), (dx, dy), (cx, cy)])
+                filled = GC.filled (cellPainter gc) <| (GC.polygon [(ax, ay), (bx, by), (midX, midY), (dx, dy), (cx, cy)])
             in
                filled :: (List.map (GC.traced GC.defaultLine) <| List.concat [line1, line2])
 

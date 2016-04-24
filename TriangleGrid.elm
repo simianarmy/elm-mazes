@@ -77,8 +77,8 @@ type alias Points = {
     baseY : Float
 }
 
-painter :  (Grid a -> GridCell -> Color) -> Grid a -> Int -> GE.Element
-painter cellPainter grid cellSize =
+painter : Grid a -> (GridCell -> Color) -> Int -> GE.Element
+painter grid cellPainter cellSize =
     let halfWidth = (toFloat cellSize) / 2
         height = (toFloat cellSize) * (sqrt 3) / 2
         halfHeight = height / 2
@@ -91,7 +91,7 @@ painter cellPainter grid cellSize =
 
         cellBackground : GridCell -> Points -> GC.Form
         cellBackground gc vx = 
-            let color = cellPainter grid gc
+            let color = cellPainter gc
                 ngon = GC.polygon [(vx.westX, vx.baseY), (vx.midX, vx.apexY), (vx.eastX, vx.baseY)]
                 outline = GC.solid color
             in
