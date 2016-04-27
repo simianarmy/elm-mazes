@@ -187,7 +187,7 @@ viewDistances maze =
     in
        div [] [
           br [] [] 
-           --, text <| "Cell distances from " ++ rootStr ++ ":"
+           text <| "Cell distances from " ++ rootStr ++ ":"
            -- , pre [] [text <| DistanceGrid.viewDistances dgrid]
            --, text <| "Shortest path from " ++ rootStr ++ " to SW corner:"
            --, pre [] [text <| DistanceGrid.viewDistances pathGrid]
