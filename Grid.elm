@@ -83,13 +83,14 @@ makeCells mask =
        Array.initialize mask.rows (\n -> makeRow n mask.cols)
 
 -- Returns string ASCII representation of a grid
-toAscii : Grid a -> (Grid a -> Cell -> String) -> String
+toAscii : Grid a -> (GridCell -> String) -> String
 toAscii grid cellViewer =
-    let cellToString : BaseCell -> RowAscii -> RowAscii
+    let cellToString : GridCell -> RowAscii -> RowAscii
         cellToString cell ascii =
-            let body = " " ++ (cellViewer grid cell) ++ " "
-                east_boundary = (if Cell.isLinked cell (maybeGridCellToCell (east grid cell)) then " " else "|")
-                south_boundary = (if Cell.isLinked cell (maybeGridCellToCell (south grid cell)) then "   " else "---")
+            let bcell = GridCell.base cell
+                body = " " ++ (cellViewer cell) ++ " "
+                east_boundary = (if Cell.isLinked bcell (maybeGridCellToCell (east grid bcell)) then " " else "|")
+                south_boundary = (if Cell.isLinked bcell (maybeGridCellToCell (south grid bcell)) then "   " else "---")
                 curtop = ascii.top
                 curbottom = ascii.bottom
             in
@@ -105,8 +106,8 @@ toAscii grid cellViewer =
                 top = "|",
                 bottom = "+"
                 }
-                baseCells = gridCellsToBaseCells <| rowCells grid row
-                finalascii = List.foldl cellToString rowascii baseCells
+                cells = rowCells grid row
+                finalascii = List.foldl cellToString rowascii cells
             in
                finalascii.top ++ "\n" ++ finalascii.bottom ++ "\n"
     in
@@ -421,11 +422,11 @@ cellIdToCell grid cellid =
 
 toTitle : Grid a -> String
 toTitle grid =
-    toString grid.rows ++ " X " ++ toString grid.cols ++ " Grid"
+    Basics.toString grid.rows ++ " X " ++ Basics.toString grid.cols ++ " Grid"
 
-cellToAscii : Grid a -> Cell -> String
+cellToAscii : Grid a -> GridCell -> String
 cellToAscii grid cell = 
-    if cell.masked
+    if (GridCell.base cell).masked
        then "M"
        else " "
 

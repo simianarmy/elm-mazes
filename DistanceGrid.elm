@@ -29,7 +29,7 @@ distances : Grid a -> GridCell -> Distances
 distances grid root =
     Dijkstra.cellDistances grid (GridCell.base root)
 
-cellToAscii : CellDistances a -> Cell -> String
+cellToAscii : CellDistances a -> GridCell -> String
 cellToAscii dgrid cell =
     let dist = lookup dgrid.dists cell
     in

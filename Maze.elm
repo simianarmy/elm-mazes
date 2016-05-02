@@ -156,7 +156,7 @@ updateBraiding maze factor =
 view maze =
     let gridHtml = case maze.display of
             Ascii ->
-                pre [] [text <| Grid.toAscii maze.grid Grid.cellToAscii]
+                pre [] [text <| GridRenderer.toAscii maze.grid Grid.toAscii (Grid.center maze.grid) Grid.cellToAscii]
 
             Colored ->
                 Html.fromElement <| mazeToElement maze
@@ -170,7 +170,7 @@ view maze =
            , text <| (toString <| List.length (Grid.deadEnds maze.grid)) ++ " deadends"
            , gridHtml
            , br [] []
-           --, viewDistances maze
+           , viewDistances maze
            ]
 
 --viewDistances : Maze a -> Html
@@ -178,17 +178,17 @@ viewDistances maze =
     let --root = toValidCell <| getCell maze.grid 1 1
         root = Grid.center maze.grid
         --goal = toValidCell <| getCell maze.grid maze.grid.rows 1
-        -- dgrid = DistanceGrid.createGrid maze.grid root
+        --dgrid = DistanceGrid.createGrid maze.grid root
         --pathDistances = DistanceGrid.pathTo maze.grid root goal
         --pathGrid = {dgrid | dists = pathDistances}
         --longDistances = DistanceGrid.longestPath maze.grid root
         --longGrid = {dgrid | dists = longDistances}
-        --rootStr = Cell.cellToString root
+        rootStr = GridCell.toString root
     in
        div [] [
           br [] [] 
-           text <| "Cell distances from " ++ rootStr ++ ":"
-           -- , pre [] [text <| DistanceGrid.viewDistances dgrid]
+          , text <| "Cell distances from " ++ rootStr ++ ":"
+           --, pre [] [text <| DistanceGrid.viewDistances dgrid]
            --, text <| "Shortest path from " ++ rootStr ++ " to SW corner:"
            --, pre [] [text <| DistanceGrid.viewDistances pathGrid]
 --           , text "Longest path:"

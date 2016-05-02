@@ -103,3 +103,5 @@ filterGridCells : (BaseCell -> Bool) -> List GridCell -> List GridCell
 filterGridCells fn cells =
     List.filter (fn << base) cells
 
+toString : GridCell -> String
+toString gc = Cell.cellToString (base gc)

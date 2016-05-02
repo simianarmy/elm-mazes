@@ -11899,6 +11899,7 @@ Elm.GridCell.make = function (_elm) {
    var toRectCell = function (cell) {    return base(cell);};
    var maybeGridCellToMaybeCell = function (cell) {    return A2($Maybe.map,base,cell);};
    var filterGridCells = F2(function (fn,cells) {    return A2($List.filter,function (_p2) {    return fn(base(_p2));},cells);});
+   var toString = function (gc) {    return $Cell.cellToString(base(gc));};
    var isValidCell = function (cell) {    var _p3 = cell;if (_p3.ctor === "Nothing") {    return false;} else {    return true;}};
    var id = function (gc) {
       var _p4 = gc;
@@ -11971,7 +11972,8 @@ Elm.GridCell.make = function (_elm) {
                                  ,maybeGridCellToCell: maybeGridCellToCell
                                  ,maybeGridCellToMaybeCell: maybeGridCellToMaybeCell
                                  ,maybeGridCellToGridCell: maybeGridCellToGridCell
-                                 ,filterGridCells: filterGridCells};
+                                 ,filterGridCells: filterGridCells
+                                 ,toString: toString};
 };
 Elm.RandomExtras = Elm.RandomExtras || {};
 Elm.RandomExtras.make = function (_elm) {
@@ -13384,7 +13386,10 @@ Elm.Maze.make = function (_elm) {
    };
    var viewDistances = function (maze) {
       var root = $Grid.center(maze.grid);
-      return A2($Html.div,_U.list([]),_U.list([A2($Html.br,_U.list([]),_U.list([]))]));
+      var rootStr = $GridCell.toString(root);
+      return A2($Html.div,
+      _U.list([]),
+      _U.list([A2($Html.br,_U.list([]),_U.list([])),$Html.text(A2($Basics._op["++"],"Cell distances from ",A2($Basics._op["++"],rootStr,":")))]));
    };
    var setMask = F2(function (maze,mask) {
       var grid$ = A3($Grid.createGridFromMask,mask,maze.grid.rnd.seed,maze.grid.cellMaker);
@@ -13461,7 +13466,8 @@ Elm.Maze.make = function (_elm) {
               ,A2($Html.br,_U.list([]),_U.list([]))
               ,$Html.text(A2($Basics._op["++"],$Basics.toString($List.length($Grid.deadEnds(maze.grid)))," deadends"))
               ,gridHtml
-              ,A2($Html.br,_U.list([]),_U.list([]))]));
+              ,A2($Html.br,_U.list([]),_U.list([]))
+              ,viewDistances(maze)]));
    };
    var defaultBraidFactor = 0;
    var init = F6(function (algType,width,height,seed,shape,display) {

@@ -2,11 +2,29 @@ module GridRenderer where
 
 import Grid exposing (Grid)
 import GridCell exposing (GridCell)
+import DistanceGrid exposing (CellDistances)
 import ColoredGrid exposing (Colored)
 
 import Html
 import Graphics.Element as GE
 import Color exposing (Color, rgb)
+
+toAscii :
+    -- maze grid
+    Grid a ->
+    -- grid drawer
+    Grid a -> GridCell -> String
+    -- start cell
+    GridCell ->
+    -- cell renderer
+    (CellDistances a -> GridCell -> String) ->
+    -- returns
+    String
+toAscii grid gridPainter startCell cellPainter =
+    let dg = DistanceGrid.createGrid grid startCell
+        cellPainter' = cellPainter dg
+    in
+       gridPainter grid cellPainter'
 
 -- We need to pass Colored but that would mean Grid would have a cyclic 
 -- dependency on it, so what I need to do is probably move cellPainter to
