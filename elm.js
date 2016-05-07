@@ -13027,12 +13027,12 @@ Elm.DistanceGrid.make = function (_elm) {
       var breadcrumbs = A3($Distances.add,$Distances.init(root),current,A2($Distances.lookup,dgrid$.dists,current));
       var walkPath = F2(function (xpbreadcrumbs,xpcurrent) {
          walkPath: while (true) if (_U.eq(xpcurrent.id,root.id)) return xpbreadcrumbs; else {
-               var currentDistance = A2($Distances.lookup,dgrid.dists,xpcurrent);
-               var links = $Grid.gridCellsToBaseCells(A2($Grid.linkedCells,dgrid.grid,$GridCell.RectCellTag(xpcurrent)));
-               var res = A2($List.filter,function (neighbor) {    return _U.cmp(A2($Distances.lookup,dgrid.dists,neighbor),currentDistance) < 0;},links);
+               var currentDistance = A2($Distances.lookup,dgrid$.dists,xpcurrent);
+               var links = $Grid.gridCellsToBaseCells(A2($Grid.linkedCells,dgrid$.grid,$GridCell.RectCellTag(xpcurrent)));
+               var res = A2($List.filter,function (neighbor) {    return _U.cmp(A2($Distances.lookup,dgrid$.dists,neighbor),currentDistance) < 0;},links);
                if ($List.isEmpty(res)) return xpbreadcrumbs; else {
                      var neighbor = $Grid.toValidCell($List.head(res));
-                     var ixpbreadcrumbs = A3($Distances.add,xpbreadcrumbs,neighbor,A2($Distances.lookup,dgrid.dists,neighbor));
+                     var ixpbreadcrumbs = A3($Distances.add,xpbreadcrumbs,neighbor,A2($Distances.lookup,dgrid$.dists,neighbor));
                      var _v0 = ixpbreadcrumbs,_v1 = neighbor;
                      xpbreadcrumbs = _v0;
                      xpcurrent = _v1;
@@ -13390,14 +13390,26 @@ Elm.Maze.make = function (_elm) {
          default: return "Recursive Backtracker";}
    };
    var viewDistances = function (maze) {
-      var root = $Grid.center(maze.grid);
-      var dgrid = A2($DistanceGrid.createGrid,maze.grid,root);
-      var rootStr = $GridCell.toString(root);
+      var goal = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,maze.grid,maze.grid.rows - 1,0));
+      var start = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,maze.grid,0,0));
+      var center = $Grid.center(maze.grid);
+      var dgrid = A2($DistanceGrid.createGrid,maze.grid,center);
+      var pathDistances = A2($Debug.log,"shortest path dists ",A3($DistanceGrid.pathTo,dgrid,start,goal));
+      var shortestPathGrid = _U.update(dgrid,{dists: pathDistances});
+      var longDistances = A2($DistanceGrid.longestPath,dgrid,center);
+      var longestPathGrid = _U.update(dgrid,{dists: longDistances});
+      var rootStr = $GridCell.toString(center);
       return A2($Html.div,
       _U.list([]),
       _U.list([A2($Html.br,_U.list([]),_U.list([]))
               ,$Html.text(A2($Basics._op["++"],"Cell distances from ",A2($Basics._op["++"],rootStr,":")))
-              ,A2($Html.pre,_U.list([]),_U.list([$Html.text($DistanceGrid.viewDistances(dgrid))]))]));
+              ,A2($Html.pre,_U.list([]),_U.list([$Html.text($DistanceGrid.viewDistances(dgrid))]))
+              ,$Html.text(A2($Basics._op["++"],
+              "Shortest path from ",
+              A2($Basics._op["++"],$GridCell.toString(start),A2($Basics._op["++"]," to :",$GridCell.toString(goal)))))
+              ,A2($Html.pre,_U.list([]),_U.list([$Html.text($DistanceGrid.viewDistances(shortestPathGrid))]))
+              ,$Html.text("Longest path in maze:")
+              ,A2($Html.pre,_U.list([]),_U.list([$Html.text($DistanceGrid.viewDistances(longestPathGrid))]))]));
    };
    var setMask = F2(function (maze,mask) {
       var grid$ = A3($Grid.createGridFromMask,mask,maze.grid.rnd.seed,maze.grid.cellMaker);
@@ -13534,7 +13546,7 @@ Elm.Maze.make = function (_elm) {
       if (_p9.ctor === "Just") {
             return _p9._0.alg;
          } else {
-            return A2(_U.crash("Maze",{start: {line: 266,column: 17},end: {line: 266,column: 28}}),"Unknown algorithm",BinaryTree);
+            return A2(_U.crash("Maze",{start: {line: 267,column: 17},end: {line: 267,column: 28}}),"Unknown algorithm",BinaryTree);
          }
    };
    return _elm.Maze.values = {_op: _op

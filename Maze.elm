@@ -176,23 +176,24 @@ view maze =
 --viewDistances : Maze a -> Html
 viewDistances maze =
     let --root = toValidCell <| getCell maze.grid 1 1
-        root = Grid.center maze.grid
-        --goal = toValidCell <| getCell maze.grid maze.grid.rows 1
-        dgrid = DistanceGrid.createGrid maze.grid root
-        --pathDistances = DistanceGrid.pathTo maze.grid root goal
-        --pathGrid = {dgrid | dists = pathDistances}
-        --longDistances = DistanceGrid.longestPath maze.grid root
-        --longGrid = {dgrid | dists = longDistances}
-        rootStr = GridCell.toString root
+        center = Grid.center maze.grid
+        start = GridCell.maybeGridCellToGridCell <| getCell maze.grid 0 0 -- NW corner
+        goal = GridCell.maybeGridCellToGridCell <| getCell maze.grid (maze.grid.rows - 1) 0 --SW corner
+        dgrid = DistanceGrid.createGrid maze.grid center
+        pathDistances = Debug.log "shortest path dists " <| DistanceGrid.pathTo dgrid start goal
+        shortestPathGrid = {dgrid | dists = pathDistances}
+        longDistances = DistanceGrid.longestPath dgrid center
+        longestPathGrid = {dgrid | dists = longDistances}
+        rootStr = GridCell.toString center
     in
        div [] [
           br [] [] 
           , text <| "Cell distances from " ++ rootStr ++ ":"
           , pre [] [text <| DistanceGrid.viewDistances dgrid]
-           --, text <| "Shortest path from " ++ rootStr ++ " to SW corner:"
-           --, pre [] [text <| DistanceGrid.viewDistances pathGrid]
---           , text "Longest path:"
---           , pre [] [text <| DistanceGrid.viewDistances longGrid]
+          , text <| "Shortest path from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString goal)
+          , pre [] [text <| DistanceGrid.viewDistances shortestPathGrid]
+          , text "Longest path in maze:"
+          , pre [] [text <| DistanceGrid.viewDistances longestPathGrid]
            ]
 
 -- Renders maze as an HTML element

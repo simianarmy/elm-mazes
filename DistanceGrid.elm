@@ -57,17 +57,17 @@ pathTo dgrid gcroot gcgoal =
                then xpbreadcrumbs
                else
                -- scan each linked cell
-               let links = Grid.gridCellsToBaseCells <| Grid.linkedCells dgrid.grid (RectCellTag xpcurrent)
-                   currentDistance = lookup dgrid.dists xpcurrent
+               let links = Grid.gridCellsToBaseCells <| Grid.linkedCells dgrid'.grid (RectCellTag xpcurrent)
+                   currentDistance = lookup dgrid'.dists xpcurrent
                    res = List.filter (\neighbor ->
-                       (lookup dgrid.dists neighbor) < currentDistance
+                       (lookup dgrid'.dists neighbor) < currentDistance
                    ) links
                in
                   if List.isEmpty res
                      then xpbreadcrumbs
                      else
                      let neighbor = Grid.toValidCell <| List.head res
-                         ixpbreadcrumbs = Distances.add xpbreadcrumbs neighbor (lookup dgrid.dists neighbor)
+                         ixpbreadcrumbs = Distances.add xpbreadcrumbs neighbor (lookup dgrid'.dists neighbor)
                      in
                         walkPath ixpbreadcrumbs neighbor
 
