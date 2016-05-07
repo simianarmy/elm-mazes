@@ -12096,7 +12096,7 @@ Elm.Grid.make = function (_elm) {
    $String = Elm.String.make(_elm);
    var _op = {};
    var cellBackgroundColor = F2(function (grid,cell) {    return $Color.white;});
-   var cellToAscii = F2(function (grid,cell) {    return cell.masked ? "M" : " ";});
+   var cellToAscii = F2(function (grid,cell) {    return $GridCell.base(cell).masked ? "M" : " ";});
    var toTitle = function (grid) {
       return A2($Basics._op["++"],$Basics.toString(grid.rows),A2($Basics._op["++"]," X ",A2($Basics._op["++"],$Basics.toString(grid.cols)," Grid")));
    };
@@ -12243,17 +12243,18 @@ Elm.Grid.make = function (_elm) {
       var cellToString = F2(function (cell,ascii) {
          var curbottom = ascii.bottom;
          var curtop = ascii.top;
-         var south_boundary = A2($Cell.isLinked,cell,$GridCell.maybeGridCellToCell(A2(south,grid,cell))) ? "   " : "---";
-         var east_boundary = A2($Cell.isLinked,cell,$GridCell.maybeGridCellToCell(A2(east,grid,cell))) ? " " : "|";
-         var body = A2($Basics._op["++"]," ",A2($Basics._op["++"],A2(cellViewer,grid,cell)," "));
+         var body = A2($Basics._op["++"]," ",A2($Basics._op["++"],cellViewer(cell)," "));
+         var bcell = $GridCell.base(cell);
+         var east_boundary = A2($Cell.isLinked,bcell,$GridCell.maybeGridCellToCell(A2(east,grid,bcell))) ? " " : "|";
+         var south_boundary = A2($Cell.isLinked,bcell,$GridCell.maybeGridCellToCell(A2(south,grid,bcell))) ? "   " : "---";
          return _U.update(ascii,
          {top: A2($Basics._op["++"],curtop,A2($Basics._op["++"],body,east_boundary))
          ,bottom: A2($Basics._op["++"],curbottom,A2($Basics._op["++"],south_boundary,"+"))});
       });
       var rowToStrings = function (row) {
-         var baseCells = gridCellsToBaseCells(A2(rowCells,grid,row));
+         var cells = A2(rowCells,grid,row);
          var rowascii = {top: "|",bottom: "+"};
-         var finalascii = A3($List.foldl,cellToString,rowascii,baseCells);
+         var finalascii = A3($List.foldl,cellToString,rowascii,cells);
          return A2($Basics._op["++"],finalascii.top,A2($Basics._op["++"],"\n",A2($Basics._op["++"],finalascii.bottom,"\n")));
       };
       return A2($Basics._op["++"],
@@ -12286,7 +12287,7 @@ Elm.Grid.make = function (_elm) {
          var best = A2($List.filter,function (c) {    return _U.eq($Set.size($GridCell.links(c)),1);},neighbors);
          var best$ = $List.isEmpty(best) ? neighbors : best;
          var neighbor = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,best$,g.rnd));
-         return $Cell.isNilCellID($GridCell.id(neighbor)) ? A2(_U.crash("Grid",{start: {line: 318,column: 24},end: {line: 318,column: 35}}),
+         return $Cell.isNilCellID($GridCell.id(neighbor)) ? A2(_U.crash("Grid",{start: {line: 319,column: 24},end: {line: 319,column: 35}}),
          "NIL NEIGHBOR in braid:linkNeighbor!",
          g$) : A4(linkCells,g$,deadEnd,neighbor,true);
       });
@@ -13012,9 +13013,10 @@ Elm.DistanceGrid.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
    var cellToAscii = F2(function (dgrid,cell) {
-      var dist = A2($Distances.lookup,dgrid.dists,cell);
+      var dist = A2($Distances.lookup,dgrid.dists,$GridCell.base(cell));
       return _U.eq(dist,-1) ? A2($Grid.cellToAscii,dgrid.grid,cell) : A2($IntToBaseX.toBaseX,dist,36);
    });
+   var viewDistances = function (dgrid) {    return A2($Grid.toAscii,dgrid.grid,cellToAscii(dgrid));};
    var distances = F2(function (grid,root) {    return A2($Dijkstra.cellDistances,grid,$GridCell.base(root));});
    var createGrid = F2(function (grid,root) {    var cellDistances = A2(distances,grid,root);return {grid: grid,dists: cellDistances};});
    var pathTo = F3(function (dgrid,gcroot,gcgoal) {
@@ -13059,6 +13061,7 @@ Elm.DistanceGrid.make = function (_elm) {
                                      ,createGrid: createGrid
                                      ,distances: distances
                                      ,cellToAscii: cellToAscii
+                                     ,viewDistances: viewDistances
                                      ,pathTo: pathTo
                                      ,longestPath: longestPath};
 };
@@ -13121,7 +13124,8 @@ Elm.GridRenderer.make = function (_elm) {
       var cellPainter$ = cellPainter(coloredGrid);
       return A3(gridPainter,grid,cellPainter$,cellSize);
    });
-   return _elm.GridRenderer.values = {_op: _op,toElement: toElement};
+   var toAscii = F2(function (grid,cellPainter) {    return A2($Grid.toAscii,grid,cellPainter(grid));});
+   return _elm.GridRenderer.values = {_op: _op,toAscii: toAscii,toElement: toElement};
 };
 Elm.HuntAndKill = Elm.HuntAndKill || {};
 Elm.HuntAndKill.make = function (_elm) {
@@ -13355,6 +13359,7 @@ Elm.Maze.make = function (_elm) {
    $BinaryTree = Elm.BinaryTree.make(_elm),
    $ColoredGrid = Elm.ColoredGrid.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $DistanceGrid = Elm.DistanceGrid.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $GridCell = Elm.GridCell.make(_elm),
@@ -13386,10 +13391,13 @@ Elm.Maze.make = function (_elm) {
    };
    var viewDistances = function (maze) {
       var root = $Grid.center(maze.grid);
+      var dgrid = A2($DistanceGrid.createGrid,maze.grid,root);
       var rootStr = $GridCell.toString(root);
       return A2($Html.div,
       _U.list([]),
-      _U.list([A2($Html.br,_U.list([]),_U.list([])),$Html.text(A2($Basics._op["++"],"Cell distances from ",A2($Basics._op["++"],rootStr,":")))]));
+      _U.list([A2($Html.br,_U.list([]),_U.list([]))
+              ,$Html.text(A2($Basics._op["++"],"Cell distances from ",A2($Basics._op["++"],rootStr,":")))
+              ,A2($Html.pre,_U.list([]),_U.list([$Html.text($DistanceGrid.viewDistances(dgrid))]))]));
    };
    var setMask = F2(function (maze,mask) {
       var grid$ = A3($Grid.createGridFromMask,mask,maze.grid.rnd.seed,maze.grid.cellMaker);
@@ -13453,7 +13461,7 @@ Elm.Maze.make = function (_elm) {
       var gridHtml = function () {
          var _p6 = maze.display;
          if (_p6.ctor === "Ascii") {
-               return A2($Html.pre,_U.list([]),_U.list([$Html.text(A2($Grid.toAscii,maze.grid,$Grid.cellToAscii))]));
+               return A2($Html.pre,_U.list([]),_U.list([$Html.text(A2($GridRenderer.toAscii,maze.grid,$Grid.cellToAscii))]));
             } else {
                return $Html.fromElement(mazeToElement(maze));
             }

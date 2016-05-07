@@ -12,19 +12,12 @@ import Color exposing (Color, rgb)
 toAscii :
     -- maze grid
     Grid a ->
-    -- grid drawer
-    Grid a -> GridCell -> String
-    -- start cell
-    GridCell ->
-    -- cell renderer
-    (CellDistances a -> GridCell -> String) ->
+    -- cell painter
+    (Grid a -> GridCell -> String) ->
     -- returns
     String
-toAscii grid gridPainter startCell cellPainter =
-    let dg = DistanceGrid.createGrid grid startCell
-        cellPainter' = cellPainter dg
-    in
-       gridPainter grid cellPainter'
+toAscii grid cellPainter =
+    Grid.toAscii grid (cellPainter grid)
 
 -- We need to pass Colored but that would mean Grid would have a cyclic 
 -- dependency on it, so what I need to do is probably move cellPainter to

@@ -31,16 +31,16 @@ distances grid root =
 
 cellToAscii : CellDistances a -> GridCell -> String
 cellToAscii dgrid cell =
-    let dist = lookup dgrid.dists cell
+    let dist = lookup dgrid.dists (GridCell.base cell)
     in
        if dist == -1
           then Grid.cellToAscii dgrid.grid cell
           else toBaseX dist 36
 
 ---- distances view
---viewDistances : CellDistances a -> String
---viewDistances dgrid =
---    toAscii dgrid.grid cellToAscii
+viewDistances : CellDistances a -> String
+viewDistances dgrid =
+    Grid.toAscii dgrid.grid (cellToAscii dgrid)
 
 ---- Finds shortest path between 2 cells
 pathTo : CellDistances a -> GridCell -> GridCell -> Distances
