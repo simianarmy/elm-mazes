@@ -50,8 +50,9 @@ type alias Maze a = {
     alg : Algorithm,
     shape: Shape,
     display : Display,
-    generator : Grid a -> Grid a,
-    braidFactor : Float
+    generator : Grid a -> Int -> Grid a,
+    braidFactor : Float,
+    step: Int
 }
 
 defaultAlgorithm = NoOp
@@ -87,11 +88,12 @@ init algType width height seed shape display =
            alg = algType,
            shape = shape,
            display = display,
-           braidFactor = defaultBraidFactor
+           braidFactor = defaultBraidFactor,
+           step = 0
        }
 
 -- generates maze algorithm function taking a grid and returning a grid
-genAlg : Algorithm -> Shape -> (Grid a -> Grid a)
+genAlg : Algorithm -> Shape -> (Grid a -> Int -> Grid a)
 genAlg algName shape =
     let randCellFn = case shape of
             Polar -> PolarGrid.randomCell
@@ -102,14 +104,16 @@ genAlg algName shape =
             Triangle -> TriangleGrid.neighbors
             _ -> Grid.neighbors
     in
-       case algName of
-           NoOp -> identity
-           BinaryTree -> BinaryTree.on randCellFn neighborFn
-           Sidewinder -> Sidewinder.on randCellFn neighborFn
-           AldousBroder -> AldousBroder.on randCellFn neighborFn
-           Wilsons -> Wilsons.on randCellFn neighborFn
-           HuntAndKill -> HuntAndKill.on randCellFn neighborFn
-           RecursiveBacktracker -> RecursiveBacktracker.on randCellFn neighborFn
+       BinaryTree.step randCellFn neighborFn
+       --case algName of
+           --NoOp -> identity
+           --BinaryTree -> BinaryTree.on randCellFn neighborFn
+           --BinaryTree -> BinaryTree.step randCellFn neighborFn
+           --Sidewinder -> Sidewinder.on randCellFn neighborFn
+           --AldousBroder -> AldousBroder.on randCellFn neighborFn
+           --Wilsons -> Wilsons.on randCellFn neighborFn
+           --HuntAndKill -> HuntAndKill.on randCellFn neighborFn
+           --RecursiveBacktracker -> RecursiveBacktracker.on randCellFn neighborFn
 
 -- returns neighbors function for the grid type
 neighborsFn : Maze a -> (Grid a -> GridCell -> List GridCell)
@@ -123,14 +127,15 @@ neighborsFn maze =
 --update : Maze a -> Maze a
 update maze =
     -- update rngs
-    let grid' = Grid.update maze.grid
+    let --grid' = Grid.reset maze.grid
         -- apply maze generation algoritm
-        grid'' = maze.generator grid'
+        grid' = maze.generator maze.grid <| Debug.log "step: " maze.step
         -- apply braiding
-        grid''' = Grid.braid grid'' (neighborsFn maze) maze.braidFactor
+        grid'' = Grid.braid grid' (neighborsFn maze) maze.braidFactor
     in 
-       {
-           maze | grid = grid'''
+       { maze |
+       grid = grid'',
+       step = maze.step + 1
        }
 
 -- INVALIDATES MASK, SO REFRESH MAZE
@@ -145,7 +150,8 @@ updateView maze displayType =
 -- setMask : Maze a -> Mask -> Maze a
 setMask maze mask =
     let grid' = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker
-    in {maze | grid = maze.generator grid'}
+        -- we want to run the algorithm to completion now
+    in {maze | grid = maze.generator grid' (Grid.size maze.grid)}
 
 updateBraiding: Maze a -> Float -> Maze a
 updateBraiding maze factor =
@@ -156,7 +162,8 @@ updateBraiding maze factor =
 view maze =
     let gridHtml = case maze.display of
             Ascii ->
-                pre [] [text <| GridRenderer.toAscii maze.grid Grid.cellToAscii]
+                div [] [ pre [] [text <| GridRenderer.toAscii maze.grid Grid.cellToAscii]
+                , viewDistances maze]
 
             Colored ->
                 Html.fromElement <| mazeToElement maze
@@ -169,18 +176,15 @@ view maze =
            , br [] []
            , text <| (toString <| List.length (Grid.deadEnds maze.grid)) ++ " deadends"
            , gridHtml
-           , br [] []
-           , viewDistances maze
            ]
 
 --viewDistances : Maze a -> Html
 viewDistances maze =
-    let --root = toValidCell <| getCell maze.grid 1 1
-        center = Grid.center maze.grid
+    let center = Grid.center maze.grid
         start = GridCell.maybeGridCellToGridCell <| getCell maze.grid 0 0 -- NW corner
         goal = GridCell.maybeGridCellToGridCell <| getCell maze.grid (maze.grid.rows - 1) 0 --SW corner
         dgrid = DistanceGrid.createGrid maze.grid center
-        pathDistances = Debug.log "shortest path dists " <| DistanceGrid.pathTo dgrid start goal
+        pathDistances = DistanceGrid.pathTo dgrid start goal
         shortestPathGrid = {dgrid | dists = pathDistances}
         longDistances = DistanceGrid.longestPath dgrid center
         longestPathGrid = {dgrid | dists = longDistances}

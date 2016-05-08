@@ -27,6 +27,7 @@ type alias AppState a =
     , seedInitialized : Bool
     , seed: Random.Seed
     , braidSlider: Slider.Model
+    , totalTime: Float
     }
 
 type alias PngData =
@@ -113,8 +114,12 @@ update action model =
 
         Tick dt ->
             -- We can use this to display the maze-generation incrementally
-            model
-
+            if ((truncate model.totalTime) >= 500)
+                then {model |
+                    maze = Maze.update model.maze
+                    , totalTime = 0
+                }
+                else {model | totalTime = model.totalTime + dt}
 
 --- VIEW ---
 --view : Address Action -> Model a -> Html
@@ -202,6 +207,7 @@ initialModel =
       , seedInitialized = False
       , seed = initialSeed 45 -- This will not get used.
       , braidSlider = Slider.init { id="braid", label="Braid Factor", value=(toString Maze.defaultBraidFactor), min=0, max=1, step=0.1 }
+      , totalTime = 0.0
     }
 
 -- actions from user input

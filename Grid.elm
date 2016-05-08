@@ -64,7 +64,7 @@ updateRnd grid =
     }
 
 -- regenerates all cells based the current mask
-update grid =
+reset grid =
     {grid |
         cells = grid.cellMaker grid.mask
     }
