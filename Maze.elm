@@ -25,11 +25,11 @@ import Graphics.Element exposing (Element)
 
 type Algorithm = NoOp
                | BinaryTree
-               | Sidewinder
-               | AldousBroder
-               | Wilsons
-               | HuntAndKill
-               | RecursiveBacktracker
+               --| Sidewinder
+               --| AldousBroder
+               --| Wilsons
+               --| HuntAndKill
+               --| RecursiveBacktracker
 
 type alias AlgAttr = {
     alg : Algorithm,
@@ -104,11 +104,11 @@ genAlg algName shape =
             Triangle -> TriangleGrid.neighbors
             _ -> Grid.neighbors
     in
-       BinaryTree.step randCellFn neighborFn
-       --case algName of
-           --NoOp -> identity
+       --BinaryTree.step randCellFn neighborFn
+       case algName of
+           NoOp -> always
            --BinaryTree -> BinaryTree.on randCellFn neighborFn
-           --BinaryTree -> BinaryTree.step randCellFn neighborFn
+           BinaryTree -> BinaryTree.step randCellFn neighborFn
            --Sidewinder -> Sidewinder.on randCellFn neighborFn
            --AldousBroder -> AldousBroder.on randCellFn neighborFn
            --Wilsons -> Wilsons.on randCellFn neighborFn
@@ -124,11 +124,17 @@ neighborsFn maze =
         Hex -> HexGrid.neighbors
         Triangle -> TriangleGrid.neighbors
 
+reset : Maze a -> Maze a
+reset maze =
+    {maze |
+        grid = Grid.reset maze.grid,
+        step = 0
+    }
+
 --update : Maze a -> Maze a
 update maze =
     -- update rngs
-    let --grid' = Grid.reset maze.grid
-        -- apply maze generation algoritm
+    let -- apply maze generation algoritm
         grid' = maze.generator maze.grid <| Debug.log "step: " maze.step
         -- apply braiding
         grid'' = Grid.braid grid' (neighborsFn maze) maze.braidFactor
@@ -181,8 +187,8 @@ view maze =
 --viewDistances : Maze a -> Html
 viewDistances maze =
     let center = Grid.center maze.grid
-        start = GridCell.maybeGridCellToGridCell <| getCell maze.grid 0 0 -- NW corner
-        goal = GridCell.maybeGridCellToGridCell <| getCell maze.grid (maze.grid.rows - 1) 0 --SW corner
+        start = center
+        goal = GridCell.maybeGridCellToGridCell <| getCell maze.grid 0 0
         dgrid = DistanceGrid.createGrid maze.grid center
         pathDistances = DistanceGrid.pathTo dgrid start goal
         shortestPathGrid = {dgrid | dists = pathDistances}
@@ -234,16 +240,16 @@ algorithms shape =
     let algs = [ {alg = NoOp, name = algToString NoOp}]
         rectAlgs = [
             {alg = BinaryTree, name = algToString BinaryTree}
-            , {alg = Sidewinder, name = algToString Sidewinder}
-            , {alg = HuntAndKill, name = algToString HuntAndKill}
+            --, {alg = Sidewinder, name = algToString Sidewinder}
+            --, {alg = HuntAndKill, name = algToString HuntAndKill}
         ]
         triangleAlgs = [
-            {alg = HuntAndKill, name = algToString HuntAndKill}
+            --{alg = HuntAndKill, name = algToString HuntAndKill}
         ]
         allAlgs = [
-            {alg = AldousBroder, name = algToString AldousBroder}
-            , {alg = Wilsons, name = algToString Wilsons}
-            , {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
+            --{alg = AldousBroder, name = algToString AldousBroder}
+            --, {alg = Wilsons, name = algToString Wilsons}
+            --, {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
         ]
     in
        case shape of
@@ -256,11 +262,11 @@ algToString algType =
     case algType of
         NoOp -> "None"
         BinaryTree -> "Binary Tree"
-        Sidewinder -> "Sidewinder"
-        AldousBroder -> "Aldous-Broder"
-        Wilsons -> "Wilsons"
-        HuntAndKill -> "Hunt - Kill"
-        RecursiveBacktracker -> "Recursive Backtracker"
+        --Sidewinder -> "Sidewinder"
+        --AldousBroder -> "Aldous-Broder"
+        --Wilsons -> "Wilsons"
+        --HuntAndKill -> "Hunt - Kill"
+        --RecursiveBacktracker -> "Recursive Backtracker"
 
 algByName : String -> Algorithm
 algByName str =

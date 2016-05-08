@@ -18,6 +18,8 @@ initWidth   = 8
 initHeight  = 8
 initDisplay = Maze.Colored
 initShape   = Maze.Rect
+-- controls speed of the generation (lower = faster)
+mazeGenStepTime = 50
 
 --- MODEL ---
 
@@ -63,7 +65,7 @@ update action model =
         NoOp -> model
 
         Refresh ->
-            {model | maze = Maze.update model.maze}
+            {model | maze = Maze.reset model.maze}
 
         UpdateWidth str ->
             let maze' = Maze.updateSize model.maze (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.maze.grid.cols) model.maze.grid.rows
@@ -114,12 +116,14 @@ update action model =
 
         Tick dt ->
             -- We can use this to display the maze-generation incrementally
-            if ((truncate model.totalTime) >= 500)
+            if ((truncate model.totalTime) >= mazeGenStepTime)
                 then {model |
-                    maze = Maze.update model.maze
-                    , totalTime = 0
+                    maze = Maze.update model.maze,
+                    totalTime = 0
                 }
-                else {model | totalTime = model.totalTime + dt}
+                else {model |
+                    totalTime = model.totalTime + dt
+                }
 
 --- VIEW ---
 --view : Address Action -> Model a -> Html
