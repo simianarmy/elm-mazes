@@ -25,7 +25,7 @@ import Graphics.Element exposing (Element)
 
 type Algorithm = NoOp
                | BinaryTree
-               --| Sidewinder
+               | Sidewinder
                --| AldousBroder
                --| Wilsons
                --| HuntAndKill
@@ -110,6 +110,7 @@ genAlg algName shape =
            --BinaryTree -> BinaryTree.on randCellFn neighborFn
            BinaryTree -> BinaryTree.step randCellFn neighborFn
            --Sidewinder -> Sidewinder.on randCellFn neighborFn
+           Sidewinder -> Sidewinder.step randCellFn neighborFn
            --AldousBroder -> AldousBroder.on randCellFn neighborFn
            --Wilsons -> Wilsons.on randCellFn neighborFn
            --HuntAndKill -> HuntAndKill.on randCellFn neighborFn
@@ -240,7 +241,7 @@ algorithms shape =
     let algs = [ {alg = NoOp, name = algToString NoOp}]
         rectAlgs = [
             {alg = BinaryTree, name = algToString BinaryTree}
-            --, {alg = Sidewinder, name = algToString Sidewinder}
+            , {alg = Sidewinder, name = algToString Sidewinder}
             --, {alg = HuntAndKill, name = algToString HuntAndKill}
         ]
         triangleAlgs = [
@@ -262,7 +263,7 @@ algToString algType =
     case algType of
         NoOp -> "None"
         BinaryTree -> "Binary Tree"
-        --Sidewinder -> "Sidewinder"
+        Sidewinder -> "Sidewinder"
         --AldousBroder -> "Aldous-Broder"
         --Wilsons -> "Wilsons"
         --HuntAndKill -> "Hunt - Kill"

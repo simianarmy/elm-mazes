@@ -18,7 +18,43 @@ on : (Grid a -> Maybe GridCell) ->
 
 on startCellFn neighborsFn grid =
     let -- bias is to start at the bottom left...may not matter
-        processCell : GridCell -> RowState a -> RowState a
+        --processRow : Int -> Grid a -> Grid a
+        processRow row curGrid =
+            let state = {run = [], grid = curGrid}
+            in
+               work state (Grid.rowCells curGrid row)
+    in
+        List.foldl processRow grid (List.reverse [0..grid.rows-1])
+
+-- Processes a single cell (using single 1-based index for lookup)
+-- step value shouldn't care about shape of the grid
+step : (Grid a -> Maybe GridCell) ->
+     (Grid a -> GridCell -> List GridCell) ->
+     Grid a -> Int ->
+     Grid a
+step startCellFn neighborsFn grid i =
+    -- get the current cell
+    let cell = Debug.log "cell: " <| List.head <| List.reverse <| List.take i (Grid.cellsList grid.cells)
+    in
+       case cell of
+           Just c ->
+               let cells = Grid.rowCells grid (GridCell.base c).row
+                   -- TODO:
+                   -- generateRun =
+                   -- run should be all previously visited cells connected to us
+                   -- we can generate the run by moving west until we hit a wall
+                   state = {run = generateRun c, grid = grid}
+               in
+                  -- if at beginning of row, easy
+                  -- otherwise recreate 'run' list by adding each row's cells from left to right until we're at the current column index
+                  work state cells
+
+           Nothing ->
+               grid
+
+work : RowState a -> List GridCell -> Grid a
+work state cells =
+    let processCell : GridCell -> RowState a -> RowState a
         processCell cell rowState =
             let run' = cell :: rowState.run
                 basecell = GridCell.base cell
@@ -61,11 +97,7 @@ on startCellFn neighborsFn grid =
                           True
                   }
 
-        --processRow : Int -> Grid a -> Grid a
-        processRow row curGrid =
-            let state = {run = [], grid = curGrid}
-            in
-                List.foldl processCell state (Grid.rowCells curGrid row)
-                |> .grid
     in
-        List.foldl processRow grid (List.reverse [0..grid.rows-1])
+       List.foldl processCell state cells
+       |> .grid
+

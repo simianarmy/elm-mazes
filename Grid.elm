@@ -342,7 +342,9 @@ linkCellsHelper : Grid a -> BaseCell -> CellID -> Bool -> Grid a
 linkCellsHelper grid cell cellToLinkId bidi =
     let linkCell : BaseCell -> CellID -> BaseCell
         linkCell cell1 id = {
-            cell1 | links = Set.insert id cell1.links
+            cell1 |
+                links = Set.insert id cell1.links
+                , visited = True
         }
         linker : BaseCell -> BaseCell
         linker c =
