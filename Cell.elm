@@ -14,7 +14,8 @@ type alias BaseCell = {
     masked: Bool,
     links: CellLinks,
     weight: Int,
-    visited: Bool
+    visited: Bool,
+    processed: Bool
 }
 
 -- Standard cell
@@ -30,7 +31,8 @@ createCell row col =
         masked = False,
         links = Set.empty,
         weight = 1,
-        visited = False
+        visited = False,
+        processed = False
     }
 
 -- helper to create a nil cell

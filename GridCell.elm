@@ -103,5 +103,15 @@ filterGridCells : (BaseCell -> Bool) -> List GridCell -> List GridCell
 filterGridCells fn cells =
     List.filter (fn << base) cells
 
+-- probably a better way to update a base property...
+setProcessed : GridCell -> GridCell
+setProcessed gc =
+    case gc of
+        Nothing -> RectCellTag Cell.createNilCell
+        Just (RectCellTag c) -> {c | processed = True}
+        Just (PolarCellTag p) -> PolarCellTag p
+        Just (HexCellTag c) -> HexCellTag c
+        Just (TriangleCellTag c) -> TriangleCellTag c
+
 toString : GridCell -> String
 toString gc = Cell.cellToString (base gc)

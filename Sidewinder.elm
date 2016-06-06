@@ -86,6 +86,7 @@ work state cells =
                       then 
                       -- get random cell from run
                       let member = Debug.log "random cell: " <| GridCell.maybeGridCellToCell <| GridUtils.sampleCell run' grid'.rnd
+                          member' = GridCell.setProcessed member
                           northern = Grid.north grid' member
                           grid'' = Grid.updateRnd grid'
                       in
@@ -96,7 +97,7 @@ work state cells =
                                 stop = True,
                                 -- link cells and update the grid RND
                                 grid = Grid.linkCells grid'' 
-                                    (RectCellTag member)
+                                    (RectCellTag member')
                                     (GridCell.maybeGridCellToGridCell northern)
                                     True
                             } 
@@ -113,8 +114,8 @@ work state cells =
                           stop = False,
                           -- link cells and update the grid RND
                           grid = Grid.linkCells grid' 
-                              cell
-                              (GridCell.maybeGridCellToGridCell <| Grid.east grid' basecell)
+                              (GridCell.setProcessed cell)
+                              (GridCell.setProcessed (GridCell.maybeGridCellToGridCell <| Grid.east grid' basecell))
                               True
                       }
 
