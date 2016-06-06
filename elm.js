@@ -12056,8 +12056,10 @@ Elm.GridUtils.make = function (_elm) {
    $Random$PCG = Elm.Random.PCG.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Rnd = Elm.Rnd.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
    var _op = {};
+   var cellsToString = function (cells) {    return A2($String.join,",",A2($List.map,$GridCell.toString,cells));};
    var smooshMaybes = function (maybes) {
       var cellToList = function (cell) {    var _p0 = cell;if (_p0.ctor === "Just") {    return _U.list([_p0._0]);} else {    return _U.list([]);}};
       return $List.concat(A2($List.map,cellToList,maybes));
@@ -12069,7 +12071,7 @@ Elm.GridUtils.make = function (_elm) {
       var seed = _p1._1;
       return A2($Array.get,rand,$Array.fromList(sample));
    });
-   return _elm.GridUtils.values = {_op: _op,sampleCell: sampleCell,indexOfCell: indexOfCell,smooshMaybes: smooshMaybes};
+   return _elm.GridUtils.values = {_op: _op,sampleCell: sampleCell,indexOfCell: indexOfCell,smooshMaybes: smooshMaybes,cellsToString: cellsToString};
 };
 Elm.Grid = Elm.Grid || {};
 Elm.Grid.make = function (_elm) {
@@ -12191,6 +12193,9 @@ Elm.Grid.make = function (_elm) {
       return _U.update(grid,{cells: cellsListToCellGrid(A2($List.map,linkMatched,cellsList(grid.cells)))});
    });
    var linkCells = F4(function (grid,cell,cell2,bidi) {
+      var dbg = A2($Debug.log,
+      A2($Basics._op["++"],"LINKING",A2($Basics._op["++"],$GridCell.toString(cell),A2($Basics._op["++"]," & ",$GridCell.toString(cell2)))),
+      1);
       var base = $GridCell.base(cell);
       var c2Id = gridCellID(cell2);
       return A4(linkCellsHelper,grid,base,c2Id,bidi);
@@ -13212,6 +13217,7 @@ Elm.Sidewinder.make = function (_elm) {
    if (_elm.Sidewinder.values) return _elm.Sidewinder.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Grid = Elm.Grid.make(_elm),
    $GridCell = Elm.GridCell.make(_elm),
@@ -13223,45 +13229,70 @@ Elm.Sidewinder.make = function (_elm) {
    var _op = {};
    var work = F2(function (state,cells) {
       var processCell = F2(function (cell,rowState) {
-         var grid$ = $Grid.updateRnd(rowState.grid);
-         var basecell = $GridCell.base(cell);
-         var atEasternBoundary = $Basics.not($GridCell.isValidCell(A2($Grid.east,rowState.grid,basecell)));
-         var atNorthernBoundary = $Basics.not($GridCell.isValidCell(A2($Grid.north,rowState.grid,basecell)));
-         var shouldCloseOut = atEasternBoundary || $Basics.not(atNorthernBoundary) && grid$.rnd.heads;
-         var run$ = A2($List._op["::"],cell,rowState.run);
-         if ($Basics.not(basecell.visited) && shouldCloseOut) {
-               var grid$$ = $Grid.updateRnd(grid$);
-               var member = $GridCell.maybeGridCellToCell(A2($GridUtils.sampleCell,run$,grid$.rnd));
-               var northern = A2($Grid.north,grid$,member);
-               return $GridCell.isValidCell(northern) ? {run: _U.list([])
-                                                        ,grid: A4($Grid.linkCells,
-                                                        grid$$,
-                                                        $GridCell.RectCellTag(member),
-                                                        $GridCell.maybeGridCellToGridCell(northern),
-                                                        true)} : {run: _U.list([]),grid: grid$$};
-            } else return _U.update(rowState,
-            {run: run$,grid: A4($Grid.linkCells,grid$,cell,$GridCell.maybeGridCellToGridCell(A2($Grid.east,grid$,basecell)),true)});
+         if (rowState.stop) return rowState; else {
+               var grid$ = $Grid.updateRnd(rowState.grid);
+               var basecell = $GridCell.base(A2($Debug.log,"work cell",cell));
+               var atEasternBoundary = A2($Debug.log,"At eastern? ",$Basics.not($GridCell.isValidCell(A2($Grid.east,rowState.grid,basecell))));
+               var atNorthernBoundary = A2($Debug.log,"At northern? ",$Basics.not($GridCell.isValidCell(A2($Grid.north,rowState.grid,basecell))));
+               var shouldCloseOut = A2($Debug.log,
+               "Close out? ",
+               atEasternBoundary || $Basics.not(atNorthernBoundary) && A2($Debug.log,"Heads: ",grid$.rnd.heads));
+               var run$ = A2($List._op["::"],cell,rowState.run);
+               var runstr = A2($Debug.log,"Run: ",$GridUtils.cellsToString(run$));
+               if (shouldCloseOut) {
+                     var grid$$ = $Grid.updateRnd(grid$);
+                     var member = A2($Debug.log,"random cell: ",$GridCell.maybeGridCellToCell(A2($GridUtils.sampleCell,run$,grid$.rnd)));
+                     var northern = A2($Grid.north,grid$,member);
+                     return $GridCell.isValidCell(northern) ? {run: _U.list([])
+                                                              ,stop: true
+                                                              ,grid: A4($Grid.linkCells,
+                                                              grid$$,
+                                                              $GridCell.RectCellTag(member),
+                                                              $GridCell.maybeGridCellToGridCell(northern),
+                                                              true)} : {run: A2($Debug.log,"Invalid northern cell",_U.list([])),grid: grid$$,stop: false};
+                  } else return _U.update(rowState,
+                  {run: run$,stop: false,grid: A4($Grid.linkCells,grid$,cell,$GridCell.maybeGridCellToGridCell(A2($Grid.east,grid$,basecell)),true)});
+            }
       });
       return function (_) {
          return _.grid;
       }(A3($List.foldl,processCell,state,cells));
    });
    var step = F4(function (startCellFn,neighborsFn,grid,i) {
-      var cell = A2($Debug.log,"cell: ",$List.head($List.reverse(A2($List.take,i,$Grid.cellsList(grid.cells)))));
+      var generateRun = function (rcells) {
+         var run = A2($List.take,i,rcells);
+         var run$ = A2($Debug.log,
+         "Run1",
+         A2($List.filter,
+         function (c) {
+            return A2($Cell.isLinked,$GridCell.base(c),$GridCell.maybeGridCellToCell(A2($Grid.east,grid,$GridCell.base(c))));
+         },
+         run));
+         return run$;
+      };
+      var cell = $List.head($List.reverse(A2($List.take,A2($Debug.log,"STEP ",i),$Grid.cellsList(grid.cells))));
       var _p0 = cell;
       if (_p0.ctor === "Just") {
-            var state = {run: _U.list([]),grid: grid};
-            var cells = A2($Grid.rowCells,grid,$GridCell.base(_p0._0).row);
+            var state = {run: _U.list([]),grid: grid,stop: false};
+            var cells = A2($List.filter,
+            function (c) {
+               var bc = $GridCell.base(c);
+               return $Basics.not(bc.visited) || A2($Cell.isLinked,bc,$GridCell.maybeGridCellToCell(A2($Grid.south,grid,bc)));
+            },
+            A2($Grid.rowCells,grid,grid.rows - $GridCell.base(_p0._0).row - 1));
             return A2(work,state,cells);
          } else {
             return grid;
          }
    });
    var on = F3(function (startCellFn,neighborsFn,grid) {
-      var processRow = F2(function (row,curGrid) {    var state = {run: _U.list([]),grid: curGrid};return A2(work,state,A2($Grid.rowCells,curGrid,row));});
+      var processRow = F2(function (row,curGrid) {
+         var state = {run: _U.list([]),grid: curGrid,stop: false};
+         return A2(work,state,A2($Grid.rowCells,curGrid,row));
+      });
       return A3($List.foldl,processRow,grid,$List.reverse(_U.range(0,grid.rows - 1)));
    });
-   var RowState = F2(function (a,b) {    return {run: a,grid: b};});
+   var RowState = F3(function (a,b,c) {    return {run: a,grid: b,stop: c};});
    return _elm.Sidewinder.values = {_op: _op,RowState: RowState,on: on,step: step,work: work};
 };
 Elm.Wilsons = Elm.Wilsons || {};
@@ -13441,7 +13472,7 @@ Elm.Maze.make = function (_elm) {
          default: return $TriangleGrid.neighbors;}
    };
    var update = function (maze) {
-      var grid$ = A2(maze.generator,maze.grid,A2($Debug.log,"step: ",maze.step));
+      var grid$ = A2(maze.generator,maze.grid,maze.step);
       var grid$$ = A3($Grid.braid,grid$,neighborsFn(maze),maze.braidFactor);
       return _U.update(maze,{grid: grid$$,step: maze.step + 1});
    };
@@ -13649,38 +13680,7 @@ Elm.Main.make = function (_elm) {
    $String = Elm.String.make(_elm),
    $Time = Elm.Time.make(_elm);
    var _op = {};
-   var openFromPNGFile = Elm.Native.Port.make(_elm).inboundSignal("openFromPNGFile",
-   "Main.PngData",
-   function (v) {
-      return typeof v === "object" && "width" in v && "height" in v && "blackFlags" in v ? {_: {}
-                                                                                           ,width: typeof v.width === "number" && isFinite(v.width) && Math.floor(v.width) === v.width ? v.width : _U.badPort("an integer",
-                                                                                           v.width)
-                                                                                           ,height: typeof v.height === "number" && isFinite(v.height) && Math.floor(v.height) === v.height ? v.height : _U.badPort("an integer",
-                                                                                           v.height)
-                                                                                           ,blackFlags: typeof v.blackFlags === "object" && v.blackFlags instanceof Array ? Elm.Native.Array.make(_elm).fromJSArray(v.blackFlags.map(function (v) {
-                                                                                              return typeof v === "boolean" ? v : _U.badPort("a boolean (true or false)",
-                                                                                              v);
-                                                                                           })) : _U.badPort("an array",
-                                                                                           v.blackFlags)} : _U.badPort("an object with fields `width`, `height`, `blackFlags`",
-      v);
-   });
-   var openFromTextFile = Elm.Native.Port.make(_elm).inboundSignal("openFromTextFile",
-   "String",
-   function (v) {
-      return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",v);
-   });
-   var outputFromFilePNG = Elm.Native.Port.make(_elm).outboundSignal("outputFromFilePNG",
-   function (v) {
-      return {width: v.width,height: v.height,blackFlags: Elm.Native.Array.make(_elm).toJSArray(v.blackFlags).map(function (v) {    return v;})};
-   },
-   openFromPNGFile);
-   var outputFromFileAscii = Elm.Native.Port.make(_elm).outboundSignal("outputFromFileAscii",
-   function (v) {
-      return Elm.Native.List.make(_elm).toArray(v).map(function (v) {    return v;});
-   },
-   A2($Signal.map,$String.lines,openFromTextFile));
-   var startTime = Elm.Native.Port.make(_elm).inbound("startTime","Float",function (v) {    return typeof v === "number" ? v : _U.badPort("a number",v);});
-   var startTimeSeed = $Random$PCG.initialSeed($Basics.round(startTime));
+   var startTimeSeed = $Random$PCG.initialSeed(123);
    var displayFromString = function (str) {    return _U.eq(str,"ASCII") ? $Maze.Ascii : $Maze.Colored;};
    var LoadImageMask = function (a) {    return {ctor: "LoadImageMask",_0: a};};
    var LoadAsciiMask = function (a) {    return {ctor: "LoadAsciiMask",_0: a};};
@@ -13695,12 +13695,9 @@ Elm.Main.make = function (_elm) {
    var tick = A2($Signal.map,function (dt) {    return Tick(dt);},$Time.fps(16));
    var NoOp = {ctor: "NoOp"};
    var actions = $Signal.mailbox(NoOp);
-   var userInput = $Signal.mergeMany(_U.list([A2($Signal.map,LoadAsciiMask,outputFromFileAscii)
-                                             ,A2($Signal.map,LoadImageMask,outputFromFilePNG)
-                                             ,actions.signal
-                                             ,tick]));
+   var userInput = $Signal.mergeMany(_U.list([actions.signal,tick]));
    var PngData = F3(function (a,b,c) {    return {width: a,height: b,blackFlags: c};});
-   var AppState = F5(function (a,b,c,d,e) {    return {maze: a,seedInitialized: b,seed: c,braidSlider: d,totalTime: e};});
+   var AppState = F4(function (a,b,c,d) {    return {maze: a,seedInitialized: b,seed: c,totalTime: d};});
    var mazeGenStepTime = 50;
    var update = F2(function (action,model) {
       var _p0 = action;
@@ -13725,9 +13722,7 @@ Elm.Main.make = function (_elm) {
          case "SelectShape": var maze = model.maze;
            var maze$ = A6($Maze.init,maze.alg,maze.grid.cols,maze.grid.rows,maze.grid.rnd.seed,_p0._0,maze.display);
            return _U.update(model,{maze: maze$});
-         case "Braid": var factor = A2($Result.withDefault,$Maze.defaultBraidFactor,$String.toFloat(model.braidSlider.value));
-           var maze$ = A2($Maze.updateBraiding,model.maze,factor);
-           return _U.update(model,{maze: maze$,braidSlider: A2($Slider.update,_p0._0,model.braidSlider)});
+         case "Braid": return model;
          case "LoadAsciiMask": var mask = $Mask.fromTxt(_p0._0);
            return _U.update(model,{maze: A2($Maze.setMask,model.maze,mask)});
          case "LoadImageMask": var _p1 = _p0._0;
@@ -13793,7 +13788,6 @@ Elm.Main.make = function (_elm) {
               ,A2($Html.select,_U.list([selectShape]),A2($List.map,shapeToOption,$Maze.shapes))
               ,A2($Html.br,_U.list([]),_U.list([]))
               ,$Html.text("Braids (1 = no deadends):")
-              ,A2($Slider.view,A2($Signal.forwardTo,address,Braid),model.braidSlider)
               ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Refresh)]),_U.list([$Html.text("REFRESH")]))
               ,A2($Html.br,_U.list([]),_U.list([]))
               ,$Html.text("Ascii Mask file: ")
@@ -13801,12 +13795,11 @@ Elm.Main.make = function (_elm) {
               ,A2($Html.footer,_U.list([]),_U.list([]))]));
    });
    var initDisplay = $Maze.Colored;
-   var initHeight = 8;
-   var initWidth = 8;
+   var initHeight = 5;
+   var initWidth = 5;
    var initialModel = {maze: A6($Maze.init,$Maze.defaultAlgorithm,initWidth,initHeight,startTimeSeed,initShape,initDisplay)
                       ,seedInitialized: false
                       ,seed: $Random$PCG.initialSeed(45)
-                      ,braidSlider: $Slider.init({id: "braid",label: "Braid Factor",value: $Basics.toString($Maze.defaultBraidFactor),min: 0,max: 1,step: 0.1})
                       ,totalTime: 0.0};
    var model = A3($Signal.foldp,update,initialModel,userInput);
    var main = A2($Signal.map,view(actions.address),model);

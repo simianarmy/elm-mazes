@@ -373,6 +373,7 @@ linkCells : Grid a -> GridCell -> GridCell -> Bool -> Grid a
 linkCells grid cell cell2 bidi =
     let c2Id = gridCellID cell2
         base = GridCell.base cell
+        dbg = Debug.log ("LINKING" ++ (GridCell.toString cell) ++ " & " ++ (GridCell.toString cell2)) 1
     in
         linkCellsHelper grid base c2Id bidi
 

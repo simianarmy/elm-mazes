@@ -14,8 +14,8 @@ import Random.PCG as Random exposing (Seed, initialSeed, split)
 import Time exposing (Time, every, fps)
 import Slider
 
-initWidth   = 8
-initHeight  = 8
+initWidth   = 5
+initHeight  = 5
 initDisplay = Maze.Colored
 initShape   = Maze.Rect
 -- controls speed of the generation (lower = faster)
@@ -28,7 +28,7 @@ type alias AppState a =
     { maze : Maze a
     , seedInitialized : Bool
     , seed: Random.Seed
-    , braidSlider: Slider.Model
+    --, braidSlider: Slider.Model
     , totalTime: Float
     }
 
@@ -96,13 +96,15 @@ update action model =
                {model | maze = maze'}
 
         Braid act ->
-            let factor = Result.withDefault Maze.defaultBraidFactor (String.toFloat model.braidSlider.value)
-                maze' = Maze.updateBraiding model.maze factor
-            in
-               {model |
-                   maze = maze',
-                   braidSlider = Slider.update act model.braidSlider
-               }
+            -- TODO: elm-reactor 0.16 breaks on Slider.init!  Re-enable when it's fixed
+            -- let factor = Result.withDefault Maze.defaultBraidFactor (String.toFloat model.braidSlider.value)
+            --     maze' = Maze.updateBraiding model.maze factor
+            -- in
+            --    {model |
+            --        maze = maze',
+            --        braidSlider = Slider.update act model.braidSlider
+            --    }
+            model
 
         LoadAsciiMask lines ->
             let mask = Mask.fromTxt lines
@@ -162,7 +164,7 @@ view address model =
         , select [ selectShape ] (List.map shapeToOption Maze.shapes)
         , br [] []
         , text "Braids (1 = no deadends):"
-        , Slider.view (Signal.forwardTo address Braid) model.braidSlider
+        --, Slider.view (Signal.forwardTo address Braid) model.braidSlider
         , button [ onClick address Refresh ] [ text "REFRESH" ]
         , br [] []
         , text "Ascii Mask file: "
@@ -193,10 +195,11 @@ main =
 userInput : Signal Action
 userInput =
     Signal.mergeMany
-        [ Signal.map LoadAsciiMask outputFromFileAscii
-        , Signal.map LoadImageMask outputFromFilePNG
-        , actions.signal
+        [ 
+        actions.signal
         , tick
+        -- Signal.map LoadAsciiMask outputFromFileAscii
+        --, Signal.map LoadImageMask outputFromFilePNG
         ]
 
 -- manage the model of our application over time
@@ -210,7 +213,7 @@ initialModel =
         maze = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initShape initDisplay
       , seedInitialized = False
       , seed = initialSeed 45 -- This will not get used.
-      , braidSlider = Slider.init { id="braid", label="Braid Factor", value=(toString Maze.defaultBraidFactor), min=0, max=1, step=0.1 }
+      --, braidSlider = Slider.init { id="braid", label="Braid Factor", value=(toString Maze.defaultBraidFactor), min=0, max=1, step=0.1 }
       , totalTime = 0.0
     }
 
@@ -224,21 +227,21 @@ tick  = Signal.map (\dt -> Tick dt) (fps 16)
 
 startTimeSeed : Random.Seed
 -- uncomment to debug with consistent seed
---startTimeSeed = Random.initialSeed 123
-startTimeSeed = Random.initialSeed <| round startTime
+startTimeSeed = Random.initialSeed 123
+--startTimeSeed = Random.initialSeed <| round startTime
 
 -- port to get current time for seeds
-port startTime : Float
+--port startTime : Float
 
 -- ports for file uploads
-port outputFromFileAscii : Signal (List String)
-port outputFromFileAscii = 
-      Signal.map String.lines openFromTextFile
-
-port outputFromFilePNG : Signal PngData
-port outputFromFilePNG =
-      openFromPNGFile
-
-port openFromTextFile : Signal String
-port openFromPNGFile : Signal PngData
-
+--port outputFromFileAscii : Signal (List String)
+--port outputFromFileAscii = 
+--      Signal.map String.lines openFromTextFile
+--
+--port outputFromFilePNG : Signal PngData
+--port outputFromFilePNG =
+--      openFromPNGFile
+--
+--port openFromTextFile : Signal String
+--port openFromPNGFile : Signal PngData
+--

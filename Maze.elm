@@ -136,7 +136,7 @@ reset maze =
 update maze =
     -- update rngs
     let -- apply maze generation algoritm
-        grid' = maze.generator maze.grid <| Debug.log "step: " maze.step
+        grid' = maze.generator maze.grid maze.step
         -- apply braiding
         grid'' = Grid.braid grid' (neighborsFn maze) maze.braidFactor
     in 

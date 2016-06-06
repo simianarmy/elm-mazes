@@ -10,6 +10,7 @@ import Random.PCG as Random
 import List
 import ListUtils
 import Array
+import String
 
 sampleCell : List GridCell -> Rnd.GridRnd -> Maybe GridCell
 sampleCell sample rnd =
@@ -33,3 +34,6 @@ smooshMaybes maybes =
     in
         List.concat <| List.map cellToList maybes
 
+cellsToString : List GridCell -> String
+cellsToString cells =
+    String.join "," <| List.map GridCell.toString cells

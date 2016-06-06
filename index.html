@@ -14,9 +14,13 @@ input.slider-text {
     width: 35px;
 }
 #main {
-    width: 90%;
+    width: 60%;
     margin-left: auto;
     margin-right: auto;
+}
+#elm-reactor-side-bar {
+    width: 40% !important;
+    font-size: 12px;
 }
 </style>
 <script type="text/javascript" src="libs/zlib.js"></script>
@@ -24,7 +28,10 @@ input.slider-text {
 </head>
 <body>
 <script type="text/javascript" src="elm.js"></script>
-<script type="text/javascript" src="ports.js"></script>
+<!-- <script type="text/javascript" src="ports.js"></script> -->
 <script type="text/javascript" src="/_reactor/debug.js"></script>
+<script>
+    var main = Elm.fullscreenDebug('Main', './Main.elm');
+</script>
 </body>
 </html>

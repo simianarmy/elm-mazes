@@ -3,24 +3,26 @@
 --
 module Sidewinder where
 
+import Debug
 import GridUtils
 import Grid exposing (Grid)
 import GridCell exposing (..)
+import Cell
 
 import List exposing (..)
 import Random exposing (..)
 
-type alias RowState a = {run : List GridCell, grid : Grid a}
+type alias RowState a = {run : List GridCell, grid : Grid a, stop : Bool}
 
 on : (Grid a -> Maybe GridCell) ->
      (Grid a -> GridCell -> List GridCell) ->
-     Grid a -> Grid a
-
+     Grid a ->
+     Grid a
 on startCellFn neighborsFn grid =
     let -- bias is to start at the bottom left...may not matter
         --processRow : Int -> Grid a -> Grid a
         processRow row curGrid =
-            let state = {run = [], grid = curGrid}
+            let state = {run = [], grid = curGrid, stop = False}
             in
                work state (Grid.rowCells curGrid row)
     in
@@ -34,68 +36,87 @@ step : (Grid a -> Maybe GridCell) ->
      Grid a
 step startCellFn neighborsFn grid i =
     -- get the current cell
-    let cell = Debug.log "cell: " <| List.head <| List.reverse <| List.take i (Grid.cellsList grid.cells)
+    let cell = List.head <| List.reverse <| List.take (Debug.log "STEP " i) (Grid.cellsList grid.cells)
+        -- run should be all previously visited cells connected to us
+        -- we can generate the run by moving west until we hit a wall
+        generateRun : List GridCell -> List GridCell
+        generateRun rcells =
+            let run = List.take i rcells
+                run' =  Debug.log "Run1" <| List.filter (\c -> Cell.isLinked (GridCell.base c) (GridCell.maybeGridCellToCell (Grid.east grid (GridCell.base c)))) run
+            in
+               run'
     in
        case cell of
            Just c ->
-               let cells = Grid.rowCells grid (GridCell.base c).row
-                   -- TODO:
-                   -- generateRun =
-                   -- run should be all previously visited cells connected to us
-                   -- we can generate the run by moving west until we hit a wall
-                   state = {run = generateRun c, grid = grid}
+               -- FIX ME: WE DON'T HAVE A CORRECT ALGORITHM FOR PICKING UNPROCESSED CELLS YET!!!
+               let cells = List.filter (\c -> 
+                   let bc = GridCell.base c
+                   in
+                       (not bc.visited) || 
+                       (Cell.isLinked bc (maybeGridCellToCell (Grid.south grid bc)))
+                   )
+                   <| Grid.rowCells grid (grid.rows - (GridCell.base c).row - 1)
+                   state = {run = [], grid = grid, stop = False}
                in
-                  -- if at beginning of row, easy
-                  -- otherwise recreate 'run' list by adding each row's cells from left to right until we're at the current column index
-                  work state cells
+                    work state cells
 
            Nothing ->
                grid
 
+-- Will link row cells until Heads or boundary.  On heads will link a random row cell to its northern neighbor.
+-- Returns after Northern link is made or eastern edge reached.
+-- Makes iterative processing difficult since each 'step' can result in multiple links.
 work : RowState a -> List GridCell -> Grid a
 work state cells =
     let processCell : GridCell -> RowState a -> RowState a
         processCell cell rowState =
-            let run' = cell :: rowState.run
-                basecell = GridCell.base cell
-                atEasternBoundary = not (GridCell.isValidCell (Grid.east rowState.grid basecell))
-                atNorthernBoundary = not (GridCell.isValidCell (Grid.north rowState.grid basecell))
-                -- update grid's rnd
-                grid' = Grid.updateRnd rowState.grid
-                shouldCloseOut = atEasternBoundary || ((not atNorthernBoundary) && grid'.rnd.heads)
-            in
-               if shouldCloseOut
-                  then 
-                  -- get random cell from run
-                  let member = GridCell.maybeGridCellToCell <| GridUtils.sampleCell run' grid'.rnd
-                      northern = Grid.north grid' member
-                      grid'' = Grid.updateRnd grid'
-                  in
-                     if GridCell.isValidCell northern
-                        then
-                        {
-                            run = [],
-                            -- link cells and update the grid RND
-                            grid = Grid.linkCells grid'' 
-                                (RectCellTag member)
-                                (GridCell.maybeGridCellToGridCell northern)
-                                True
-                        } 
-                        else
-                        {
-                            run = [],
-                            grid = grid''
-                        } 
-                  else 
-                  {
-                      rowState |
-                      run = run',
-                      -- link cells and update the grid RND
-                      grid = Grid.linkCells grid' 
-                          cell
-                          (GridCell.maybeGridCellToGridCell <| Grid.east grid' basecell)
-                          True
-                  }
+            if rowState.stop
+               then rowState
+               else
+                let run' = cell :: rowState.run
+                    runstr = Debug.log "Run: " <| GridUtils.cellsToString run'
+                    basecell = GridCell.base <| Debug.log "work cell" cell
+                    atEasternBoundary = Debug.log "At eastern? " <| not (GridCell.isValidCell (Grid.east rowState.grid basecell))
+                    atNorthernBoundary = Debug.log "At northern? " <| not (GridCell.isValidCell (Grid.north rowState.grid basecell))
+                    -- update grid's rnd
+                    grid' = Grid.updateRnd rowState.grid
+                    shouldCloseOut = Debug.log "Close out? " <| atEasternBoundary || ((not atNorthernBoundary) && (Debug.log "Heads: " grid'.rnd.heads))
+                in
+                   if shouldCloseOut
+                      then 
+                      -- get random cell from run
+                      let member = Debug.log "random cell: " <| GridCell.maybeGridCellToCell <| GridUtils.sampleCell run' grid'.rnd
+                          northern = Grid.north grid' member
+                          grid'' = Grid.updateRnd grid'
+                      in
+                         if GridCell.isValidCell northern
+                            then
+                            {
+                                run = [],
+                                stop = True,
+                                -- link cells and update the grid RND
+                                grid = Grid.linkCells grid'' 
+                                    (RectCellTag member)
+                                    (GridCell.maybeGridCellToGridCell northern)
+                                    True
+                            } 
+                            else
+                            {
+                                run = Debug.log "Invalid northern cell" [],
+                                grid = grid'',
+                                stop = False
+                            } 
+                      else 
+                      {
+                          rowState |
+                          run = run',
+                          stop = False,
+                          -- link cells and update the grid RND
+                          grid = Grid.linkCells grid' 
+                              cell
+                              (GridCell.maybeGridCellToGridCell <| Grid.east grid' basecell)
+                              True
+                      }
 
     in
        List.foldl processCell state cells
