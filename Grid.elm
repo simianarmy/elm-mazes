@@ -39,7 +39,7 @@ type alias RowAscii = {
 -- constructor
 -- createGrid : Int -> Int -> Seed -> (Mask -> CellGrid) -> Grid a
 createGrid rows cols initSeed cellMaker =
-    let mask' = Mask.createMask rows cols
+    let mask' = Mask.createMask cols rows
     in createGridFromMask mask' initSeed cellMaker
 
 --createGridFromMask : Mask -> Seed -> Grid a

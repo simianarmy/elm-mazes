@@ -49,12 +49,7 @@ step startCellFn neighborsFn grid i =
        case cell of
            Just c ->
                -- FIX ME: WE DON'T HAVE A CORRECT ALGORITHM FOR PICKING UNPROCESSED CELLS YET!!!
-               let cells = List.filter (\c -> 
-                   let bc = GridCell.base c
-                   in
-                       (not bc.visited) || 
-                       (Cell.isLinked bc (maybeGridCellToCell (Grid.south grid bc)))
-                   )
+               let cells = List.filter (\c -> not (GridCell.base c).processed)
                    <| Grid.rowCells grid (grid.rows - (GridCell.base c).row - 1)
                    state = {run = [], grid = grid, stop = False}
                in
@@ -85,9 +80,9 @@ work state cells =
                    if shouldCloseOut
                       then 
                       -- get random cell from run
-                      let member = Debug.log "random cell: " <| GridCell.maybeGridCellToCell <| GridUtils.sampleCell run' grid'.rnd
-                          member' = GridCell.setProcessed member
-                          northern = Grid.north grid' member
+                      let member = Debug.log "random cell: " <| GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell run' grid'.rnd
+                          bm = GridCell.base member
+                          northern = Grid.north grid' bm
                           grid'' = Grid.updateRnd grid'
                       in
                          if GridCell.isValidCell northern
@@ -97,7 +92,7 @@ work state cells =
                                 stop = True,
                                 -- link cells and update the grid RND
                                 grid = Grid.linkCells grid'' 
-                                    (RectCellTag member')
+                                    (GridCell.setProcessed member)
                                     (GridCell.maybeGridCellToGridCell northern)
                                     True
                             } 

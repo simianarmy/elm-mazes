@@ -106,12 +106,14 @@ filterGridCells fn cells =
 -- probably a better way to update a base property...
 setProcessed : GridCell -> GridCell
 setProcessed gc =
-    case gc of
-        Nothing -> RectCellTag Cell.createNilCell
-        Just (RectCellTag c) -> {c | processed = True}
-        Just (PolarCellTag p) -> PolarCellTag p
-        Just (HexCellTag c) -> HexCellTag c
-        Just (TriangleCellTag c) -> TriangleCellTag c
+    let bc = base gc
+        bc' = { bc | processed = True }
+    in
+       case gc of
+           RectCellTag c -> RectCellTag bc'
+           PolarCellTag (p, rest) -> PolarCellTag (bc', rest)
+           HexCellTag c -> HexCellTag bc'
+           TriangleCellTag c -> TriangleCellTag bc'
 
 toString : GridCell -> String
 toString gc = Cell.cellToString (base gc)
