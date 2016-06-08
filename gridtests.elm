@@ -5,6 +5,7 @@ import GridCell exposing (..)
 import Set
 import String
 import List exposing (head)
+import TestHelpers exposing (..)
 
 import ElmTest exposing (..)
 import Random.PCG exposing (..)
@@ -15,10 +16,6 @@ createGrid rows cols =
 
 createRectCell row col =
     RectCellTag (Cell.createCell row col)
-
--- helps with getCell
-unmaybeCell cell =
-    GridCell.toString <| maybeGridCellToGridCell cell
 
 gridTests : Test
 gridTests = suite "Grid test suite"

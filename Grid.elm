@@ -338,21 +338,19 @@ gridCellID : GridCell -> CellID
 gridCellID gc =
     GridCell.id gc
 
-linkCellsHelper : Grid a -> BaseCell -> CellID -> Bool -> Grid a
-linkCellsHelper grid cell cellToLinkId bidi =
-    let linkCell : BaseCell -> CellID -> BaseCell
-        linkCell cell1 id = {
+linkCellsHelper : Grid a -> BaseCell -> BaseCell -> Grid a
+linkCellsHelper grid cell cellToLink =
+    let linkCell : BaseCell -> BaseCell -> BaseCell
+        linkCell cell1 cell2 = {
             cell1 |
-                links = Set.insert id cell1.links
+                links = Set.insert cell2.id cell1.links
                 , visited = True
         }
         linker : BaseCell -> BaseCell
         linker c =
             if c.id == cell.id
-               then linkCell c cellToLinkId
-               else if bidi && (c.id == cellToLinkId)
-                       then linkCell c cell.id
-                       else c
+               then linkCell cell cellToLink
+               else c
 
         linkMatched : GridCell -> GridCell
         linkMatched c =
@@ -371,11 +369,13 @@ linkCellsHelper grid cell cellToLinkId bidi =
 -- link 2 cells
 linkCells : Grid a -> GridCell -> GridCell -> Bool -> Grid a
 linkCells grid cell cell2 bidi =
-    let c2Id = gridCellID cell2
-        base = GridCell.base cell
-        dbg = Debug.log ("LINKING" ++ (GridCell.toString cell) ++ " & " ++ (GridCell.toString cell2)) 1
+    let b1 = GridCell.base cell
+        b2 = GridCell.base cell2
+        grid' = linkCellsHelper grid b1 b2
     in
-        linkCellsHelper grid base c2Id bidi
+       if bidi
+          then linkCellsHelper grid' b2 b1
+          else grid'
 
 -- returns all cells linked to a cell
 linkedCells : Grid a -> GridCell -> List GridCell
