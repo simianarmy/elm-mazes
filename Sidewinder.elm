@@ -36,7 +36,7 @@ step : (Grid a -> Maybe GridCell) ->
      Grid a
 step startCellFn neighborsFn grid i =
     -- get the current cell
-    let cell = List.head <| List.reverse <| List.take (Debug.log "STEP " i) (Grid.cellsList grid.cells)
+    let cell = List.head <| List.reverse <| List.take (Debug.log "STEP" i) (Grid.cellsList grid.cells)
         -- run should be all previously visited cells connected to us
         -- we can generate the run by moving west until we hit a wall
         generateRun : List GridCell -> List GridCell
@@ -64,23 +64,27 @@ step startCellFn neighborsFn grid i =
 work : RowState a -> List GridCell -> Grid a
 work state cells =
     let processCell : GridCell -> RowState a -> RowState a
-        processCell cell rowState =
+        processCell ogCell rowState =
             if rowState.stop
                then rowState
                else
-                let run' = cell :: rowState.run
-                    runstr = Debug.log "Run: " <| GridUtils.cellsToString run'
-                    basecell = GridCell.base <| Debug.log "work cell" cell
-                    atEasternBoundary = Debug.log "At eastern? " <| not (GridCell.isValidCell (Grid.east rowState.grid basecell))
-                    atNorthernBoundary = Debug.log "At northern? " <| not (GridCell.isValidCell (Grid.north rowState.grid basecell))
+               -- Fetch cell from grid before processing since it's state may have been modified
+                let cell = maybeGridCellToGridCell <| Grid.getCell rowState.grid (GridCell.row ogCell) (GridCell.col ogCell)
+                    run' = cell :: rowState.run
+                    runstr = GridUtils.cellsToString run'
+                    basecell = GridCell.base cell
+                    atEasternBoundary = not (GridCell.isValidCell (Grid.east rowState.grid basecell))
+                    atNorthernBoundary = not (GridCell.isValidCell (Grid.north rowState.grid basecell))
                     -- update grid's rnd
                     grid' = Grid.updateRnd rowState.grid
-                    shouldCloseOut = Debug.log "Close out? " <| atEasternBoundary || ((not atNorthernBoundary) && (Debug.log "Heads: " grid'.rnd.heads))
+                    shouldCloseOut = atEasternBoundary || ((not atNorthernBoundary) && grid'.rnd.heads)
                 in
                    if shouldCloseOut
                       then 
                       -- get random cell from run
-                      let member = Debug.log "random cell: " <| GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell run' grid'.rnd
+                      let runCell = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell run' grid'.rnd
+                          -- fetch cell from grid to keep up to date
+                          member = maybeGridCellToGridCell <| Grid.getCell grid' (GridCell.row runCell) (GridCell.col runCell)
                           bm = GridCell.base member
                           northern = Grid.north grid' bm
                           grid'' = Grid.updateRnd grid'
@@ -98,7 +102,7 @@ work state cells =
                             } 
                             else
                             {
-                                run = Debug.log "Invalid northern cell" [],
+                                run = [],
                                 grid = grid'',
                                 stop = False
                             } 

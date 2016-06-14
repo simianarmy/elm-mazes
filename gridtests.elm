@@ -11,11 +11,10 @@ import ElmTest exposing (..)
 import Random.PCG exposing (..)
 import Graphics.Element exposing (Element)
 
-createGrid rows cols =
-    Grid.createGrid rows cols (Random.PCG.initialSeed 123) Grid.makeCells
-
 createRectCell row col =
     RectCellTag (Cell.createCell row col)
+
+createGrid = TestHelpers.createGrid
 
 gridTests : Test
 gridTests = suite "Grid test suite"
@@ -62,10 +61,21 @@ gridTests = suite "Grid test suite"
                 c1 = createRectCell 1 1
                 c2 = createRectCell 2 1
                 grid' = linkCells grid c1 c2 True
-                grid'' = linkCells grid' (createRectCell 1 2) (createRectCell 1 1) True
-                oneone = maybeGridCellToCell (getCell grid'' 1 1)
+                c1' = Debug.log "c1'" <| maybeGridCellToGridCell (getCell grid' 1 1)
+                grid'' = linkCells grid' c1' (createRectCell 1 2) True
+                oneone = Debug.log "1,1" <| maybeGridCellToCell (getCell grid'' 1 1)
             in
                assert ((Set.member (2,1) oneone.links) && (Set.member (1,2) oneone.links)))
+        , test "Linking cells in a row removes their east/west wall" (
+            let grid = createGrid 2 2
+                c1 = createRectCell 0 0
+                c2 = createRectCell 0 1
+                grid' = linkCells grid c1 c2 True
+                bc2 = maybeGridCellToCell <| east grid' (GridCell.base c1)
+                bc1 = maybeGridCellToCell <| west grid' (GridCell.base c2)
+            in
+               assert ((Cell.isLinked bc1 bc2) && (Cell.isLinked bc2 bc1)
+               ))
         , test "Neighbors returns list of neighboring cells (middle of 3x3 grid)" (
             let grid = createGrid 3 3
             in

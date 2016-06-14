@@ -13237,20 +13237,20 @@ Elm.Sidewinder.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
    var work = F2(function (state,cells) {
-      var processCell = F2(function (cell,rowState) {
+      var processCell = F2(function (ogCell,rowState) {
          if (rowState.stop) return rowState; else {
                var grid$ = $Grid.updateRnd(rowState.grid);
-               var basecell = $GridCell.base(A2($Debug.log,"work cell",cell));
-               var atEasternBoundary = A2($Debug.log,"At eastern? ",$Basics.not($GridCell.isValidCell(A2($Grid.east,rowState.grid,basecell))));
-               var atNorthernBoundary = A2($Debug.log,"At northern? ",$Basics.not($GridCell.isValidCell(A2($Grid.north,rowState.grid,basecell))));
-               var shouldCloseOut = A2($Debug.log,
-               "Close out? ",
-               atEasternBoundary || $Basics.not(atNorthernBoundary) && A2($Debug.log,"Heads: ",grid$.rnd.heads));
+               var cell = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,rowState.grid,$GridCell.row(ogCell),$GridCell.col(ogCell)));
                var run$ = A2($List._op["::"],cell,rowState.run);
-               var runstr = A2($Debug.log,"Run: ",$GridUtils.cellsToString(run$));
+               var runstr = $GridUtils.cellsToString(run$);
+               var basecell = $GridCell.base(cell);
+               var atEasternBoundary = $Basics.not($GridCell.isValidCell(A2($Grid.east,rowState.grid,basecell)));
+               var atNorthernBoundary = $Basics.not($GridCell.isValidCell(A2($Grid.north,rowState.grid,basecell)));
+               var shouldCloseOut = atEasternBoundary || $Basics.not(atNorthernBoundary) && grid$.rnd.heads;
                if (shouldCloseOut) {
                      var grid$$ = $Grid.updateRnd(grid$);
-                     var member = A2($Debug.log,"random cell: ",$GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,run$,grid$.rnd)));
+                     var runCell = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,run$,grid$.rnd));
+                     var member = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,grid$,$GridCell.row(runCell),$GridCell.col(runCell)));
                      var bm = $GridCell.base(member);
                      var northern = A2($Grid.north,grid$,bm);
                      return $GridCell.isValidCell(northern) ? {run: _U.list([])
@@ -13259,7 +13259,7 @@ Elm.Sidewinder.make = function (_elm) {
                                                               grid$$,
                                                               $GridCell.setProcessed(member),
                                                               $GridCell.maybeGridCellToGridCell(northern),
-                                                              true)} : {run: A2($Debug.log,"Invalid northern cell",_U.list([])),grid: grid$$,stop: false};
+                                                              true)} : {run: _U.list([]),grid: grid$$,stop: false};
                   } else return _U.update(rowState,
                   {run: run$
                   ,stop: false
@@ -13286,7 +13286,7 @@ Elm.Sidewinder.make = function (_elm) {
          run));
          return run$;
       };
-      var cell = $List.head($List.reverse(A2($List.take,A2($Debug.log,"STEP ",i),$Grid.cellsList(grid.cells))));
+      var cell = $List.head($List.reverse(A2($List.take,A2($Debug.log,"STEP",i),$Grid.cellsList(grid.cells))));
       var _p0 = cell;
       if (_p0.ctor === "Just") {
             var state = {run: _U.list([]),grid: grid,stop: false};
