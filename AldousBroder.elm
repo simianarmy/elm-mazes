@@ -1,5 +1,5 @@
 -- Module defining the Aldous-Broder maze creation algorithm
-module AldousBroder (on) where
+module AldousBroder (on, step) where
 
 import Grid exposing (Grid)
 import PolarGrid
@@ -26,6 +26,43 @@ on startCellFn neighborsFn grid =
             _ -> Grid.size grid'
     in
        trampoline (walkRandomly grid' neighborsFn startCell (gridSize - 1))
+
+-- Processes a single cell (using single 1-based index for lookup)
+-- step value shouldn't care about shape of the grid
+step : (Grid a -> Maybe GridCell) ->
+     (Grid a -> GridCell -> List GridCell) ->
+     Grid a -> Int ->
+     Grid a
+step startCellFn neighborsFn grid i =
+    -- pick random processed cell or the starting cell
+    let visited = List.filter (\c -> .visited (GridCell.base c)) <| Grid.cellsList grid.cells
+        startCell = Debug.log "start" <| if List.isEmpty visited
+          then GridCell.maybeGridCellToGridCell <| startCellFn grid
+          else GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell visited grid.rnd
+        gridSize = case startCell of
+            PolarCellTag c -> PolarGrid.size grid
+            _ -> Grid.size grid
+        grid' = Grid.updateRnd grid
+    in
+       if List.length visited == gridSize
+          then grid'
+          else
+          work grid' neighborsFn startCell
+
+work : Grid a -> 
+    (Grid a -> GridCell -> List GridCell) ->
+    GridCell ->
+    Grid a
+work grid neighborsFn cell =
+    let sample = neighborsFn grid cell
+        -- gridcell
+        gcneighbor = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd
+        -- basecell
+        neighbor = GridCell.base gcneighbor
+    in
+       if Cell.hasLinks neighbor
+          then grid
+          else Grid.linkCells grid cell gcneighbor True
 
 -- Breaking out to try trampoline
 walkRandomly : Grid a -> 

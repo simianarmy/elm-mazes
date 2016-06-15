@@ -26,7 +26,7 @@ import Graphics.Element exposing (Element)
 type Algorithm = NoOp
                | BinaryTree
                | Sidewinder
-               --| AldousBroder
+               | AldousBroder
                --| Wilsons
                --| HuntAndKill
                --| RecursiveBacktracker
@@ -112,6 +112,7 @@ genAlg algName shape =
            --Sidewinder -> Sidewinder.on randCellFn neighborFn
            Sidewinder -> Sidewinder.step randCellFn neighborFn
            --AldousBroder -> AldousBroder.on randCellFn neighborFn
+           AldousBroder -> AldousBroder.step randCellFn neighborFn
            --Wilsons -> Wilsons.on randCellFn neighborFn
            --HuntAndKill -> HuntAndKill.on randCellFn neighborFn
            --RecursiveBacktracker -> RecursiveBacktracker.on randCellFn neighborFn
@@ -248,7 +249,7 @@ algorithms shape =
             --{alg = HuntAndKill, name = algToString HuntAndKill}
         ]
         allAlgs = [
-            --{alg = AldousBroder, name = algToString AldousBroder}
+            {alg = AldousBroder, name = algToString AldousBroder}
             --, {alg = Wilsons, name = algToString Wilsons}
             --, {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
         ]
@@ -264,7 +265,7 @@ algToString algType =
         NoOp -> "None"
         BinaryTree -> "Binary Tree"
         Sidewinder -> "Sidewinder"
-        --AldousBroder -> "Aldous-Broder"
+        AldousBroder -> "Aldous-Broder"
         --Wilsons -> "Wilsons"
         --HuntAndKill -> "Hunt - Kill"
         --RecursiveBacktracker -> "Recursive Backtracker"

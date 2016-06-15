@@ -12840,12 +12840,36 @@ Elm.AldousBroder.make = function (_elm) {
                } else return $Trampoline.Continue(function (_p2) {    var _p3 = _p2;return A4(walkRandomly,grid$,neighborsFn,gcneighbor,unvisited);});
          }
    });
+   var work = F3(function (grid,neighborsFn,cell) {
+      var sample = A2(neighborsFn,grid,cell);
+      var gcneighbor = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,sample,grid.rnd));
+      var neighbor = $GridCell.base(gcneighbor);
+      return $Cell.hasLinks(neighbor) ? grid : A4($Grid.linkCells,grid,cell,gcneighbor,true);
+   });
+   var step = F4(function (startCellFn,neighborsFn,grid,i) {
+      var grid$ = $Grid.updateRnd(grid);
+      var visited = A2($List.filter,function (c) {    return function (_) {    return _.visited;}($GridCell.base(c));},$Grid.cellsList(grid.cells));
+      var startCell = A2($Debug.log,
+      "start",
+      $List.isEmpty(visited) ? $GridCell.maybeGridCellToGridCell(startCellFn(grid)) : $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,
+      visited,
+      grid.rnd)));
+      var gridSize = function () {
+         var _p4 = startCell;
+         if (_p4.ctor === "PolarCellTag") {
+               return $PolarGrid.size(grid);
+            } else {
+               return $Grid.size(grid);
+            }
+      }();
+      return _U.eq($List.length(visited),gridSize) ? grid$ : A3(work,grid$,neighborsFn,startCell);
+   });
    var on = F3(function (startCellFn,neighborsFn,grid) {
       var startCell = $GridCell.maybeGridCellToGridCell(startCellFn(grid));
       var grid$ = $Grid.updateRnd(grid);
       var gridSize = function () {
-         var _p4 = startCell;
-         if (_p4.ctor === "PolarCellTag") {
+         var _p5 = startCell;
+         if (_p5.ctor === "PolarCellTag") {
                return $PolarGrid.size(grid$);
             } else {
                return $Grid.size(grid$);
@@ -12853,7 +12877,7 @@ Elm.AldousBroder.make = function (_elm) {
       }();
       return $Trampoline.trampoline(A4(walkRandomly,grid$,neighborsFn,startCell,gridSize - 1));
    });
-   return _elm.AldousBroder.values = {_op: _op,on: on};
+   return _elm.AldousBroder.values = {_op: _op,on: on,step: step};
 };
 Elm.BinaryTree = Elm.BinaryTree || {};
 Elm.BinaryTree.make = function (_elm) {
@@ -13308,7 +13332,7 @@ Elm.Sidewinder.make = function (_elm) {
       return A3($List.foldl,processRow,grid,$List.reverse(_U.range(0,grid.rows - 1)));
    });
    var RowState = F3(function (a,b,c) {    return {run: a,grid: b,stop: c};});
-   return _elm.Sidewinder.values = {_op: _op,RowState: RowState,on: on,step: step,work: work};
+   return _elm.Sidewinder.values = {_op: _op,on: on,step: step};
 };
 Elm.Wilsons = Elm.Wilsons || {};
 Elm.Wilsons.make = function (_elm) {
@@ -13423,6 +13447,7 @@ Elm.Maze.make = function (_elm) {
    _elm.Maze = _elm.Maze || {};
    if (_elm.Maze.values) return _elm.Maze.values;
    var _U = Elm.Native.Utils.make(_elm),
+   $AldousBroder = Elm.AldousBroder.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $BinaryTree = Elm.BinaryTree.make(_elm),
    $ColoredGrid = Elm.ColoredGrid.make(_elm),
@@ -13448,7 +13473,8 @@ Elm.Maze.make = function (_elm) {
       switch (_p0.ctor)
       {case "NoOp": return "None";
          case "BinaryTree": return "Binary Tree";
-         default: return "Sidewinder";}
+         case "Sidewinder": return "Sidewinder";
+         default: return "Aldous-Broder";}
    };
    var viewDistances = function (maze) {
       var goal = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,maze.grid,0,0));
@@ -13506,7 +13532,8 @@ Elm.Maze.make = function (_elm) {
       switch (_p4.ctor)
       {case "NoOp": return $Basics.always;
          case "BinaryTree": return A2($BinaryTree.step,randCellFn,neighborFn);
-         default: return A2($Sidewinder.step,randCellFn,neighborFn);}
+         case "Sidewinder": return A2($Sidewinder.step,randCellFn,neighborFn);
+         default: return A2($AldousBroder.step,randCellFn,neighborFn);}
    });
    var cellSize = 30;
    var mazeToElement = function (maze) {
@@ -13574,12 +13601,13 @@ Elm.Maze.make = function (_elm) {
    var Ascii = {ctor: "Ascii"};
    var displays = _U.list([{ctor: "_Tuple2",_0: Ascii,_1: "ASCII"},{ctor: "_Tuple2",_0: Colored,_1: "Colored"}]);
    var AlgAttr = F2(function (a,b) {    return {alg: a,name: b};});
+   var AldousBroder = {ctor: "AldousBroder"};
    var Sidewinder = {ctor: "Sidewinder"};
    var BinaryTree = {ctor: "BinaryTree"};
    var NoOp = {ctor: "NoOp"};
    var defaultAlgorithm = NoOp;
    var algorithms = function (shape) {
-      var allAlgs = _U.list([]);
+      var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)}]);
       var triangleAlgs = _U.list([]);
       var rectAlgs = _U.list([{alg: BinaryTree,name: algToString(BinaryTree)},{alg: Sidewinder,name: algToString(Sidewinder)}]);
       var algs = _U.list([{alg: NoOp,name: algToString(NoOp)}]);
@@ -13595,13 +13623,14 @@ Elm.Maze.make = function (_elm) {
       if (_p9.ctor === "Just") {
             return _p9._0.alg;
          } else {
-            return A2(_U.crash("Maze",{start: {line: 278,column: 17},end: {line: 278,column: 28}}),"Unknown algorithm",BinaryTree);
+            return A2(_U.crash("Maze",{start: {line: 279,column: 17},end: {line: 279,column: 28}}),"Unknown algorithm",BinaryTree);
          }
    };
    return _elm.Maze.values = {_op: _op
                              ,NoOp: NoOp
                              ,BinaryTree: BinaryTree
                              ,Sidewinder: Sidewinder
+                             ,AldousBroder: AldousBroder
                              ,AlgAttr: AlgAttr
                              ,Ascii: Ascii
                              ,Colored: Colored
