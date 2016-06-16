@@ -30,6 +30,7 @@ type alias AppState a =
     , seed: Random.Seed
     --, braidSlider: Slider.Model
     , totalTime: Float
+    , genState: Generation
     }
 
 type alias PngData =
@@ -39,6 +40,9 @@ type alias PngData =
     }
 
 type alias Model a = AppState a
+type Generation =
+    Stepwise
+    | Automatic
 
 --- UPDATE ---
 
@@ -48,6 +52,9 @@ type alias Model a = AppState a
 type Action = 
     NoOp
     | Tick Float
+    | Next
+    | Run
+    | Stop
     | Refresh
     | UpdateWidth String
     | UpdateHeight String
@@ -81,7 +88,7 @@ update action model =
             let maze = model.maze
                 maze' = Maze.init (Maze.algByName str) maze.grid.cols maze.grid.rows maze.grid.rnd.seed maze.shape maze.display
             in
-               {model | maze = Maze.update maze'}
+               {model | maze = maze'}
 
         SelectView display ->
             let maze' = Maze.updateView model.maze display
@@ -123,9 +130,28 @@ update action model =
                     maze = Maze.update model.maze,
                     totalTime = 0
                 }
-                else {model |
-                    totalTime = model.totalTime + dt
-                }
+                else
+                case model.genState of
+                    Stepwise -> model
+                    Automatic -> {model |
+                        totalTime = model.totalTime + dt
+                    }
+
+        Next ->
+            {model |
+                maze = Maze.update model.maze,
+                totalTime = 0
+            }
+
+        Run ->
+            {model |
+                genState = Automatic
+            }
+
+        Stop ->
+            {model |
+                genState = Stepwise
+            }
 
 --- VIEW ---
 --view : Address Action -> Model a -> Html
@@ -165,6 +191,9 @@ view address model =
         , br [] []
         , text "Braids (1 = no deadends):"
         --, Slider.view (Signal.forwardTo address Braid) model.braidSlider
+        , button [ onClick address Next ] [ text ">" ]
+        , button [ onClick address Run ] [ text "Run" ]
+        , button [ onClick address Stop ] [ text "Stop" ]
         , button [ onClick address Refresh ] [ text "REFRESH" ]
         , br [] []
         , text "Ascii Mask file: "
@@ -215,6 +244,7 @@ initialModel =
       , seed = initialSeed 45 -- This will not get used.
       --, braidSlider = Slider.init { id="braid", label="Braid Factor", value=(toString Maze.defaultBraidFactor), min=0, max=1, step=0.1 }
       , totalTime = 0.0
+      , genState = Stepwise
     }
 
 -- actions from user input

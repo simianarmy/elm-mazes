@@ -27,7 +27,7 @@ type Algorithm = NoOp
                | BinaryTree
                | Sidewinder
                | AldousBroder
-               --| Wilsons
+               | Wilsons
                --| HuntAndKill
                --| RecursiveBacktracker
 
@@ -114,6 +114,7 @@ genAlg algName shape =
            --AldousBroder -> AldousBroder.on randCellFn neighborFn
            AldousBroder -> AldousBroder.step randCellFn neighborFn
            --Wilsons -> Wilsons.on randCellFn neighborFn
+           Wilsons -> Wilsons.step randCellFn neighborFn
            --HuntAndKill -> HuntAndKill.on randCellFn neighborFn
            --RecursiveBacktracker -> RecursiveBacktracker.on randCellFn neighborFn
 
@@ -250,7 +251,7 @@ algorithms shape =
         ]
         allAlgs = [
             {alg = AldousBroder, name = algToString AldousBroder}
-            --, {alg = Wilsons, name = algToString Wilsons}
+            , {alg = Wilsons, name = algToString Wilsons}
             --, {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
         ]
     in
@@ -266,7 +267,7 @@ algToString algType =
         BinaryTree -> "Binary Tree"
         Sidewinder -> "Sidewinder"
         AldousBroder -> "Aldous-Broder"
-        --Wilsons -> "Wilsons"
+        Wilsons -> "Wilsons"
         --HuntAndKill -> "Hunt - Kill"
         --RecursiveBacktracker -> "Recursive Backtracker"
 

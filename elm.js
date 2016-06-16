@@ -13389,6 +13389,15 @@ Elm.Wilsons.make = function (_elm) {
             return $Trampoline.Continue(function (_p0) {    var _p1 = _p0;return A3(work,rwp.grid,rwp.unvisited,neighborsFn);});
          }
    });
+   var step = F4(function (startCellFn,neighborsFn,grid,i) {
+      var unvisited = A2($GridCell.filterGridCells,function (e) {    return $Basics.not(e.visited);},$Grid.cellsList(grid.cells));
+      if ($List.isEmpty(unvisited)) return grid; else {
+            var grid$ = $Grid.updateRnd(grid);
+            var cell = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,unvisited,grid$.rnd));
+            var rwp = A2(loopErasedRandomWalk,{grid: $Grid.updateRnd(grid$),cell: cell,path: _U.list([cell]),unvisited: unvisited},neighborsFn);
+            return rwp.grid;
+         }
+   });
    var on = F3(function (startCellFn,neighborsFn,grid) {
       var grid$ = $Grid.updateRnd(grid);
       var startCell = $GridCell.maybeGridCellToGridCell(startCellFn(grid));
@@ -13396,7 +13405,7 @@ Elm.Wilsons.make = function (_elm) {
       return $Trampoline.trampoline(A3(work,grid$,unvisited,neighborsFn));
    });
    var RandomWalkPath = F4(function (a,b,c,d) {    return {grid: a,cell: b,path: c,unvisited: d};});
-   return _elm.Wilsons.values = {_op: _op,on: on};
+   return _elm.Wilsons.values = {_op: _op,on: on,step: step};
 };
 Elm.RecursiveBacktracker = Elm.RecursiveBacktracker || {};
 Elm.RecursiveBacktracker.make = function (_elm) {
@@ -13466,7 +13475,8 @@ Elm.Maze.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $TriangleGrid = Elm.TriangleGrid.make(_elm);
+   $TriangleGrid = Elm.TriangleGrid.make(_elm),
+   $Wilsons = Elm.Wilsons.make(_elm);
    var _op = {};
    var algToString = function (algType) {
       var _p0 = algType;
@@ -13474,7 +13484,8 @@ Elm.Maze.make = function (_elm) {
       {case "NoOp": return "None";
          case "BinaryTree": return "Binary Tree";
          case "Sidewinder": return "Sidewinder";
-         default: return "Aldous-Broder";}
+         case "AldousBroder": return "Aldous-Broder";
+         default: return "Wilsons";}
    };
    var viewDistances = function (maze) {
       var goal = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,maze.grid,0,0));
@@ -13533,7 +13544,8 @@ Elm.Maze.make = function (_elm) {
       {case "NoOp": return $Basics.always;
          case "BinaryTree": return A2($BinaryTree.step,randCellFn,neighborFn);
          case "Sidewinder": return A2($Sidewinder.step,randCellFn,neighborFn);
-         default: return A2($AldousBroder.step,randCellFn,neighborFn);}
+         case "AldousBroder": return A2($AldousBroder.step,randCellFn,neighborFn);
+         default: return A2($Wilsons.step,randCellFn,neighborFn);}
    });
    var cellSize = 30;
    var mazeToElement = function (maze) {
@@ -13601,13 +13613,14 @@ Elm.Maze.make = function (_elm) {
    var Ascii = {ctor: "Ascii"};
    var displays = _U.list([{ctor: "_Tuple2",_0: Ascii,_1: "ASCII"},{ctor: "_Tuple2",_0: Colored,_1: "Colored"}]);
    var AlgAttr = F2(function (a,b) {    return {alg: a,name: b};});
+   var Wilsons = {ctor: "Wilsons"};
    var AldousBroder = {ctor: "AldousBroder"};
    var Sidewinder = {ctor: "Sidewinder"};
    var BinaryTree = {ctor: "BinaryTree"};
    var NoOp = {ctor: "NoOp"};
    var defaultAlgorithm = NoOp;
    var algorithms = function (shape) {
-      var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)}]);
+      var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)},{alg: Wilsons,name: algToString(Wilsons)}]);
       var triangleAlgs = _U.list([]);
       var rectAlgs = _U.list([{alg: BinaryTree,name: algToString(BinaryTree)},{alg: Sidewinder,name: algToString(Sidewinder)}]);
       var algs = _U.list([{alg: NoOp,name: algToString(NoOp)}]);
@@ -13623,7 +13636,7 @@ Elm.Maze.make = function (_elm) {
       if (_p9.ctor === "Just") {
             return _p9._0.alg;
          } else {
-            return A2(_U.crash("Maze",{start: {line: 279,column: 17},end: {line: 279,column: 28}}),"Unknown algorithm",BinaryTree);
+            return A2(_U.crash("Maze",{start: {line: 280,column: 17},end: {line: 280,column: 28}}),"Unknown algorithm",BinaryTree);
          }
    };
    return _elm.Maze.values = {_op: _op
@@ -13631,6 +13644,7 @@ Elm.Maze.make = function (_elm) {
                              ,BinaryTree: BinaryTree
                              ,Sidewinder: Sidewinder
                              ,AldousBroder: AldousBroder
+                             ,Wilsons: Wilsons
                              ,AlgAttr: AlgAttr
                              ,Ascii: Ascii
                              ,Colored: Colored
@@ -13735,13 +13749,18 @@ Elm.Main.make = function (_elm) {
    var UpdateHeight = function (a) {    return {ctor: "UpdateHeight",_0: a};};
    var UpdateWidth = function (a) {    return {ctor: "UpdateWidth",_0: a};};
    var Refresh = {ctor: "Refresh"};
+   var Stop = {ctor: "Stop"};
+   var Run = {ctor: "Run"};
+   var Next = {ctor: "Next"};
    var Tick = function (a) {    return {ctor: "Tick",_0: a};};
    var tick = A2($Signal.map,function (dt) {    return Tick(dt);},$Time.fps(16));
    var NoOp = {ctor: "NoOp"};
    var actions = $Signal.mailbox(NoOp);
    var userInput = $Signal.mergeMany(_U.list([actions.signal,tick]));
+   var Automatic = {ctor: "Automatic"};
+   var Stepwise = {ctor: "Stepwise"};
    var PngData = F3(function (a,b,c) {    return {width: a,height: b,blackFlags: c};});
-   var AppState = F4(function (a,b,c,d) {    return {maze: a,seedInitialized: b,seed: c,totalTime: d};});
+   var AppState = F5(function (a,b,c,d,e) {    return {maze: a,seedInitialized: b,seed: c,totalTime: d,genState: e};});
    var mazeGenStepTime = 50;
    var update = F2(function (action,model) {
       var _p0 = action;
@@ -13760,7 +13779,7 @@ Elm.Main.make = function (_elm) {
            return _U.update(model,{maze: maze$});
          case "SelectAlg": var maze = model.maze;
            var maze$ = A6($Maze.init,$Maze.algByName(_p0._0),maze.grid.cols,maze.grid.rows,maze.grid.rnd.seed,maze.shape,maze.display);
-           return _U.update(model,{maze: $Maze.update(maze$)});
+           return _U.update(model,{maze: maze$});
          case "SelectView": var maze$ = A2($Maze.updateView,model.maze,_p0._0);
            return _U.update(model,{maze: maze$});
          case "SelectShape": var maze = model.maze;
@@ -13772,17 +13791,27 @@ Elm.Main.make = function (_elm) {
          case "LoadImageMask": var _p1 = _p0._0;
            var mask = A2($Mask.fromImage,{ctor: "_Tuple2",_0: _p1.width,_1: _p1.height},_p1.blackFlags);
            return _U.update(model,{maze: A2($Maze.setMask,model.maze,mask)});
-         default: return _U.cmp($Basics.truncate(model.totalTime),mazeGenStepTime) > -1 ? _U.update(model,
-           {maze: $Maze.update(model.maze),totalTime: 0}) : _U.update(model,{totalTime: model.totalTime + _p0._0});}
+         case "Tick": if (_U.cmp($Basics.truncate(model.totalTime),mazeGenStepTime) > -1) return _U.update(model,{maze: $Maze.update(model.maze),totalTime: 0});
+           else {
+                 var _p2 = model.genState;
+                 if (_p2.ctor === "Stepwise") {
+                       return model;
+                    } else {
+                       return _U.update(model,{totalTime: model.totalTime + _p0._0});
+                    }
+              }
+         case "Next": return _U.update(model,{maze: $Maze.update(model.maze),totalTime: 0});
+         case "Run": return _U.update(model,{genState: Automatic});
+         default: return _U.update(model,{genState: Stepwise});}
    });
    var initShape = $Maze.Rect;
    var shapeFromString = function (str) {
       var s = A2($List.filter,function (e) {    return _U.eq($Basics.snd(e),str);},$Maze.shapes);
-      var _p2 = $List.head(s);
-      if (_p2.ctor === "Nothing") {
+      var _p3 = $List.head(s);
+      if (_p3.ctor === "Nothing") {
             return initShape;
          } else {
-            return $Basics.fst(_p2._0);
+            return $Basics.fst(_p3._0);
          }
    };
    var view = F2(function (address,model) {
@@ -13818,13 +13847,13 @@ Elm.Main.make = function (_elm) {
               ,A2($Html.input,
               _U.list([$Html$Attributes.$class("sizeInput")
                       ,$Html$Attributes.value($Basics.toString(maze.grid.cols))
-                      ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (_p3) {    return A2($Signal.message,address,UpdateWidth(_p3));})]),
+                      ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (_p4) {    return A2($Signal.message,address,UpdateWidth(_p4));})]),
               _U.list([]))
               ,$Html.text(" X ")
               ,A2($Html.input,
               _U.list([$Html$Attributes.$class("sizeInput")
                       ,$Html$Attributes.value($Basics.toString(maze.grid.rows))
-                      ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (_p4) {    return A2($Signal.message,address,UpdateHeight(_p4));})]),
+                      ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (_p5) {    return A2($Signal.message,address,UpdateHeight(_p5));})]),
               _U.list([]))
               ,A2($Html.br,_U.list([]),_U.list([]))
               ,A2($Html.select,_U.list([selectAlg]),A2($List.map,algToOptions,$Maze.algorithms(maze.shape)))
@@ -13832,6 +13861,9 @@ Elm.Main.make = function (_elm) {
               ,A2($Html.select,_U.list([selectShape]),A2($List.map,shapeToOption,$Maze.shapes))
               ,A2($Html.br,_U.list([]),_U.list([]))
               ,$Html.text("Braids (1 = no deadends):")
+              ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Next)]),_U.list([$Html.text(">")]))
+              ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Run)]),_U.list([$Html.text("Run")]))
+              ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Stop)]),_U.list([$Html.text("Stop")]))
               ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Refresh)]),_U.list([$Html.text("REFRESH")]))
               ,A2($Html.br,_U.list([]),_U.list([]))
               ,$Html.text("Ascii Mask file: ")
@@ -13844,7 +13876,8 @@ Elm.Main.make = function (_elm) {
    var initialModel = {maze: A6($Maze.init,$Maze.defaultAlgorithm,initWidth,initHeight,startTimeSeed,initShape,initDisplay)
                       ,seedInitialized: false
                       ,seed: $Random$PCG.initialSeed(45)
-                      ,totalTime: 0.0};
+                      ,totalTime: 0.0
+                      ,genState: Stepwise};
    var model = A3($Signal.foldp,update,initialModel,userInput);
    var main = A2($Signal.map,view(actions.address),model);
    return _elm.Main.values = {_op: _op
@@ -13855,8 +13888,13 @@ Elm.Main.make = function (_elm) {
                              ,mazeGenStepTime: mazeGenStepTime
                              ,AppState: AppState
                              ,PngData: PngData
+                             ,Stepwise: Stepwise
+                             ,Automatic: Automatic
                              ,NoOp: NoOp
                              ,Tick: Tick
+                             ,Next: Next
+                             ,Run: Run
+                             ,Stop: Stop
                              ,Refresh: Refresh
                              ,UpdateWidth: UpdateWidth
                              ,UpdateHeight: UpdateHeight

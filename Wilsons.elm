@@ -1,5 +1,5 @@
 -- Module defining the (David Bruce) wilson's maze creation algorithm
-module Wilsons (on) where
+module Wilsons (on, step) where
 
 import Grid exposing (Grid)
 import PolarGrid
@@ -32,6 +32,29 @@ on startCellFn neighborsFn grid =
         ) <| Grid.cellsList grid.cells
     in
        trampoline (work grid' unvisited neighborsFn)
+
+-- Processes a single cell (using single 1-based index for lookup)
+-- step value shouldn't care about shape of the grid
+step : (Grid a -> Maybe GridCell) ->
+     (Grid a -> GridCell -> List GridCell) ->
+     Grid a -> Int ->
+     Grid a
+step startCellFn neighborsFn grid i =
+    let unvisited = GridCell.filterGridCells (\e -> not <| e.visited) <| Grid.cellsList grid.cells
+    in
+        if List.isEmpty unvisited
+           then grid
+           else
+           let grid' = Grid.updateRnd grid
+               cell = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell unvisited grid'.rnd
+               rwp = loopErasedRandomWalk {
+                   grid = Grid.updateRnd grid',
+                   cell = cell,
+                   path = [cell],
+                   unvisited = unvisited
+               } neighborsFn
+           in
+              rwp.grid
 
 work : Grid a -> 
     List GridCell -> 
