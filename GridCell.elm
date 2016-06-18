@@ -103,17 +103,35 @@ filterGridCells : (BaseCell -> Bool) -> List GridCell -> List GridCell
 filterGridCells fn cells =
     List.filter (fn << base) cells
 
--- probably a better way to update a base property...
+cellToGridCell : GridCell -> BaseCell -> GridCell
+cellToGridCell gc bc =
+       case gc of
+           RectCellTag c -> RectCellTag bc
+           PolarCellTag (p, rest) -> PolarCellTag (bc, rest)
+           HexCellTag c -> HexCellTag bc
+           TriangleCellTag c -> TriangleCellTag bc
+
+setVisited: GridCell -> GridCell
+setVisited gc =
+    let bc = base gc
+        bc' = { bc | visited = True }
+    in
+       cellToGridCell gc bc'
+
 setProcessed : GridCell -> GridCell
 setProcessed gc =
     let bc = base gc
-        bc' = { bc | processed = True }
+        bc' = { bc | processing = False, processed = True }
     in
-       case gc of
-           RectCellTag c -> RectCellTag bc'
-           PolarCellTag (p, rest) -> PolarCellTag (bc', rest)
-           HexCellTag c -> HexCellTag bc'
-           TriangleCellTag c -> TriangleCellTag bc'
+       cellToGridCell gc bc'
+
+-- probably a better way to update a base property...
+setProcessing : GridCell -> GridCell
+setProcessing gc =
+    let bc = base gc
+        bc' = { bc | processing = True }
+    in
+       cellToGridCell gc bc'
 
 toString : GridCell -> String
 toString gc = Cell.cellToString (base gc)

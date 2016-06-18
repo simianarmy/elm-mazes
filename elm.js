@@ -11830,11 +11830,11 @@ Elm.Cell.make = function (_elm) {
    var isNilCellID = function (_p1) {    var _p2 = _p1;return _U.eq(_p2._0,-1) && _U.eq(_p2._1,-1);};
    var createCellID = F2(function (a,b) {    return {ctor: "_Tuple2",_0: a,_1: b};});
    var createCell = F2(function (row,col) {
-      return {id: A2(createCellID,row,col),row: row,col: col,masked: false,links: $Set.empty,weight: 1,visited: false,processed: false};
+      return {id: A2(createCellID,row,col),row: row,col: col,masked: false,links: $Set.empty,weight: 1,visited: false,processed: false,processing: false};
    });
    var createMaskedCell = F2(function (row,col) {    var cell = A2(createCell,row,col);return _U.update(cell,{masked: true});});
    var createNilCell = A2(createCell,-1,-1);
-   var BaseCell = F8(function (a,b,c,d,e,f,g,h) {    return {id: a,row: b,col: c,masked: d,links: e,weight: f,visited: g,processed: h};});
+   var BaseCell = F9(function (a,b,c,d,e,f,g,h,i) {    return {id: a,row: b,col: c,masked: d,links: e,weight: f,visited: g,processed: h,processing: i};});
    return _elm.Cell.values = {_op: _op
                              ,BaseCell: BaseCell
                              ,createCell: createCell
@@ -11955,16 +11955,17 @@ Elm.GridCell.make = function (_elm) {
          }
    };
    var maybeGridCellToCell = function (cell) {    return base(maybeGridCellToGridCell(cell));};
-   var setProcessed = function (gc) {
-      var bc = base(gc);
-      var bc$ = _U.update(bc,{processed: true});
+   var cellToGridCell = F2(function (gc,bc) {
       var _p10 = gc;
       switch (_p10.ctor)
-      {case "RectCellTag": return RectCellTag(bc$);
-         case "PolarCellTag": return PolarCellTag({ctor: "_Tuple2",_0: bc$,_1: _p10._0._1});
-         case "HexCellTag": return HexCellTag(bc$);
-         default: return TriangleCellTag(bc$);}
-   };
+      {case "RectCellTag": return RectCellTag(bc);
+         case "PolarCellTag": return PolarCellTag({ctor: "_Tuple2",_0: bc,_1: _p10._0._1});
+         case "HexCellTag": return HexCellTag(bc);
+         default: return TriangleCellTag(bc);}
+   });
+   var setVisited = function (gc) {    var bc = base(gc);var bc$ = _U.update(bc,{visited: true});return A2(cellToGridCell,gc,bc$);};
+   var setProcessed = function (gc) {    var bc = base(gc);var bc$ = _U.update(bc,{processing: false,processed: true});return A2(cellToGridCell,gc,bc$);};
+   var setProcessing = function (gc) {    var bc = base(gc);var bc$ = _U.update(bc,{processing: true});return A2(cellToGridCell,gc,bc$);};
    return _elm.GridCell.values = {_op: _op
                                  ,RectCellTag: RectCellTag
                                  ,PolarCellTag: PolarCellTag
@@ -11985,7 +11986,10 @@ Elm.GridCell.make = function (_elm) {
                                  ,maybeGridCellToMaybeCell: maybeGridCellToMaybeCell
                                  ,maybeGridCellToGridCell: maybeGridCellToGridCell
                                  ,filterGridCells: filterGridCells
+                                 ,cellToGridCell: cellToGridCell
+                                 ,setVisited: setVisited
                                  ,setProcessed: setProcessed
+                                 ,setProcessing: setProcessing
                                  ,toString: toString};
 };
 Elm.RandomExtras = Elm.RandomExtras || {};
@@ -12187,6 +12191,11 @@ Elm.Grid.make = function (_elm) {
       });
    };
    var cellsList = function (cells) {    return $List.concat($Array.toList(A2($Array.map,$Array.toList,cells)));};
+   var updateCells = F2(function (grid,fn) {    return _U.update(grid,{cells: cellsListToCellGrid(A2($List.map,fn,cellsList(grid.cells)))});});
+   var updateCellById = F3(function (grid,cid,gc) {
+      var fn = function (c) {    return _U.eq($GridCell.id(c),cid) ? gc : c;};
+      return A2(updateCells,grid,fn);
+   });
    var deadEnds = function (grid) {
       return A2($List.filter,function (c) {    return _U.eq($List.length($Set.toList($GridCell.links(c))),1);},cellsList(grid.cells));
    };
@@ -12303,7 +12312,7 @@ Elm.Grid.make = function (_elm) {
          var best = A2($List.filter,function (c) {    return _U.eq($Set.size($GridCell.links(c)),1);},neighbors);
          var best$ = $List.isEmpty(best) ? neighbors : best;
          var neighbor = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,best$,g.rnd));
-         return $Cell.isNilCellID($GridCell.id(neighbor)) ? A2(_U.crash("Grid",{start: {line: 319,column: 24},end: {line: 319,column: 35}}),
+         return $Cell.isNilCellID($GridCell.id(neighbor)) ? A2(_U.crash("Grid",{start: {line: 336,column: 24},end: {line: 336,column: 35}}),
          "NIL NEIGHBOR in braid:linkNeighbor!",
          g$) : A4(linkCells,g$,deadEnd,neighbor,true);
       });
@@ -12335,6 +12344,8 @@ Elm.Grid.make = function (_elm) {
                              ,painter: painter
                              ,cellsList: cellsList
                              ,cellsListToCellGrid: cellsListToCellGrid
+                             ,updateCells: updateCells
+                             ,updateCellById: updateCellById
                              ,getCell: getCell
                              ,toValidCell: toValidCell
                              ,north: north
@@ -12841,19 +12852,22 @@ Elm.AldousBroder.make = function (_elm) {
          }
    });
    var work = F3(function (grid,neighborsFn,cell) {
+      var cell$ = $GridCell.setProcessed(cell);
       var sample = A2(neighborsFn,grid,cell);
-      var gcneighbor = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,sample,grid.rnd));
+      var gcneighbor = A2($Debug.log,"neighbor",$GridCell.setProcessing($GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,sample,grid.rnd))));
       var neighbor = $GridCell.base(gcneighbor);
-      return $Cell.hasLinks(neighbor) ? grid : A4($Grid.linkCells,grid,cell,gcneighbor,true);
+      if ($Cell.hasLinks(neighbor)) {
+            var grid$ = A3($Grid.updateCellById,grid,$GridCell.id(cell$),cell$);
+            return A3($Grid.updateCellById,grid$,$GridCell.id(gcneighbor),gcneighbor);
+         } else return A4($Grid.linkCells,grid,A2($Debug.log,"linking",cell$),A2($Debug.log,"to",gcneighbor),true);
    });
    var step = F4(function (startCellFn,neighborsFn,grid,i) {
       var grid$ = $Grid.updateRnd(grid);
       var visited = A2($List.filter,function (c) {    return function (_) {    return _.visited;}($GridCell.base(c));},$Grid.cellsList(grid.cells));
-      var startCell = A2($Debug.log,
+      var current = A2($List.filter,function (c) {    return function (_) {    return _.processing;}($GridCell.base(c));},$Grid.cellsList(grid.cells));
+      var startCell = $GridCell.setProcessing(A2($Debug.log,
       "start",
-      $List.isEmpty(visited) ? $GridCell.maybeGridCellToGridCell(startCellFn(grid)) : $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,
-      visited,
-      grid.rnd)));
+      $List.isEmpty(current) ? $GridCell.maybeGridCellToGridCell(startCellFn(grid)) : $GridCell.maybeGridCellToGridCell($List.head(current))));
       var gridSize = function () {
          var _p4 = startCell;
          if (_p4.ctor === "PolarCellTag") {
@@ -13353,7 +13367,7 @@ Elm.Wilsons.make = function (_elm) {
    $Trampoline = Elm.Trampoline.make(_elm);
    var _op = {};
    var carvePassage = function (rwp) {
-      var pathArr = $Array.fromList(rwp.path);
+      var pathArr = A2($Debug.log,"carving",$Array.fromList(rwp.path));
       var carve = F2(function (index,rwp) {
          var nextcell = $GridCell.maybeGridCellToGridCell(A2($Array.get,index + 1,pathArr));
          var icell = $GridCell.maybeGridCellToGridCell(A2($Array.get,index,pathArr));
@@ -13391,12 +13405,16 @@ Elm.Wilsons.make = function (_elm) {
    });
    var step = F4(function (startCellFn,neighborsFn,grid,i) {
       var unvisited = A2($GridCell.filterGridCells,function (e) {    return $Basics.not(e.visited);},$Grid.cellsList(grid.cells));
-      if ($List.isEmpty(unvisited)) return grid; else {
-            var grid$ = $Grid.updateRnd(grid);
-            var cell = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,unvisited,grid$.rnd));
-            var rwp = A2(loopErasedRandomWalk,{grid: $Grid.updateRnd(grid$),cell: cell,path: _U.list([cell]),unvisited: unvisited},neighborsFn);
-            return rwp.grid;
-         }
+      if ($List.isEmpty(unvisited)) return grid; else if (_U.eq(i,0)) {
+               var grid$ = $Grid.updateRnd(grid);
+               var cell = A2($Debug.log,"first cell",$GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,unvisited,grid$.rnd)));
+               return A3($Grid.updateCellById,grid$,$GridCell.id(cell),$GridCell.setVisited(cell));
+            } else {
+               var grid$ = $Grid.updateRnd(grid);
+               var cell = A2($Debug.log,"start",$GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,unvisited,grid$.rnd)));
+               var rwp = A2(loopErasedRandomWalk,{grid: $Grid.updateRnd(grid$),cell: cell,path: _U.list([cell]),unvisited: unvisited},neighborsFn);
+               return rwp.grid;
+            }
    });
    var on = F3(function (startCellFn,neighborsFn,grid) {
       var grid$ = $Grid.updateRnd(grid);

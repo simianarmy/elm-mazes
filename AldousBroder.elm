@@ -34,11 +34,12 @@ step : (Grid a -> Maybe GridCell) ->
      Grid a -> Int ->
      Grid a
 step startCellFn neighborsFn grid i =
-    -- pick random processed cell or the starting cell
-    let visited = List.filter (\c -> .visited (GridCell.base c)) <| Grid.cellsList grid.cells
-        startCell = Debug.log "start" <| if List.isEmpty visited
+    -- pick last processed cell or random starting cell
+    let current = List.filter (\c -> .processing (GridCell.base c)) <| Grid.cellsList grid.cells
+        visited = List.filter (\c -> .visited (GridCell.base c)) <| Grid.cellsList grid.cells
+        startCell = GridCell.setProcessing <| Debug.log "start" <| if List.isEmpty current
           then GridCell.maybeGridCellToGridCell <| startCellFn grid
-          else GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell visited grid.rnd
+          else GridCell.maybeGridCellToGridCell <| List.head current
         gridSize = case startCell of
             PolarCellTag c -> PolarGrid.size grid
             _ -> Grid.size grid
@@ -55,14 +56,20 @@ work : Grid a ->
     Grid a
 work grid neighborsFn cell =
     let sample = neighborsFn grid cell
-        -- gridcell
-        gcneighbor = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd
+        -- grid's cell list needs to be updated with the cells new processing states
+        cell' = GridCell.setProcessed cell
+        gcneighbor = Debug.log "neighbor" <| GridCell.setProcessing <| GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd
         -- basecell
         neighbor = GridCell.base gcneighbor
     in
        if Cell.hasLinks neighbor
-          then grid
-          else Grid.linkCells grid cell gcneighbor True
+          then 
+          -- update cell and neighbor in grid
+          let grid' = Grid.updateCellById grid (GridCell.id cell') cell'
+          in
+             Grid.updateCellById grid' (GridCell.id gcneighbor) gcneighbor
+          -- linkCells will save the the grid's new cell states
+         else Grid.linkCells grid (Debug.log "linking" cell') (Debug.log "to" gcneighbor) True
 
 -- Breaking out to try trampoline
 walkRandomly : Grid a -> 

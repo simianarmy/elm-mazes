@@ -191,6 +191,23 @@ cellsListToCellGrid cells =
     in
        Array.initialize (rowMax + 1) (\row -> Array.fromList <| List.filter (\c -> (GridCell.row c) == row) cells)
 
+-- apply a function to all cells
+updateCells : Grid a -> (GridCell -> GridCell) -> Grid a
+updateCells grid fn =
+    {grid | 
+        cells = List.map fn (cellsList grid.cells) |> cellsListToCellGrid
+    }
+
+-- update a single cell by id
+updateCellById : Grid a -> CellID -> GridCell -> Grid a
+updateCellById grid cid gc =
+    let fn c =
+        if GridCell.id c == cid
+           then gc
+           else c
+    in
+       updateCells grid fn
+
 -- 0-based indices
 -- returns cell at an x,y index.
 -- returns nil cell if the index is invalid or the cell at that location is masked

@@ -43,18 +43,28 @@ step startCellFn neighborsFn grid i =
     let unvisited = GridCell.filterGridCells (\e -> not <| e.visited) <| Grid.cellsList grid.cells
     in
         if List.isEmpty unvisited
-           then grid
+           then
+           grid
            else
-           let grid' = Grid.updateRnd grid
-               cell = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell unvisited grid'.rnd
-               rwp = loopErasedRandomWalk {
-                   grid = Grid.updateRnd grid',
-                   cell = cell,
-                   path = [cell],
-                   unvisited = unvisited
-               } neighborsFn
-           in
-              rwp.grid
+           -- first time around, mark a random cell as visited
+           if i == 0
+              then
+              let cell = Debug.log "first cell" <| GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell unvisited grid'.rnd
+                  grid' = Grid.updateRnd grid
+              in
+                 Grid.updateCellById grid' (GridCell.id cell) (GridCell.setVisited cell)
+              else
+              let grid' = Grid.updateRnd grid
+                  cell = Debug.log "start" <| GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell unvisited grid'.rnd
+                  --unvisited' = List.filter (\c -> not <| GridCell.id c == GridCell.id cell) unvisited
+                  rwp = loopErasedRandomWalk {
+                      grid = Grid.updateRnd grid',
+                      cell = cell,
+                      path = [cell],
+                      unvisited = unvisited
+                  } neighborsFn
+              in
+                 rwp.grid
 
 work : Grid a -> 
     List GridCell -> 
@@ -96,7 +106,7 @@ loopErasedRandomWalk rwp neighborsFn =
 carvePassage : RandomWalkPath a -> RandomWalkPath a
 carvePassage rwp =
     -- Use an array for easy indexing into the path
-    let pathArr = Array.fromList rwp.path
+    let pathArr = Debug.log "carving" <| Array.fromList rwp.path
 
         carve : Int -> RandomWalkPath a -> RandomWalkPath a
         carve index rwp =

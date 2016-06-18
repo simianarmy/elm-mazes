@@ -15,7 +15,8 @@ type alias BaseCell = {
     links: CellLinks,
     weight: Int,
     visited: Bool,
-    processed: Bool
+    processed: Bool,
+    processing: Bool
 }
 
 -- Standard cell
@@ -32,7 +33,8 @@ createCell row col =
         links = Set.empty,
         weight = 1,
         visited = False,
-        processed = False
+        processed = False,
+        processing = False
     }
 
 -- helper to create a nil cell
@@ -83,5 +85,4 @@ hasLinks cell =
 cellToString : Cell -> String
 cellToString cell =
     "(" ++ (toString cell.row) ++ ", " ++ (toString cell.col) ++ ")"
-
 
