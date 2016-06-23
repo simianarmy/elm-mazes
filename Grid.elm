@@ -251,6 +251,12 @@ getCell grid row col =
 
               _ -> Nothing
 
+getCellById : {a | cells : CellGrid, rows : Int, cols : Int } 
+    -> CellID
+    -> Maybe GridCell
+getCellById grid cid =
+    getCell grid (fst cid) (snd cid)
+
 -- commonly used to map a maybe cell to a cell
 toValidCell : Maybe Cell -> Cell
 toValidCell cell =
@@ -386,8 +392,8 @@ linkCellsHelper grid cell cellToLink =
 -- link 2 cells
 linkCells : Grid a -> GridCell -> GridCell -> Bool -> Grid a
 linkCells grid cell cell2 bidi =
-    let b1 = GridCell.base cell
-        b2 = GridCell.base cell2
+    let b1 = GridCell.base <| Debug.log "Linking" cell
+        b2 = GridCell.base <| Debug.log "to" cell2
         grid' = linkCellsHelper grid b1 b2
     in
        if bidi

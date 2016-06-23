@@ -12152,6 +12152,7 @@ Elm.Grid.make = function (_elm) {
             return $Maybe.Nothing;
          }
    });
+   var getCellById = F2(function (grid,cid) {    return A3(getCell,grid,$Basics.fst(cid),$Basics.snd(cid));});
    var north = F2(function (grid,cell) {    return A3(getCell,grid,cell.row - 1,cell.col);});
    var south = F2(function (grid,cell) {    return A3(getCell,grid,cell.row + 1,cell.col);});
    var west = F2(function (grid,cell) {    return A3(getCell,grid,cell.row,cell.col - 1);});
@@ -12213,8 +12214,8 @@ Elm.Grid.make = function (_elm) {
       return _U.update(grid,{cells: cellsListToCellGrid(A2($List.map,linkMatched,cellsList(grid.cells)))});
    });
    var linkCells = F4(function (grid,cell,cell2,bidi) {
-      var b2 = $GridCell.base(cell2);
-      var b1 = $GridCell.base(cell);
+      var b2 = $GridCell.base(A2($Debug.log,"to",cell2));
+      var b1 = $GridCell.base(A2($Debug.log,"Linking",cell));
       var grid$ = A3(linkCellsHelper,grid,b1,b2);
       return bidi ? A3(linkCellsHelper,grid$,b2,b1) : grid$;
    });
@@ -12312,7 +12313,7 @@ Elm.Grid.make = function (_elm) {
          var best = A2($List.filter,function (c) {    return _U.eq($Set.size($GridCell.links(c)),1);},neighbors);
          var best$ = $List.isEmpty(best) ? neighbors : best;
          var neighbor = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,best$,g.rnd));
-         return $Cell.isNilCellID($GridCell.id(neighbor)) ? A2(_U.crash("Grid",{start: {line: 336,column: 24},end: {line: 336,column: 35}}),
+         return $Cell.isNilCellID($GridCell.id(neighbor)) ? A2(_U.crash("Grid",{start: {line: 342,column: 24},end: {line: 342,column: 35}}),
          "NIL NEIGHBOR in braid:linkNeighbor!",
          g$) : A4(linkCells,g$,deadEnd,neighbor,true);
       });
@@ -12347,6 +12348,7 @@ Elm.Grid.make = function (_elm) {
                              ,updateCells: updateCells
                              ,updateCellById: updateCellById
                              ,getCell: getCell
+                             ,getCellById: getCellById
                              ,toValidCell: toValidCell
                              ,north: north
                              ,south: south
@@ -13367,14 +13369,16 @@ Elm.Wilsons.make = function (_elm) {
    $Trampoline = Elm.Trampoline.make(_elm);
    var _op = {};
    var carvePassage = function (rwp) {
-      var pathArr = A2($Debug.log,"carving",$Array.fromList(rwp.path));
-      var carve = F2(function (index,rwp) {
+      var pathArr = $Array.fromList(rwp.path);
+      var carve = F2(function (index,rwp$) {
          var nextcell = $GridCell.maybeGridCellToGridCell(A2($Array.get,index + 1,pathArr));
+         var nextcell$ = $GridCell.maybeGridCellToGridCell(A2($Grid.getCellById,rwp$.grid,$GridCell.id(nextcell)));
          var icell = $GridCell.maybeGridCellToGridCell(A2($Array.get,index,pathArr));
-         var grid$ = A4($Grid.linkCells,rwp.grid,icell,nextcell,true);
          var icellId = $GridCell.id(icell);
-         var unvisited$ = A2($GridCell.filterGridCells,function (e) {    return $Basics.not(_U.eq(e.id,icellId));},rwp.unvisited);
-         return _U.update(rwp,{grid: grid$,unvisited: unvisited$});
+         var icell$ = $GridCell.maybeGridCellToGridCell(A2($Grid.getCellById,rwp$.grid,icellId));
+         var grid$ = A4($Grid.linkCells,rwp$.grid,icell$,nextcell$,true);
+         var unvisited$ = A2($GridCell.filterGridCells,function (e) {    return $Basics.not(_U.eq(e.id,icellId));},rwp$.unvisited);
+         return _U.update(rwp$,{grid: grid$,unvisited: unvisited$});
       });
       return A3($List.foldl,carve,rwp,_U.range(0,$List.length(rwp.path) - 2));
    };
@@ -13411,7 +13415,7 @@ Elm.Wilsons.make = function (_elm) {
                return A3($Grid.updateCellById,grid$,$GridCell.id(cell),$GridCell.setVisited(cell));
             } else {
                var grid$ = $Grid.updateRnd(grid);
-               var cell = A2($Debug.log,"start",$GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,unvisited,grid$.rnd)));
+               var cell = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,unvisited,grid$.rnd));
                var rwp = A2(loopErasedRandomWalk,{grid: $Grid.updateRnd(grid$),cell: cell,path: _U.list([cell]),unvisited: unvisited},neighborsFn);
                return rwp.grid;
             }

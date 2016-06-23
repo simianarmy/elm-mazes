@@ -55,7 +55,7 @@ step startCellFn neighborsFn grid i =
                  Grid.updateCellById grid' (GridCell.id cell) (GridCell.setVisited cell)
               else
               let grid' = Grid.updateRnd grid
-                  cell = Debug.log "start" <| GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell unvisited grid'.rnd
+                  cell = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell unvisited grid'.rnd
                   --unvisited' = List.filter (\c -> not <| GridCell.id c == GridCell.id cell) unvisited
                   rwp = loopErasedRandomWalk {
                       grid = Grid.updateRnd grid',
@@ -106,18 +106,20 @@ loopErasedRandomWalk rwp neighborsFn =
 carvePassage : RandomWalkPath a -> RandomWalkPath a
 carvePassage rwp =
     -- Use an array for easy indexing into the path
-    let pathArr = Debug.log "carving" <| Array.fromList rwp.path
+    let pathArr = Array.fromList rwp.path
 
         carve : Int -> RandomWalkPath a -> RandomWalkPath a
-        carve index rwp =
+        carve index rwp' =
             let icell = GridCell.maybeGridCellToGridCell <| Array.get index pathArr
-                nextcell = GridCell.maybeGridCellToGridCell  <| Array.get (index + 1) pathArr
-                grid' = Grid.linkCells rwp.grid icell nextcell True
                 icellId = GridCell.id icell
+                icell' = GridCell.maybeGridCellToGridCell <| Grid.getCellById rwp'.grid icellId
+                nextcell = GridCell.maybeGridCellToGridCell  <| Array.get (index + 1) pathArr
+                nextcell' = GridCell.maybeGridCellToGridCell <| Grid.getCellById rwp'.grid (GridCell.id nextcell)
+                grid' = Grid.linkCells rwp'.grid icell' nextcell' True
                 -- delete icell from unvisited
-                unvisited' = GridCell.filterGridCells (\e -> not <| e.id == icellId) rwp.unvisited
+                unvisited' = GridCell.filterGridCells (\e -> not <| e.id == icellId) rwp'.unvisited
             in
-               {rwp |
+               {rwp' |
                    grid = grid',
                    unvisited = unvisited'
                }
