@@ -13252,12 +13252,25 @@ Elm.HuntAndKill.make = function (_elm) {
                }
          }
    });
+   var step = F4(function (startCellFn,neighborsFn,grid,i) {
+      var visited = A2($List.filter,function (c) {    return function (_) {    return _.visited;}($GridCell.base(c));},$Grid.cellsList(grid.cells));
+      if ($List.isEmpty(visited)) {
+            var grid$ = $Grid.updateRnd(grid);
+            var startCell = $GridCell.maybeGridCellToGridCell(startCellFn(grid));
+            return grid$;
+         } else {
+            var _p7 = A2(hunt,grid,neighborsFn);
+            var grid$ = _p7._0;
+            var hunted = _p7._1;
+            return grid$;
+         }
+   });
    var on = F3(function (startCellFn,neighborsFn,grid) {
       var startCell = $GridCell.maybeGridCellToGridCell(startCellFn(grid));
       var grid$ = $Grid.updateRnd(grid);
       return $Trampoline.trampoline(A3(walkRandomly,grid$,startCell,neighborsFn));
    });
-   return _elm.HuntAndKill.values = {_op: _op,on: on};
+   return _elm.HuntAndKill.values = {_op: _op,on: on,step: step};
 };
 Elm.Sidewinder = Elm.Sidewinder || {};
 Elm.Sidewinder.make = function (_elm) {
@@ -13490,6 +13503,7 @@ Elm.Maze.make = function (_elm) {
    $GridRenderer = Elm.GridRenderer.make(_elm),
    $HexGrid = Elm.HexGrid.make(_elm),
    $Html = Elm.Html.make(_elm),
+   $HuntAndKill = Elm.HuntAndKill.make(_elm),
    $List = Elm.List.make(_elm),
    $Mask = Elm.Mask.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
@@ -13507,7 +13521,8 @@ Elm.Maze.make = function (_elm) {
          case "BinaryTree": return "Binary Tree";
          case "Sidewinder": return "Sidewinder";
          case "AldousBroder": return "Aldous-Broder";
-         default: return "Wilsons";}
+         case "Wilsons": return "Wilsons";
+         default: return "Hunt - Kill";}
    };
    var viewDistances = function (maze) {
       var goal = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,maze.grid,0,0));
@@ -13567,7 +13582,8 @@ Elm.Maze.make = function (_elm) {
          case "BinaryTree": return A2($BinaryTree.step,randCellFn,neighborFn);
          case "Sidewinder": return A2($Sidewinder.step,randCellFn,neighborFn);
          case "AldousBroder": return A2($AldousBroder.step,randCellFn,neighborFn);
-         default: return A2($Wilsons.step,randCellFn,neighborFn);}
+         case "Wilsons": return A2($Wilsons.step,randCellFn,neighborFn);
+         default: return A2($HuntAndKill.step,randCellFn,neighborFn);}
    });
    var cellSize = 30;
    var mazeToElement = function (maze) {
@@ -13635,6 +13651,7 @@ Elm.Maze.make = function (_elm) {
    var Ascii = {ctor: "Ascii"};
    var displays = _U.list([{ctor: "_Tuple2",_0: Ascii,_1: "ASCII"},{ctor: "_Tuple2",_0: Colored,_1: "Colored"}]);
    var AlgAttr = F2(function (a,b) {    return {alg: a,name: b};});
+   var HuntAndKill = {ctor: "HuntAndKill"};
    var Wilsons = {ctor: "Wilsons"};
    var AldousBroder = {ctor: "AldousBroder"};
    var Sidewinder = {ctor: "Sidewinder"};
@@ -13643,8 +13660,10 @@ Elm.Maze.make = function (_elm) {
    var defaultAlgorithm = NoOp;
    var algorithms = function (shape) {
       var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)},{alg: Wilsons,name: algToString(Wilsons)}]);
-      var triangleAlgs = _U.list([]);
-      var rectAlgs = _U.list([{alg: BinaryTree,name: algToString(BinaryTree)},{alg: Sidewinder,name: algToString(Sidewinder)}]);
+      var triangleAlgs = _U.list([{alg: HuntAndKill,name: algToString(HuntAndKill)}]);
+      var rectAlgs = _U.list([{alg: BinaryTree,name: algToString(BinaryTree)}
+                             ,{alg: Sidewinder,name: algToString(Sidewinder)}
+                             ,{alg: HuntAndKill,name: algToString(HuntAndKill)}]);
       var algs = _U.list([{alg: NoOp,name: algToString(NoOp)}]);
       var _p8 = shape;
       switch (_p8.ctor)
@@ -13658,7 +13677,7 @@ Elm.Maze.make = function (_elm) {
       if (_p9.ctor === "Just") {
             return _p9._0.alg;
          } else {
-            return A2(_U.crash("Maze",{start: {line: 280,column: 17},end: {line: 280,column: 28}}),"Unknown algorithm",BinaryTree);
+            return A2(_U.crash("Maze",{start: {line: 281,column: 17},end: {line: 281,column: 28}}),"Unknown algorithm",BinaryTree);
          }
    };
    return _elm.Maze.values = {_op: _op
@@ -13667,6 +13686,7 @@ Elm.Maze.make = function (_elm) {
                              ,Sidewinder: Sidewinder
                              ,AldousBroder: AldousBroder
                              ,Wilsons: Wilsons
+                             ,HuntAndKill: HuntAndKill
                              ,AlgAttr: AlgAttr
                              ,Ascii: Ascii
                              ,Colored: Colored

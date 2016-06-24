@@ -28,7 +28,7 @@ type Algorithm = NoOp
                | Sidewinder
                | AldousBroder
                | Wilsons
-               --| HuntAndKill
+               | HuntAndKill
                --| RecursiveBacktracker
 
 type alias AlgAttr = {
@@ -116,6 +116,7 @@ genAlg algName shape =
            --Wilsons -> Wilsons.on randCellFn neighborFn
            Wilsons -> Wilsons.step randCellFn neighborFn
            --HuntAndKill -> HuntAndKill.on randCellFn neighborFn
+           HuntAndKill -> HuntAndKill.step randCellFn neighborFn
            --RecursiveBacktracker -> RecursiveBacktracker.on randCellFn neighborFn
 
 -- returns neighbors function for the grid type
@@ -244,10 +245,10 @@ algorithms shape =
         rectAlgs = [
             {alg = BinaryTree, name = algToString BinaryTree}
             , {alg = Sidewinder, name = algToString Sidewinder}
-            --, {alg = HuntAndKill, name = algToString HuntAndKill}
+            , {alg = HuntAndKill, name = algToString HuntAndKill}
         ]
         triangleAlgs = [
-            --{alg = HuntAndKill, name = algToString HuntAndKill}
+            {alg = HuntAndKill, name = algToString HuntAndKill}
         ]
         allAlgs = [
             {alg = AldousBroder, name = algToString AldousBroder}
@@ -268,7 +269,7 @@ algToString algType =
         Sidewinder -> "Sidewinder"
         AldousBroder -> "Aldous-Broder"
         Wilsons -> "Wilsons"
-        --HuntAndKill -> "Hunt - Kill"
+        HuntAndKill -> "Hunt - Kill"
         --RecursiveBacktracker -> "Recursive Backtracker"
 
 algByName : String -> Algorithm
