@@ -20,7 +20,7 @@ on startCellFn neighborsFn grid =
     let grid' = Grid.updateRnd grid
         startCell = GridCell.maybeGridCellToGridCell (startCellFn grid)
     in
-       trampoline (walkRandomly grid' startCell neighborsFn)
+       trampoline (work grid' startCell neighborsFn)
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn't care about shape of the grid
@@ -30,29 +30,52 @@ step : (Grid a -> Maybe GridCell) ->
      Grid a
 step startCellFn neighborsFn grid i =
     -- If first time through,
-    let visited = List.filter (\c -> .visited (GridCell.base c)) <| Grid.cellsList grid.cells
+    let visited = GridCell.filterGridCells (\e -> e.visited) <| Grid.cellsList grid.cells
     in
        if List.isEmpty visited
           then
           -- pick a random starting cell
           let startCell = GridCell.maybeGridCellToGridCell <| startCellFn grid
-          -- and start a random walk
               grid' = Grid.updateRnd grid
           in
-             grid'
+              -- and start a random walk
+              randomWalk grid' startCell neighborsFn
          else 
          -- otherwise scan L-R until we encounter an unvisited cell, bordered by at least one visited cell. 
          let (grid', hunted) = hunt grid neighborsFn
-         -- then start a random walk from the unvisited cell
          in
             grid'
 
+-- Walks randomly then returns when we're stuck
+randomWalk : Grid a ->
+    GridCell ->
+    (Grid a -> GridCell -> List GridCell) ->
+    Grid a
+randomWalk grid gcell neighborsFn =
+    let cell = Debug.log "random walk from " <| GridCell.base gcell
+    in
+       if Cell.isNilCell cell
+          then grid
+          else
+          let unvisitedNeighbors = Grid.filterNeighbors2 neighborsFn (\c -> not <| Cell.hasLinks (GridCell.toRectCell c)) grid gcell
+          in
+             if isEmpty unvisitedNeighbors
+             then grid
+             else
+             -- random walk phase
+             let neighbor = GridUtils.sampleCell unvisitedNeighbors grid.rnd
+                 |> GridCell.maybeGridCellToGridCell
+                 grid' = Grid.linkCells grid gcell neighbor True
+                 grid'' = Grid.updateRnd grid'
+             in
+                 randomWalk grid'' neighbor neighborsFn
+
 -- Breaking out to try trampoline
-walkRandomly : Grid a ->
+work : Grid a ->
     GridCell ->
     (Grid a -> GridCell -> List GridCell) ->
     Trampoline (Grid a)
-walkRandomly grid gcell neighborsFn =
+work grid gcell neighborsFn =
     let cell = GridCell.toRectCell gcell
     in
        if Cell.isNilCell cell
@@ -68,12 +91,12 @@ walkRandomly grid gcell neighborsFn =
                     grid' = Grid.linkCells grid gcell neighbor True
                     grid'' = Grid.updateRnd grid'
                 in
-                   Continue (\() -> walkRandomly grid'' neighbor neighborsFn)
+                   Continue (\() -> work grid'' neighbor neighborsFn)
                else
                -- hunt phase
                let (grid', current) = hunt grid neighborsFn
                in
-                  Continue (\() -> walkRandomly grid' current neighborsFn)
+                  Continue (\() -> work grid' current neighborsFn)
 
 
 hunt : Grid a ->
