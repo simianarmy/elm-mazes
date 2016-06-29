@@ -48,8 +48,7 @@ step startCellFn neighborsFn grid i =
     in
        case cell of
            Just c ->
-               -- FIX ME: WE DON'T HAVE A CORRECT ALGORITHM FOR PICKING UNPROCESSED CELLS YET!!!
-               let cells = List.filter (\c -> not (GridCell.base c).processed)
+               let cells = List.filter (\c -> not <| (GridCell.base c).tag == "PROCESSED")
                    <| Grid.rowCells grid (grid.rows - (GridCell.base c).row - 1)
                    state = {run = [], grid = grid, stop = False}
                in
@@ -96,7 +95,7 @@ work state cells =
                                 stop = True,
                                 -- link cells and update the grid RND
                                 grid = Grid.linkCells grid'' 
-                                    (GridCell.setProcessed member)
+                                    (GridCell.setTag member "PROCESSED")
                                     (GridCell.maybeGridCellToGridCell northern)
                                     True
                             } 
@@ -113,8 +112,8 @@ work state cells =
                           stop = False,
                           -- link cells and update the grid RND
                           grid = Grid.linkCells grid' 
-                              (GridCell.setProcessed cell)
-                              (GridCell.setProcessed (GridCell.maybeGridCellToGridCell <| Grid.east grid' basecell))
+                              (GridCell.setTag cell "PROCESSED")
+                              (GridCell.setTag (GridCell.maybeGridCellToGridCell <| Grid.east grid' basecell) "PROCESSED")
                               True
                       }
 

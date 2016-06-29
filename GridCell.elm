@@ -118,18 +118,11 @@ setVisited gc =
     in
        cellToGridCell gc bc'
 
-setProcessed : GridCell -> GridCell
-setProcessed gc =
-    let bc = base gc
-        bc' = { bc | processing = False, processed = True }
-    in
-       cellToGridCell gc bc'
-
 -- probably a better way to update a base property...
-setProcessing : GridCell -> GridCell
-setProcessing gc =
+setTag : GridCell -> String -> GridCell
+setTag gc strTag =
     let bc = base gc
-        bc' = { bc | processing = True }
+        bc' = { bc | tag = strTag }
     in
        cellToGridCell gc bc'
 

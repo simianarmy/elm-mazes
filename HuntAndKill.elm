@@ -30,7 +30,8 @@ step : (Grid a -> Maybe GridCell) ->
      Grid a
 step startCellFn neighborsFn grid i =
     -- If first time through,
-    let visited = GridCell.filterGridCells (\e -> e.visited) <| Grid.cellsList grid.cells
+    let cells = Grid.cellsList grid.cells
+        visited = GridCell.filterGridCells (\e -> e.visited) cells
     in
        if List.isEmpty visited
           then
@@ -40,11 +41,22 @@ step startCellFn neighborsFn grid i =
           in
               -- and start a random walk
               randomWalk grid' startCell neighborsFn
-         else 
-         -- otherwise scan L-R until we encounter an unvisited cell, bordered by at least one visited cell. 
-         let (grid', hunted) = hunt grid neighborsFn
-         in
-            grid'
+         -- if hunt is over, begin walk
+         else
+         if List.any (\e -> (GridCell.base e).tag == "DEADEND") cells
+            then
+            -- erase the deadend tag
+            let grid' = Grid.updateCells grid (\c -> GridCell.setTag c "")
+            in
+                fst <| hunt grid' neighborsFn
+            else
+            -- get the cell that the hunt produced
+            let hunted = GridCell.maybeGridCellToGridCell <| head <| GridCell.filterGridCells (\e -> e.tag == "HUNTED") cells
+                -- erase the hunted tag from the cell
+                hunted' = GridCell.setTag hunted ""
+            in
+               randomWalk grid hunted' neighborsFn
+
 
 -- Walks randomly then returns when we're stuck
 randomWalk : Grid a ->
@@ -60,7 +72,8 @@ randomWalk grid gcell neighborsFn =
           let unvisitedNeighbors = Grid.filterNeighbors2 neighborsFn (\c -> not <| Cell.hasLinks (GridCell.toRectCell c)) grid gcell
           in
              if isEmpty unvisitedNeighbors
-             then grid
+                -- At a dead-end, mark the cell and return the grid
+             then Grid.updateCellById grid cell.id (GridCell.setTag gcell "DEADEND")
              else
              -- random walk phase
              let neighbor = GridUtils.sampleCell unvisitedNeighbors grid.rnd

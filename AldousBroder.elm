@@ -35,12 +35,13 @@ step : (Grid a -> Maybe GridCell) ->
      Grid a
 step startCellFn neighborsFn grid i =
     -- pick last processed cell or random starting cell
-    let current = List.filter (\c -> .processing (GridCell.base c)) <| Grid.cellsList grid.cells
+    let current = List.filter (\c -> (GridCell.base c).tag == "PROCESSING") <| Grid.cellsList grid.cells
         visited = List.filter (\c -> .visited (GridCell.base c)) <| Grid.cellsList grid.cells
-        startCell = GridCell.setProcessing <| Debug.log "start" <| if List.isEmpty current
+        startCell = Debug.log "start" <| if List.isEmpty current
           then GridCell.maybeGridCellToGridCell <| startCellFn grid
           else GridCell.maybeGridCellToGridCell <| List.head current
-        gridSize = case startCell of
+        startCell' = GridCell.setTag startCell "PROCESSING"
+        gridSize = case startCell' of
             PolarCellTag c -> PolarGrid.size grid
             _ -> Grid.size grid
         grid' = Grid.updateRnd grid
@@ -48,7 +49,7 @@ step startCellFn neighborsFn grid i =
        if List.length visited == gridSize
           then grid'
           else
-          work grid' neighborsFn startCell
+          work grid' neighborsFn startCell'
 
 work : Grid a -> 
     (Grid a -> GridCell -> List GridCell) ->
@@ -57,8 +58,9 @@ work : Grid a ->
 work grid neighborsFn cell =
     let sample = neighborsFn grid cell
         -- grid's cell list needs to be updated with the cells new processing states
-        cell' = GridCell.setProcessed cell
-        gcneighbor = Debug.log "neighbor" <| GridCell.setProcessing <| GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd
+        cell' = GridCell.setTag cell "PROCESSED"
+        gcneighbor = Debug.log "neighbor" <| GridCell.setTag (GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd)
+            "PROCESSING"
         -- basecell
         neighbor = GridCell.base gcneighbor
     in
