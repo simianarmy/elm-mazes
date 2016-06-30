@@ -33,9 +33,12 @@ cellBackgroundColor cgrid gridcell =
         dark = round (255 * intensity)
         bright = round (128 + (127 * intensity))
     in
-       if distance < 0
-          then Color.rgb 255 255 255
-          else Color.rgb dark bright dark
+       if cell.tag == "DEADEND"
+          then Color.lightRed
+          else
+          if distance < 0
+             then Color.rgb 255 255 255
+             else Color.rgb dark bright dark
 
 
 

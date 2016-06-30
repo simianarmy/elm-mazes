@@ -13154,7 +13154,7 @@ Elm.ColoredGrid.make = function (_elm) {
       var intensity = $Basics.toFloat(cgrid.maximum - distance) / $Basics.toFloat(cgrid.maximum);
       var dark = $Basics.round(255 * intensity);
       var bright = $Basics.round(128 + 127 * intensity);
-      return _U.cmp(distance,0) < 0 ? A3($Color.rgb,255,255,255) : A3($Color.rgb,dark,bright,dark);
+      return _U.eq(cell.tag,"DEADEND") ? $Color.lightRed : _U.cmp(distance,0) < 0 ? A3($Color.rgb,255,255,255) : A3($Color.rgb,dark,bright,dark);
    });
    var createGrid = F2(function (grid,root) {
       var dgrid = A2($DistanceGrid.createGrid,grid,root);
@@ -13213,28 +13213,29 @@ Elm.HuntAndKill.make = function (_elm) {
    var _op = {};
    var hunt = F2(function (grid,neighborsFn) {
       var visitedNeighbors = function (cell) {
-         return A4($Grid.filterNeighbors2,neighborsFn,function (c) {    return $Cell.hasLinks($GridCell.toRectCell(c));},grid,cell);
+         return A4($Grid.filterNeighbors2,neighborsFn,function (c) {    return $Cell.hasLinks($GridCell.base(c));},grid,cell);
       };
       var huntUnvisitedNeighbor = function (gcell) {
          return $Basics.not($List.isEmpty(visitedNeighbors(gcell))) && $Basics.not($Cell.hasLinks($GridCell.toRectCell(gcell)));
       };
-      var huntedCell = A2($List$Extra.find,huntUnvisitedNeighbor,$Grid.cellsList(grid.cells));
+      var huntedCell = A2($Debug.log,"HUNTED CELL",A2($List$Extra.find,huntUnvisitedNeighbor,$Grid.cellsList(grid.cells)));
       var _p0 = huntedCell;
       if (_p0.ctor === "Nothing") {
             return {ctor: "_Tuple2",_0: grid,_1: $GridCell.RectCellTag($Cell.createNilCell)};
          } else {
             var _p1 = _p0._0;
             var linked = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,visitedNeighbors(_p1),grid.rnd));
-            return {ctor: "_Tuple2",_0: A4($Grid.linkCells,$Grid.updateRnd(grid),_p1,linked,true),_1: _p1};
+            var hunted$ = A2($GridCell.setTag,_p1,"HUNTED");
+            return {ctor: "_Tuple2",_0: A4($Grid.linkCells,$Grid.updateRnd(grid),hunted$,linked,true),_1: hunted$};
          }
    });
    var work = F3(function (grid,gcell,neighborsFn) {
-      var cell = $GridCell.toRectCell(gcell);
+      var cell = $GridCell.base(gcell);
       if ($Cell.isNilCell(cell)) return $Trampoline.Done(grid); else {
             var unvisitedNeighbors = A4($Grid.filterNeighbors2,
             neighborsFn,
             function (c) {
-               return $Basics.not($Cell.hasLinks($GridCell.toRectCell(c)));
+               return $Basics.not($Cell.hasLinks($GridCell.base(c)));
             },
             grid,
             gcell);
@@ -13255,16 +13256,20 @@ Elm.HuntAndKill.make = function (_elm) {
       randomWalk: while (true) {
          var cell = A2($Debug.log,"random walk from ",$GridCell.base(gcell));
          if ($Cell.isNilCell(cell)) return grid; else {
+               var gcell$ = $GridCell.maybeGridCellToGridCell(A2($Grid.getCellById,grid,cell.id));
                var unvisitedNeighbors = A4($Grid.filterNeighbors2,
                neighborsFn,
                function (c) {
-                  return $Basics.not($Cell.hasLinks($GridCell.toRectCell(c)));
+                  return $Basics.not($Cell.hasLinks($GridCell.base(c)));
                },
                grid,
                gcell);
-               if ($List.isEmpty(unvisitedNeighbors)) return A3($Grid.updateCellById,grid,cell.id,A2($GridCell.setTag,gcell,"DEADEND")); else {
+               if ($List.isEmpty(unvisitedNeighbors)) {
+                     var deadend = A2($GridCell.setTag,gcell$,"DEADEND");
+                     return A3($Grid.updateCellById,grid,A2($Debug.log,"DEADEND CELL",cell.id),deadend);
+                  } else {
                      var neighbor = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,unvisitedNeighbors,grid.rnd));
-                     var grid$ = A4($Grid.linkCells,grid,gcell,neighbor,true);
+                     var grid$ = A4($Grid.linkCells,grid,gcell$,neighbor,true);
                      var grid$$ = $Grid.updateRnd(grid$);
                      var _v3 = grid$$,_v4 = neighbor,_v5 = neighborsFn;
                      grid = _v3;
@@ -13283,6 +13288,7 @@ Elm.HuntAndKill.make = function (_elm) {
             var startCell = $GridCell.maybeGridCellToGridCell(startCellFn(grid));
             return A3(randomWalk,grid$,startCell,neighborsFn);
          } else if (A2($List.any,function (e) {    return _U.eq($GridCell.base(e).tag,"DEADEND");},cells)) {
+               var foo = $Debug.log("FOUND DEADEND, TIME TO HUNT!");
                var grid$ = A2($Grid.updateCells,grid,function (c) {    return A2($GridCell.setTag,c,"");});
                return $Basics.fst(A2(hunt,grid$,neighborsFn));
             } else {

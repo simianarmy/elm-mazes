@@ -47,6 +47,7 @@ step startCellFn neighborsFn grid i =
             then
             -- erase the deadend tag
             let grid' = Grid.updateCells grid (\c -> GridCell.setTag c "")
+                foo = Debug.log "FOUND DEADEND, TIME TO HUNT!"
             in
                 fst <| hunt grid' neighborsFn
             else
@@ -69,16 +70,22 @@ randomWalk grid gcell neighborsFn =
        if Cell.isNilCell cell
           then grid
           else
-          let unvisitedNeighbors = Grid.filterNeighbors2 neighborsFn (\c -> not <| Cell.hasLinks (GridCell.toRectCell c)) grid gcell
+          let unvisitedNeighbors = Grid.filterNeighbors2 neighborsFn (\c -> not <| Cell.hasLinks (GridCell.base c)) grid gcell
+              -- refresh cell state from grid
+              gcell' = GridCell.maybeGridCellToGridCell <| Grid.getCellById grid cell.id
           in
              if isEmpty unvisitedNeighbors
                 -- At a dead-end, mark the cell and return the grid
-             then Grid.updateCellById grid cell.id (GridCell.setTag gcell "DEADEND")
+             then 
+             -- first get the cell from the grid to keep state
+             let deadend = GridCell.setTag gcell' "DEADEND"
+             in
+                Grid.updateCellById grid (Debug.log "DEADEND CELL" <| cell.id) deadend
              else
              -- random walk phase
              let neighbor = GridUtils.sampleCell unvisitedNeighbors grid.rnd
                  |> GridCell.maybeGridCellToGridCell
-                 grid' = Grid.linkCells grid gcell neighbor True
+                 grid' = Grid.linkCells grid gcell' neighbor True
                  grid'' = Grid.updateRnd grid'
              in
                  randomWalk grid'' neighbor neighborsFn
@@ -89,12 +96,12 @@ work : Grid a ->
     (Grid a -> GridCell -> List GridCell) ->
     Trampoline (Grid a)
 work grid gcell neighborsFn =
-    let cell = GridCell.toRectCell gcell
+    let cell = GridCell.base gcell
     in
        if Cell.isNilCell cell
           then Done grid
           else
-          let unvisitedNeighbors = Grid.filterNeighbors2 neighborsFn (\c -> not <| Cell.hasLinks (GridCell.toRectCell c)) grid gcell
+          let unvisitedNeighbors = Grid.filterNeighbors2 neighborsFn (\c -> not <| Cell.hasLinks (GridCell.base c)) grid gcell
           in
              if not <| isEmpty unvisitedNeighbors
                 then
@@ -117,20 +124,22 @@ hunt : Grid a ->
     (Grid a, GridCell)
 hunt grid neighborsFn =
     let visitedNeighbors : GridCell -> List GridCell
-        visitedNeighbors cell = Grid.filterNeighbors2 neighborsFn (\c -> Cell.hasLinks (GridCell.toRectCell c)) grid cell
+        visitedNeighbors cell = Grid.filterNeighbors2 neighborsFn (\c -> Cell.hasLinks (GridCell.base c)) grid cell
 
         huntUnvisitedNeighbor : GridCell -> Bool
         huntUnvisitedNeighbor gcell =
             (not <| isEmpty (visitedNeighbors gcell)) && (not <| Cell.hasLinks (GridCell.toRectCell gcell))
 
-        huntedCell = LE.find huntUnvisitedNeighbor <| Grid.cellsList grid.cells
+        huntedCell = Debug.log "HUNTED CELL" <| LE.find huntUnvisitedNeighbor <| Grid.cellsList grid.cells
     in
        case huntedCell of
           -- no results, return an invalid cell
           Nothing -> (grid, (RectCellTag Cell.createNilCell))
           Just a ->
-              let linked = GridUtils.sampleCell (visitedNeighbors a) grid.rnd
+              -- mark cell as hunted
+              let hunted' = GridCell.setTag a "HUNTED"
+                  linked = GridUtils.sampleCell (visitedNeighbors a) grid.rnd
                          |> GridCell.maybeGridCellToGridCell
               in
-                 ((Grid.linkCells (Grid.updateRnd grid) a linked True), a)
+                 ((Grid.linkCells (Grid.updateRnd grid) hunted' linked True), hunted')
 
