@@ -28,7 +28,8 @@ type alias Grid a =
         cells: CellGrid,
         cellMaker: (Mask -> CellGrid),
         rnd: GridRnd,
-        mask : Mask
+        mask : Mask,
+        stack: List CellID
 }
 
 type alias RowAscii = {
@@ -50,10 +51,8 @@ createGridFromMask mask initSeed cellMaker =
         cells = cellMaker mask,
         cellMaker = cellMaker,
         rnd = createGridRnd mask.rows mask.cols initSeed,
-        mask = mask
-        -- WELP, NOW I HAVE TO ADD OTHER TYPES' PROPS :(
-        -- maximum = 0,
-        -- dists = []
+        mask = mask,
+        stack = []
     }
 
 -- updates all rngs with fresh seeds
@@ -115,7 +114,6 @@ toAscii grid cellViewer =
        String.concat (List.map rowToStrings [0..grid.rows-1])
 
 -- generates rectangular grid element
--- Can cellPainter be used in such a way that a ColoredGrid type does not have to be mentioned or used?
 painter : Grid a -> (GridCell -> Color) -> Int -> Element
 painter grid cellPainter cellSize =
     let imgWidth = cellSize * grid.cols

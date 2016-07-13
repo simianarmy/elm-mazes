@@ -16,10 +16,9 @@ import Sidewinder
 import AldousBroder
 import Wilsons
 import HuntAndKill
-import RecursiveBacktracker
-
-import Random.PCG as Random exposing (Seed, initialSeed, split)
-import Html exposing (pre, br, text, div)
+import RecursiveBacktracker 
+import Random.PCG as Random exposing (Seed, initialSeed, split) 
+import Html exposing (pre, br, text, div) 
 import Html.Attributes exposing (..)
 import Graphics.Element exposing (Element)
 
@@ -29,7 +28,7 @@ type Algorithm = NoOp
                | AldousBroder
                | Wilsons
                | HuntAndKill
-               --| RecursiveBacktracker
+               | RecursiveBacktracker
 
 type alias AlgAttr = {
     alg : Algorithm,
@@ -117,7 +116,8 @@ genAlg algName shape =
            Wilsons -> Wilsons.step randCellFn neighborFn
            --HuntAndKill -> HuntAndKill.on randCellFn neighborFn
            HuntAndKill -> HuntAndKill.step randCellFn neighborFn
-           --RecursiveBacktracker -> RecursiveBacktracker.on randCellFn neighborFn
+           -- RecursiveBacktracker -> RecursiveBacktracker.on randCellFn neighborFn
+           RecursiveBacktracker -> RecursiveBacktracker.step randCellFn neighborFn
 
 -- returns neighbors function for the grid type
 neighborsFn : Maze a -> (Grid a -> GridCell -> List GridCell)
@@ -253,7 +253,7 @@ algorithms shape =
         allAlgs = [
             {alg = AldousBroder, name = algToString AldousBroder}
             , {alg = Wilsons, name = algToString Wilsons}
-            --, {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
+            , {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
         ]
     in
        case shape of
@@ -270,7 +270,7 @@ algToString algType =
         AldousBroder -> "Aldous-Broder"
         Wilsons -> "Wilsons"
         HuntAndKill -> "Hunt - Kill"
-        --RecursiveBacktracker -> "Recursive Backtracker"
+        RecursiveBacktracker -> "Recursive Backtracker"
 
 algByName : String -> Algorithm
 algByName str =

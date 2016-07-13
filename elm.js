@@ -12311,7 +12311,7 @@ Elm.Grid.make = function (_elm) {
          var best = A2($List.filter,function (c) {    return _U.eq($Set.size($GridCell.links(c)),1);},neighbors);
          var best$ = $List.isEmpty(best) ? neighbors : best;
          var neighbor = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,best$,g.rnd));
-         return $Cell.isNilCellID($GridCell.id(neighbor)) ? A2(_U.crash("Grid",{start: {line: 342,column: 24},end: {line: 342,column: 35}}),
+         return $Cell.isNilCellID($GridCell.id(neighbor)) ? A2(_U.crash("Grid",{start: {line: 340,column: 24},end: {line: 340,column: 35}}),
          "NIL NEIGHBOR in braid:linkNeighbor!",
          g$) : A4(linkCells,g$,deadEnd,neighbor,true);
       });
@@ -12325,7 +12325,13 @@ Elm.Grid.make = function (_elm) {
       return A3($List.foldl,processDeadEnd,grid$,randomDeadEnds);
    });
    var createGridFromMask = F3(function (mask,initSeed,cellMaker) {
-      return {rows: mask.rows,cols: mask.cols,cells: cellMaker(mask),cellMaker: cellMaker,rnd: A3($Rnd.createGridRnd,mask.rows,mask.cols,initSeed),mask: mask};
+      return {rows: mask.rows
+             ,cols: mask.cols
+             ,cells: cellMaker(mask)
+             ,cellMaker: cellMaker
+             ,rnd: A3($Rnd.createGridRnd,mask.rows,mask.cols,initSeed)
+             ,mask: mask
+             ,stack: _U.list([])};
    });
    var createGrid = F4(function (rows,cols,initSeed,cellMaker) {
       var mask$ = A2($Mask.createMask,cols,rows);
@@ -13510,12 +13516,39 @@ Elm.RecursiveBacktracker.make = function (_elm) {
                }
          }
    });
+   var work = F3(function (grid,neighborsFn,currentCell) {
+      var neighbors = A4($Grid.filterNeighbors2,neighborsFn,function (c) {    return $Basics.not($Cell.hasLinks($GridCell.base(c)));},grid,currentCell);
+      if ($List.isEmpty(neighbors)) {
+            var stack$ = A2($Maybe.withDefault,_U.list([]),$List.tail(grid.stack));
+            return _U.update(grid,{stack: stack$});
+         } else {
+            var neighbor = $GridCell.maybeGridCellToGridCell(A2($GridUtils.sampleCell,neighbors,grid.rnd));
+            var grid$ = A4($Grid.linkCells,grid,currentCell,neighbor,true);
+            var grid$$ = $Grid.updateRnd(grid$);
+            return _U.update(grid$$,{stack: A2($List._op["::"],$GridCell.id(neighbor),grid$$.stack)});
+         }
+   });
+   var step = F4(function (startCellFn,neighborsFn,grid,i) {
+      if ($List.isEmpty(grid.stack)) if (_U.cmp(i,0) > 0) return A2($Debug.log,"DONE!",grid); else {
+               var current = $GridCell.maybeGridCellToGridCell(startCellFn(grid));
+               return _U.update(grid,{stack: A2($List._op["::"],$GridCell.id(current),grid.stack)});
+            } else {
+            var currentId = $List.head(grid.stack);
+            var _p4 = currentId;
+            if (_p4.ctor === "Nothing") {
+                  return grid;
+               } else {
+                  var currentCell = $GridCell.maybeGridCellToGridCell(A2($Grid.getCellById,grid,_p4._0));
+                  return A3(work,grid,neighborsFn,currentCell);
+               }
+         }
+   });
    var on = F3(function (startCellFn,neighborsFn,grid) {
       var gcell = $GridCell.maybeGridCellToGridCell(startCellFn(grid));
       var grid$ = $Grid.updateRnd(grid);
       return $Trampoline.trampoline(A3(walkRandomly,grid$,neighborsFn,_U.list([gcell])));
    });
-   return _elm.RecursiveBacktracker.values = {_op: _op,on: on};
+   return _elm.RecursiveBacktracker.values = {_op: _op,on: on,step: step};
 };
 Elm.Maze = Elm.Maze || {};
 Elm.Maze.make = function (_elm) {
@@ -13540,6 +13573,7 @@ Elm.Maze.make = function (_elm) {
    $Mask = Elm.Mask.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $PolarGrid = Elm.PolarGrid.make(_elm),
+   $RecursiveBacktracker = Elm.RecursiveBacktracker.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm),
@@ -13554,7 +13588,8 @@ Elm.Maze.make = function (_elm) {
          case "Sidewinder": return "Sidewinder";
          case "AldousBroder": return "Aldous-Broder";
          case "Wilsons": return "Wilsons";
-         default: return "Hunt - Kill";}
+         case "HuntAndKill": return "Hunt - Kill";
+         default: return "Recursive Backtracker";}
    };
    var viewDistances = function (maze) {
       var goal = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,maze.grid,0,0));
@@ -13615,7 +13650,8 @@ Elm.Maze.make = function (_elm) {
          case "Sidewinder": return A2($Sidewinder.step,randCellFn,neighborFn);
          case "AldousBroder": return A2($AldousBroder.step,randCellFn,neighborFn);
          case "Wilsons": return A2($Wilsons.step,randCellFn,neighborFn);
-         default: return A2($HuntAndKill.step,randCellFn,neighborFn);}
+         case "HuntAndKill": return A2($HuntAndKill.step,randCellFn,neighborFn);
+         default: return A2($RecursiveBacktracker.step,randCellFn,neighborFn);}
    });
    var cellSize = 30;
    var mazeToElement = function (maze) {
@@ -13683,6 +13719,7 @@ Elm.Maze.make = function (_elm) {
    var Ascii = {ctor: "Ascii"};
    var displays = _U.list([{ctor: "_Tuple2",_0: Ascii,_1: "ASCII"},{ctor: "_Tuple2",_0: Colored,_1: "Colored"}]);
    var AlgAttr = F2(function (a,b) {    return {alg: a,name: b};});
+   var RecursiveBacktracker = {ctor: "RecursiveBacktracker"};
    var HuntAndKill = {ctor: "HuntAndKill"};
    var Wilsons = {ctor: "Wilsons"};
    var AldousBroder = {ctor: "AldousBroder"};
@@ -13691,7 +13728,9 @@ Elm.Maze.make = function (_elm) {
    var NoOp = {ctor: "NoOp"};
    var defaultAlgorithm = NoOp;
    var algorithms = function (shape) {
-      var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)},{alg: Wilsons,name: algToString(Wilsons)}]);
+      var allAlgs = _U.list([{alg: AldousBroder,name: algToString(AldousBroder)}
+                            ,{alg: Wilsons,name: algToString(Wilsons)}
+                            ,{alg: RecursiveBacktracker,name: algToString(RecursiveBacktracker)}]);
       var triangleAlgs = _U.list([{alg: HuntAndKill,name: algToString(HuntAndKill)}]);
       var rectAlgs = _U.list([{alg: BinaryTree,name: algToString(BinaryTree)}
                              ,{alg: Sidewinder,name: algToString(Sidewinder)}
@@ -13719,6 +13758,7 @@ Elm.Maze.make = function (_elm) {
                              ,AldousBroder: AldousBroder
                              ,Wilsons: Wilsons
                              ,HuntAndKill: HuntAndKill
+                             ,RecursiveBacktracker: RecursiveBacktracker
                              ,AlgAttr: AlgAttr
                              ,Ascii: Ascii
                              ,Colored: Colored
