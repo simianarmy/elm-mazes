@@ -52,6 +52,7 @@ type Generation =
 type Action = 
     NoOp
     | Tick Float
+    -- | Prev
     | Next
     | Run
     | Stop
@@ -91,9 +92,9 @@ update action model =
                {model | maze = maze'}
 
         SelectView display ->
-            let maze' = Maze.updateView model.maze display
+            let maze = Maze.updateView model.maze <| Debug.watch "display" display
             in
-               {model | maze = maze'}
+               {model | maze = maze}
 
         SelectShape shape ->
             -- new grid, re-init time
@@ -127,7 +128,7 @@ update action model =
             -- We can use this to display the maze-generation incrementally
             if ((truncate model.totalTime) >= mazeGenStepTime)
                 then {model |
-                    maze = Maze.update model.maze,
+                    maze = Maze.update model.maze 1,
                     totalTime = 0
                 }
                 else
@@ -137,9 +138,15 @@ update action model =
                         totalTime = model.totalTime + dt
                     }
 
+        -- Prev ->
+        --     {model |
+        --         maze = Maze.update model.maze -1,
+        --         totalTime = 0
+        --     }
+
         Next ->
             {model |
-                maze = Maze.update model.maze,
+                maze = Maze.update model.maze 1,
                 totalTime = 0
             }
 
@@ -189,8 +196,10 @@ view address model =
         , select [ selectView ] (List.map viewToOption Maze.displays)
         , select [ selectShape ] (List.map shapeToOption Maze.shapes)
         , br [] []
-        , text "Braids (1 = no deadends):"
+        , text "Braids (0 = max deadends, 1 = no deadends):"
         --, Slider.view (Signal.forwardTo address Braid) model.braidSlider
+        , br [] []
+        -- , button [ onClick address Prev ] [ text "<" ]
         , button [ onClick address Next ] [ text ">" ]
         , button [ onClick address Run ] [ text "Run" ]
         , button [ onClick address Stop ] [ text "Stop" ]
@@ -205,7 +214,11 @@ displayFromString : String -> Display
 displayFromString str =
     if str == "ASCII"
        then Maze.Ascii
-       else Maze.Colored
+       else if str == "Colored"
+               then Maze.Colored
+               else if str == "Weighted"
+                       then Maze.Weighted
+                       else Maze.Colored
 
 shapeFromString str =
     let s = List.filter (\e -> (snd e) == str) Maze.shapes

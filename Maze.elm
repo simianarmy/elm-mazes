@@ -3,7 +3,7 @@ module Maze where
 import Grid exposing (..)
 import DistanceGrid
 import ColoredGrid
---import WeightedGrid
+import WeightedGrid
 import PolarGrid
 import HexGrid
 import TriangleGrid
@@ -18,7 +18,7 @@ import Wilsons
 import HuntAndKill
 import RecursiveBacktracker 
 import Random.PCG as Random exposing (Seed, initialSeed, split) 
-import Html exposing (pre, br, text, div) 
+import Html exposing (pre, br, text, div)
 import Html.Attributes exposing (..)
 import Graphics.Element exposing (Element)
 
@@ -38,6 +38,7 @@ type alias AlgAttr = {
 -- We could have fancier displays someday
 type Display = Ascii
              | Colored
+             | Weighted
 
 type Shape = Rect
             | Polar
@@ -60,6 +61,7 @@ defaultBraidFactor = 0
 -- Data formatted for html selects
 displays = [(Ascii, "ASCII")
         , (Colored, "Colored")
+        , (Weighted, "Weighted")
         ]
 shapes = [(Rect, "Rectangular")
         , (Polar, "Polar")
@@ -135,8 +137,8 @@ reset maze =
         step = 0
     }
 
---update : Maze a -> Maze a
-update maze =
+update : Maze a -> Int -> Maze a
+update maze step =
     -- update rngs
     let -- apply maze generation algoritm
         grid' = maze.generator maze.grid maze.step
@@ -145,7 +147,7 @@ update maze =
     in 
        { maze |
        grid = grid'',
-       step = maze.step + 1
+       step = Debug.watch "maze step" <| maze.step + step 
        }
 
 -- INVALIDATES MASK, SO REFRESH MAZE
@@ -166,7 +168,7 @@ setMask maze mask =
 updateBraiding: Maze a -> Float -> Maze a
 updateBraiding maze factor =
     let maze' = {maze | braidFactor = factor}
-    in update maze'
+    in update maze' 1
 
 --view : Maze a -> Html
 view maze =
@@ -178,6 +180,9 @@ view maze =
             Colored ->
                 Html.fromElement <| mazeToElement maze
 
+            Weighted ->
+                viewWeightedDistances maze
+
     in
        div [] [
            text <| (algToString maze.alg) ++ " algorithm"
@@ -188,7 +193,7 @@ view maze =
            , gridHtml
            ]
 
---viewDistances : Maze a -> Html
+--viewDistances : Maze a -> Html.Html
 viewDistances maze =
     let center = Grid.center maze.grid
         start = center
@@ -208,6 +213,27 @@ viewDistances maze =
           , pre [] [text <| DistanceGrid.viewDistances shortestPathGrid]
           , text "Longest path in maze:"
           , pre [] [text <| DistanceGrid.viewDistances longestPathGrid]
+           ]
+
+viewWeightedDistances : Maze a -> Html.Html
+viewWeightedDistances maze =
+    let start = GridCell.maybeGridCellToGridCell <| Grid.getCell maze.grid 0 0
+        finish = GridCell.maybeGridCellToGridCell <| getCell maze.grid (maze.grid.rows - 1) (maze.grid.cols - 1)
+        wgrid = WeightedGrid.createGrid maze.grid start
+        pathDistances = DistanceGrid.pathTo wgrid.dgrid start finish
+        shortestPathGrid = {wgrid | dists = pathDistances}
+        -- rootStr = GridCell.toString center
+    in
+       div [] [
+          text <| "Cell distances from " ++ (GridCell.toString start) ++ " to " ++ (GridCell.toString finish)
+          , br [] []
+          , Html.fromElement <| GridRenderer.toElement maze.grid Grid.painter start WeightedGrid.cellBackgroundColor cellSize
+
+          -- , pre [] [text <| DistanceGrid.viewDistances shortestPathGrid.dgrid]
+          -- , text <| "Shortest path from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString goal)
+          -- , pre [] [text <| DistanceGrid.viewDistances shortestPathGrid]
+          -- , text "Longest path in maze:"
+          -- , pre [] [text <| DistanceGrid.viewDistances longestPathGrid]
            ]
 
 -- Renders maze as an HTML element
@@ -236,7 +262,7 @@ mazeToElement maze =
                 in
                    renderer TriangleGrid.painter root
     in
-       renderer' ColoredGrid.cellBackgroundColor cellSize
+       renderer' cellPainter cellSize
 
 -- returns available maze algorithms for the maze shape
 algorithms : Shape -> List AlgAttr

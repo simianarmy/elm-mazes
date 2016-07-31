@@ -16,13 +16,13 @@ type alias Weighted a =
 
 createGrid : Grid a -> GridCell -> Weighted a
 createGrid grid start =
-    let dg = DistanceGrid.createGrid grid start,
+    let dg = DistanceGrid.createGrid grid start
         ds = distances dg start
         (farthest, max) = Distances.max ds
     in
        {
            dgrid = dg,
-           dists = ds
+           dists = ds,
            maximum = max
        }
 
@@ -37,10 +37,12 @@ type alias Diter = {
 distances : CellDistances a -> GridCell -> Distances
 distances dgrid root =
     -- create a CellDistances grid
+    -- we use our Distances class to track the cost of each cell, but instead of having a frontier set, we now have a pending set, which tracks which cells have yet to be processed. We initialize that to be an array containing just self—the cell that we’re asking to compute the distances. We then repeat the following steps until that array is empty.
     let weights = dgrid.dists
         acc = {
             curCell = root,
             weights = weights,
+            -- TODO: Use a priority queue for faster lookups
             pending = [root]
         }
 
@@ -57,6 +59,7 @@ distances dgrid root =
                   }
                   else acc
 
+        -- Each pass through the loop will search that pending set, looking for the cell with the lowest cost and then removing the cell that it finds. This cell is our current cell.
         pendingAcc : Diter -> Diter
         pendingAcc acc =
             if List.isEmpty acc.pending
@@ -71,6 +74,7 @@ distances dgrid root =
                        pending = GridCell.filterGridCells (\c -> not (c.id == cid)) acc.pending
                    }
                in
+                  -- The next loop looks at each of the cells that are linked to the current cell. For each one, we compute the cumulative weight of the path from the starting cell, and then check to see if that’s better than any previously recorded weight for that neighbor. If so, we add the neighbor to the pending list, and update its cumulative weight.
                   pendingAcc <| List.foldl scanCellLinks acc' (Grid.linkedCells dgrid.grid cell)
 
     in

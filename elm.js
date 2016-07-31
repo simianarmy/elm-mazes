@@ -13310,6 +13310,75 @@ Elm.HuntAndKill.make = function (_elm) {
    });
    return _elm.HuntAndKill.values = {_op: _op,on: on,step: step};
 };
+Elm.WeightedGrid = Elm.WeightedGrid || {};
+Elm.WeightedGrid.make = function (_elm) {
+   "use strict";
+   _elm.WeightedGrid = _elm.WeightedGrid || {};
+   if (_elm.WeightedGrid.values) return _elm.WeightedGrid.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $DistanceGrid = Elm.DistanceGrid.make(_elm),
+   $Distances = Elm.Distances.make(_elm),
+   $Grid = Elm.Grid.make(_elm),
+   $GridCell = Elm.GridCell.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var cellBackgroundColor = F2(function (wgrid,gc) {
+      if (_U.cmp($GridCell.base(gc).weight,1) > 0) return A3($Color.rgb,255,0,0); else {
+            var distance = A2($Distances.lookup,wgrid.dists,$GridCell.base(gc));
+            var distance$ = _U.eq(distance,-1) ? 0 : distance;
+            var intensity = 64 + (191 * (wgrid.maximum - distance$) / wgrid.maximum | 0);
+            return A3($Color.rgb,intensity,intensity,0);
+         }
+   });
+   var distances = F2(function (dgrid,root) {
+      var scanCellLinks = F2(function (neighbor,acc) {
+         var ncell = $GridCell.base(neighbor);
+         var totalWeight = A2($Distances.lookup,acc.weights,$GridCell.base(acc.curCell)) + ncell.weight;
+         var nWeight = A2($Distances.lookup,acc.weights,ncell);
+         return _U.cmp(nWeight,0) < 0 || _U.cmp(totalWeight,nWeight) < 0 ? _U.update(acc,
+         {weights: A3($Distances.add,acc.weights,ncell,totalWeight),pending: A2($List.append,acc.pending,_U.list([neighbor]))}) : acc;
+      });
+      var pendingAcc = function (acc) {
+         pendingAcc: while (true) if ($List.isEmpty(acc.pending)) return acc; else {
+               var sortedByWeight = A2($List.sortBy,function (c) {    return $GridCell.base(c).weight;},acc.pending);
+               var cell = $GridCell.maybeGridCellToGridCell($List.head(sortedByWeight));
+               var cid = $GridCell.id(cell);
+               var acc$ = _U.update(acc,
+               {curCell: cell,pending: A2($GridCell.filterGridCells,function (c) {    return $Basics.not(_U.eq(c.id,cid));},acc.pending)});
+               var _v0 = A3($List.foldl,scanCellLinks,acc$,A2($Grid.linkedCells,dgrid.grid,cell));
+               acc = _v0;
+               continue pendingAcc;
+            }
+      };
+      var weights = dgrid.dists;
+      var acc = {curCell: root,weights: weights,pending: _U.list([root])};
+      return function (_) {
+         return _.weights;
+      }(pendingAcc(acc));
+   });
+   var Diter = F3(function (a,b,c) {    return {curCell: a,weights: b,pending: c};});
+   var createGrid = F2(function (grid,start) {
+      var dg = A2($DistanceGrid.createGrid,grid,start);
+      var ds = A2(distances,dg,start);
+      var _p0 = $Distances.max(ds);
+      var farthest = _p0._0;
+      var max = _p0._1;
+      return {dgrid: dg,dists: ds,maximum: max};
+   });
+   var Weighted = F3(function (a,b,c) {    return {dgrid: a,dists: b,maximum: c};});
+   return _elm.WeightedGrid.values = {_op: _op
+                                     ,Weighted: Weighted
+                                     ,createGrid: createGrid
+                                     ,Diter: Diter
+                                     ,distances: distances
+                                     ,cellBackgroundColor: cellBackgroundColor};
+};
 Elm.Sidewinder = Elm.Sidewinder || {};
 Elm.Sidewinder.make = function (_elm) {
    "use strict";
@@ -13578,6 +13647,7 @@ Elm.Maze.make = function (_elm) {
    $Sidewinder = Elm.Sidewinder.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $TriangleGrid = Elm.TriangleGrid.make(_elm),
+   $WeightedGrid = Elm.WeightedGrid.make(_elm),
    $Wilsons = Elm.Wilsons.make(_elm);
    var _op = {};
    var algToString = function (algType) {
@@ -13590,6 +13660,21 @@ Elm.Maze.make = function (_elm) {
          case "Wilsons": return "Wilsons";
          case "HuntAndKill": return "Hunt - Kill";
          default: return "Recursive Backtracker";}
+   };
+   var viewWeightedDistances = function (maze) {
+      var finish = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,maze.grid,maze.grid.rows - 1,maze.grid.cols - 1));
+      var foo = _U.crash("Maze",{start: {line: 221,column: 15},end: {line: 221,column: 26}});
+      var start = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,maze.grid,0,0));
+      var wgrid = A2($WeightedGrid.createGrid,maze.grid,start);
+      var pathDistances = A3($DistanceGrid.pathTo,wgrid.dgrid,start,finish);
+      var shortestPathGrid = _U.update(wgrid,{dists: pathDistances});
+      return A2($Html.div,
+      _U.list([]),
+      _U.list([A2($Html.br,_U.list([]),_U.list([]))
+              ,$Html.text(A2($Basics._op["++"],
+              "Cell distances from ",
+              A2($Basics._op["++"],$GridCell.toString(start),A2($Basics._op["++"]," to ",$GridCell.toString(finish)))))
+              ,A2($Html.pre,_U.list([]),_U.list([$Html.text($DistanceGrid.viewDistances(shortestPathGrid.dgrid))]))]));
    };
    var viewDistances = function (maze) {
       var goal = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,maze.grid,0,0));
@@ -13627,12 +13712,12 @@ Elm.Maze.make = function (_elm) {
          case "Hex": return $HexGrid.neighbors;
          default: return $TriangleGrid.neighbors;}
    };
-   var update = function (maze) {
+   var update = F2(function (maze,step) {
       var grid$ = A2(maze.generator,maze.grid,maze.step);
       var grid$$ = A3($Grid.braid,grid$,neighborsFn(maze),maze.braidFactor);
-      return _U.update(maze,{grid: grid$$,step: maze.step + 1});
-   };
-   var updateBraiding = F2(function (maze,factor) {    var maze$ = _U.update(maze,{braidFactor: factor});return update(maze$);});
+      return _U.update(maze,{grid: grid$$,step: A2($Debug.watch,"maze step",maze.step + step)});
+   });
+   var updateBraiding = F2(function (maze,factor) {    var maze$ = _U.update(maze,{braidFactor: factor});return A2(update,maze$,1);});
    var genAlg = F2(function (algName,shape) {
       var neighborFn = function () {
          var _p2 = shape;
@@ -13669,18 +13754,17 @@ Elm.Maze.make = function (_elm) {
               return A2(renderer,$TriangleGrid.painter,root);}
       }();
       var cellPainter = $ColoredGrid.cellBackgroundColor;
-      return A2(renderer$,$ColoredGrid.cellBackgroundColor,cellSize);
+      return A2(renderer$,cellPainter,cellSize);
    };
    var view = function (maze) {
       var gridHtml = function () {
          var _p6 = maze.display;
-         if (_p6.ctor === "Ascii") {
-               return A2($Html.div,
-               _U.list([]),
-               _U.list([A2($Html.pre,_U.list([]),_U.list([$Html.text(A2($GridRenderer.toAscii,maze.grid,$Grid.cellToAscii))])),viewDistances(maze)]));
-            } else {
-               return $Html.fromElement(mazeToElement(maze));
-            }
+         switch (_p6.ctor)
+         {case "Ascii": return A2($Html.div,
+              _U.list([]),
+              _U.list([A2($Html.pre,_U.list([]),_U.list([$Html.text(A2($GridRenderer.toAscii,maze.grid,$Grid.cellToAscii))])),viewDistances(maze)]));
+            case "Colored": return $Html.fromElement(mazeToElement(maze));
+            default: return viewWeightedDistances(maze);}
       }();
       return A2($Html.div,
       _U.list([]),
@@ -13715,9 +13799,10 @@ Elm.Maze.make = function (_elm) {
                         ,{ctor: "_Tuple2",_0: Polar,_1: "Polar"}
                         ,{ctor: "_Tuple2",_0: Hex,_1: "Hexagonal"}
                         ,{ctor: "_Tuple2",_0: Triangle,_1: "Triangle"}]);
+   var Weighted = {ctor: "Weighted"};
    var Colored = {ctor: "Colored"};
    var Ascii = {ctor: "Ascii"};
-   var displays = _U.list([{ctor: "_Tuple2",_0: Ascii,_1: "ASCII"},{ctor: "_Tuple2",_0: Colored,_1: "Colored"}]);
+   var displays = _U.list([{ctor: "_Tuple2",_0: Ascii,_1: "ASCII"},{ctor: "_Tuple2",_0: Colored,_1: "Colored"},{ctor: "_Tuple2",_0: Weighted,_1: "Weighted"}]);
    var AlgAttr = F2(function (a,b) {    return {alg: a,name: b};});
    var RecursiveBacktracker = {ctor: "RecursiveBacktracker"};
    var HuntAndKill = {ctor: "HuntAndKill"};
@@ -13748,7 +13833,7 @@ Elm.Maze.make = function (_elm) {
       if (_p9.ctor === "Just") {
             return _p9._0.alg;
          } else {
-            return A2(_U.crash("Maze",{start: {line: 281,column: 17},end: {line: 281,column: 28}}),"Unknown algorithm",BinaryTree);
+            return A2(_U.crash("Maze",{start: {line: 306,column: 17},end: {line: 306,column: 28}}),"Unknown algorithm",BinaryTree);
          }
    };
    return _elm.Maze.values = {_op: _op
@@ -13762,6 +13847,7 @@ Elm.Maze.make = function (_elm) {
                              ,AlgAttr: AlgAttr
                              ,Ascii: Ascii
                              ,Colored: Colored
+                             ,Weighted: Weighted
                              ,Rect: Rect
                              ,Polar: Polar
                              ,Hex: Hex
@@ -13783,6 +13869,7 @@ Elm.Maze.make = function (_elm) {
                              ,updateBraiding: updateBraiding
                              ,view: view
                              ,viewDistances: viewDistances
+                             ,viewWeightedDistances: viewWeightedDistances
                              ,mazeToElement: mazeToElement
                              ,algorithms: algorithms
                              ,algToString: algToString
@@ -13853,7 +13940,9 @@ Elm.Main.make = function (_elm) {
    $Time = Elm.Time.make(_elm);
    var _op = {};
    var startTimeSeed = $Random$PCG.initialSeed(123);
-   var displayFromString = function (str) {    return _U.eq(str,"ASCII") ? $Maze.Ascii : $Maze.Colored;};
+   var displayFromString = function (str) {
+      return _U.eq(str,"ASCII") ? $Maze.Ascii : _U.eq(str,"Colored") ? $Maze.Colored : _U.eq(str,"Weighted") ? $Maze.Weighted : $Maze.Colored;
+   };
    var LoadImageMask = function (a) {    return {ctor: "LoadImageMask",_0: a};};
    var LoadAsciiMask = function (a) {    return {ctor: "LoadAsciiMask",_0: a};};
    var Braid = function (a) {    return {ctor: "Braid",_0: a};};
@@ -13894,8 +13983,8 @@ Elm.Main.make = function (_elm) {
          case "SelectAlg": var maze = model.maze;
            var maze$ = A6($Maze.init,$Maze.algByName(_p0._0),maze.grid.cols,maze.grid.rows,maze.grid.rnd.seed,maze.shape,maze.display);
            return _U.update(model,{maze: maze$});
-         case "SelectView": var maze$ = A2($Maze.updateView,model.maze,_p0._0);
-           return _U.update(model,{maze: maze$});
+         case "SelectView": var maze = A2($Maze.updateView,model.maze,A2($Debug.watch,"display",_p0._0));
+           return _U.update(model,{maze: maze});
          case "SelectShape": var maze = model.maze;
            var maze$ = A6($Maze.init,maze.alg,maze.grid.cols,maze.grid.rows,maze.grid.rnd.seed,_p0._0,maze.display);
            return _U.update(model,{maze: maze$});
@@ -13905,8 +13994,8 @@ Elm.Main.make = function (_elm) {
          case "LoadImageMask": var _p1 = _p0._0;
            var mask = A2($Mask.fromImage,{ctor: "_Tuple2",_0: _p1.width,_1: _p1.height},_p1.blackFlags);
            return _U.update(model,{maze: A2($Maze.setMask,model.maze,mask)});
-         case "Tick": if (_U.cmp($Basics.truncate(model.totalTime),mazeGenStepTime) > -1) return _U.update(model,{maze: $Maze.update(model.maze),totalTime: 0});
-           else {
+         case "Tick": if (_U.cmp($Basics.truncate(model.totalTime),mazeGenStepTime) > -1) return _U.update(model,
+              {maze: A2($Maze.update,model.maze,1),totalTime: 0}); else {
                  var _p2 = model.genState;
                  if (_p2.ctor === "Stepwise") {
                        return model;
@@ -13914,7 +14003,7 @@ Elm.Main.make = function (_elm) {
                        return _U.update(model,{totalTime: model.totalTime + _p0._0});
                     }
               }
-         case "Next": return _U.update(model,{maze: $Maze.update(model.maze),totalTime: 0});
+         case "Next": return _U.update(model,{maze: A2($Maze.update,model.maze,1),totalTime: 0});
          case "Run": return _U.update(model,{genState: Automatic});
          default: return _U.update(model,{genState: Stepwise});}
    });
@@ -13974,7 +14063,8 @@ Elm.Main.make = function (_elm) {
               ,A2($Html.select,_U.list([selectView]),A2($List.map,viewToOption,$Maze.displays))
               ,A2($Html.select,_U.list([selectShape]),A2($List.map,shapeToOption,$Maze.shapes))
               ,A2($Html.br,_U.list([]),_U.list([]))
-              ,$Html.text("Braids (1 = no deadends):")
+              ,$Html.text("Braids (0 = max deadends, 1 = no deadends):")
+              ,A2($Html.br,_U.list([]),_U.list([]))
               ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Next)]),_U.list([$Html.text(">")]))
               ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Run)]),_U.list([$Html.text("Run")]))
               ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Stop)]),_U.list([$Html.text("Stop")]))
