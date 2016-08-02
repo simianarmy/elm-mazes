@@ -4,6 +4,7 @@ import Grid exposing (Grid)
 import GridCell exposing (GridCell)
 import DistanceGrid exposing (CellDistances)
 import ColoredGrid exposing (Colored)
+import WeightedGrid
 
 import Html
 import Graphics.Element as GE
@@ -25,24 +26,39 @@ toAscii grid cellPainter =
 --
 -- generates collage object (Element) of the grid
 -- Takes 2 painter functions: one for the whole grid and one for each cell
-toElement :
+toColoredElement :
     -- maze grid
     Grid a ->
     -- grid painter
     (Grid a -> (GridCell -> Color) -> Int -> GE.Element) ->
     -- start cell
     GridCell ->
-    -- cell painter
-    (Colored a -> GridCell -> Color) -> 
     -- cell size
     Int ->
     -- returns
     GE.Element
-toElement grid gridPainter startCell cellPainter cellSize =
+toColoredElement grid gridPainter startCell cellSize =
     let coloredGrid = ColoredGrid.createGrid grid startCell
         -- curry the colored grid to the cell painter so that we can pass cellPainter function to 
         -- modules that don't know about Colored grids
-        cellPainter' = cellPainter coloredGrid
+        cellPainter = ColoredGrid.cellBackgroundColor coloredGrid
     in
-        gridPainter grid cellPainter' cellSize
+        gridPainter grid cellPainter cellSize
+
+toWeightedElement :
+    -- maze grid
+    Grid a ->
+    -- grid painter
+    (Grid a -> (GridCell -> Color) -> Int -> GE.Element) ->
+    -- start cell
+    GridCell ->
+    -- cell size
+    Int ->
+    -- returns
+    GE.Element
+toWeightedElement grid gridPainter startCell cellSize =
+    let wgrid = WeightedGrid.createGrid grid startCell
+        cellPainter = WeightedGrid.cellBackgroundColor wgrid
+    in
+        gridPainter grid cellPainter cellSize
 

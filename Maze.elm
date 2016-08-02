@@ -227,7 +227,7 @@ viewWeightedDistances maze =
        div [] [
           text <| "Cell distances from " ++ (GridCell.toString start) ++ " to " ++ (GridCell.toString finish)
           , br [] []
-          , Html.fromElement <| GridRenderer.toElement maze.grid Grid.painter start WeightedGrid.cellBackgroundColor cellSize
+          , Html.fromElement <| GridRenderer.toWeightedElement maze.grid Grid.painter start cellSize
 
           -- , pre [] [text <| DistanceGrid.viewDistances shortestPathGrid.dgrid]
           -- , text <| "Shortest path from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString goal)
@@ -239,8 +239,7 @@ viewWeightedDistances maze =
 -- Renders maze as an HTML element
 mazeToElement : Maze a -> Element
 mazeToElement maze =
-    let cellPainter = ColoredGrid.cellBackgroundColor
-        renderer = GridRenderer.toElement maze.grid
+    let renderer = GridRenderer.toColoredElement maze.grid
         renderer' = case maze.shape of
             Rect ->
                 let root = Grid.center maze.grid
@@ -262,7 +261,7 @@ mazeToElement maze =
                 in
                    renderer TriangleGrid.painter root
     in
-       renderer' cellPainter cellSize
+       renderer' cellSize
 
 -- returns available maze algorithms for the maze shape
 algorithms : Shape -> List AlgAttr
