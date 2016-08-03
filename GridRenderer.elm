@@ -4,7 +4,7 @@ import Grid exposing (Grid)
 import GridCell exposing (GridCell)
 import DistanceGrid exposing (CellDistances)
 import ColoredGrid exposing (Colored)
-import WeightedGrid
+import WeightedGrid exposing (Weighted)
 
 import Html
 import Graphics.Element as GE
@@ -47,18 +47,15 @@ toColoredElement grid gridPainter startCell cellSize =
 
 toWeightedElement :
     -- maze grid
-    Grid a ->
+    Weighted a ->
     -- grid painter
     (Grid a -> (GridCell -> Color) -> Int -> GE.Element) ->
-    -- start cell
-    GridCell ->
     -- cell size
     Int ->
     -- returns
     GE.Element
-toWeightedElement grid gridPainter startCell cellSize =
-    let wgrid = WeightedGrid.createGrid grid startCell
-        cellPainter = WeightedGrid.cellBackgroundColor wgrid
+toWeightedElement wgrid gridPainter cellSize =
+    let cellPainter = WeightedGrid.cellBackgroundColor wgrid
     in
-        gridPainter grid cellPainter cellSize
+        gridPainter wgrid.dgrid.grid cellPainter cellSize
 

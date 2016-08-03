@@ -13166,8 +13166,9 @@ Elm.WeightedGrid.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
    var cellBackgroundColor = F2(function (wgrid,gc) {
-      if (_U.cmp($GridCell.base(gc).weight,1) > 0) return A3($Color.rgb,255,0,0); else {
-            var distance = A2($Distances.lookup,wgrid.dists,$GridCell.base(gc));
+      var bc = A2($Debug.log,"cell ",$GridCell.base(gc));
+      if (_U.cmp(bc.weight,1) > 0) return A3($Color.rgb,255,0,0); else {
+            var distance = A2($Debug.log,"distance ",A2($Distances.lookup,wgrid.dists,bc));
             var distance$ = _U.eq(distance,-1) ? 0 : distance;
             var intensity = 64 + (191 * (wgrid.maximum - distance$) / wgrid.maximum | 0);
             return A3($Color.rgb,intensity,intensity,0);
@@ -13235,10 +13236,9 @@ Elm.GridRenderer.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $WeightedGrid = Elm.WeightedGrid.make(_elm);
    var _op = {};
-   var toWeightedElement = F4(function (grid,gridPainter,startCell,cellSize) {
-      var wgrid = A2($WeightedGrid.createGrid,grid,startCell);
+   var toWeightedElement = F3(function (wgrid,gridPainter,cellSize) {
       var cellPainter = $WeightedGrid.cellBackgroundColor(wgrid);
-      return A3(gridPainter,grid,cellPainter,cellSize);
+      return A3(gridPainter,wgrid.dgrid.grid,cellPainter,cellSize);
    });
    var toColoredElement = F4(function (grid,gridPainter,startCell,cellSize) {
       var coloredGrid = A2($ColoredGrid.createGrid,grid,startCell);
@@ -13708,15 +13708,11 @@ Elm.Maze.make = function (_elm) {
       var finish = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,maze.grid,maze.grid.rows - 1,maze.grid.cols - 1));
       var start = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,maze.grid,0,0));
       var wgrid = A2($WeightedGrid.createGrid,maze.grid,start);
-      var pathDistances = A3($DistanceGrid.pathTo,wgrid.dgrid,start,finish);
-      var shortestPathGrid = _U.update(wgrid,{dists: pathDistances});
       return A2($Html.div,
       _U.list([]),
-      _U.list([$Html.text(A2($Basics._op["++"],
-              "Cell distances from ",
-              A2($Basics._op["++"],$GridCell.toString(start),A2($Basics._op["++"]," to ",$GridCell.toString(finish)))))
+      _U.list([$Html.text(A2($Basics._op["++"],"Cell distances from ",$GridCell.toString(start)))
               ,A2($Html.br,_U.list([]),_U.list([]))
-              ,$Html.fromElement(A4($GridRenderer.toWeightedElement,maze.grid,$Grid.painter,start,cellSize))]));
+              ,$Html.fromElement(A3($GridRenderer.toWeightedElement,wgrid,$Grid.painter,cellSize))]));
    };
    var mazeToElement = function (maze) {
       var renderer = $GridRenderer.toColoredElement(maze.grid);
@@ -13811,7 +13807,7 @@ Elm.Maze.make = function (_elm) {
       if (_p9.ctor === "Just") {
             return _p9._0.alg;
          } else {
-            return A2(_U.crash("Maze",{start: {line: 306,column: 17},end: {line: 306,column: 28}}),"Unknown algorithm",BinaryTree);
+            return A2(_U.crash("Maze",{start: {line: 305,column: 17},end: {line: 305,column: 28}}),"Unknown algorithm",BinaryTree);
          }
    };
    return _elm.Maze.values = {_op: _op

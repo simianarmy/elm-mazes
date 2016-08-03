@@ -83,12 +83,14 @@ distances dgrid root =
 
 cellBackgroundColor : Weighted a -> GridCell -> Color
 cellBackgroundColor wgrid gc =
-    if (GridCell.base gc).weight > 1
-       then Color.rgb 255 0 0
-       else
-       let distance = Distances.lookup wgrid.dists (GridCell.base gc)
-           distance' = if distance == -1 then 0 else distance
-           intensity = 64 + 191 * (wgrid.maximum - distance') // wgrid.maximum
-       in
-          Color.rgb intensity intensity 0
+    let bc = Debug.log "cell " <| GridCell.base gc
+    in
+        if bc.weight > 1
+        then Color.rgb 255 0 0
+        else
+            let distance = Debug.log "distance " <| Distances.lookup wgrid.dists bc
+                distance' = if distance == -1 then 0 else distance
+                intensity = 64 + 191 * (wgrid.maximum - distance') // wgrid.maximum
+            in
+                Color.rgb intensity intensity 0
 
