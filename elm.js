@@ -13171,7 +13171,7 @@ Elm.WeightedGrid.make = function (_elm) {
             var distance = A2($Debug.log,"distance ",A2($Distances.lookup,wgrid.dists,bc));
             var distance$ = _U.eq(distance,-1) ? 0 : distance;
             var intensity = 64 + (191 * (wgrid.maximum - distance$) / wgrid.maximum | 0);
-            return A3($Color.rgb,intensity,intensity,0);
+            return _U.eq(distance,-1) ? $Color.white : A3($Color.rgb,intensity,intensity,0);
          }
    });
    var distances = F2(function (dgrid,root) {
@@ -13708,11 +13708,17 @@ Elm.Maze.make = function (_elm) {
       var finish = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,maze.grid,maze.grid.rows - 1,maze.grid.cols - 1));
       var start = $GridCell.maybeGridCellToGridCell(A3($Grid.getCell,maze.grid,0,0));
       var wgrid = A2($WeightedGrid.createGrid,maze.grid,start);
+      var pathDistances = A3($DistanceGrid.pathTo,wgrid.dgrid,start,finish);
+      var shortestPathGrid = _U.update(wgrid,{dists: pathDistances});
       return A2($Html.div,
       _U.list([]),
       _U.list([$Html.text(A2($Basics._op["++"],"Cell distances from ",$GridCell.toString(start)))
               ,A2($Html.br,_U.list([]),_U.list([]))
-              ,$Html.fromElement(A3($GridRenderer.toWeightedElement,wgrid,$Grid.painter,cellSize))]));
+              ,$Html.fromElement(A3($GridRenderer.toWeightedElement,wgrid,$Grid.painter,cellSize))
+              ,$Html.text(A2($Basics._op["++"],
+              "Shortest path from ",
+              A2($Basics._op["++"],$GridCell.toString(start),A2($Basics._op["++"]," to :",$GridCell.toString(finish)))))
+              ,$Html.fromElement(A3($GridRenderer.toWeightedElement,shortestPathGrid,$Grid.painter,cellSize))]));
    };
    var mazeToElement = function (maze) {
       var renderer = $GridRenderer.toColoredElement(maze.grid);
@@ -13807,7 +13813,7 @@ Elm.Maze.make = function (_elm) {
       if (_p9.ctor === "Just") {
             return _p9._0.alg;
          } else {
-            return A2(_U.crash("Maze",{start: {line: 305,column: 17},end: {line: 305,column: 28}}),"Unknown algorithm",BinaryTree);
+            return A2(_U.crash("Maze",{start: {line: 308,column: 17},end: {line: 308,column: 28}}),"Unknown algorithm",BinaryTree);
          }
    };
    return _elm.Maze.values = {_op: _op

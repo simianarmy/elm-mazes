@@ -92,5 +92,6 @@ cellBackgroundColor wgrid gc =
                 distance' = if distance == -1 then 0 else distance
                 intensity = 64 + 191 * (wgrid.maximum - distance') // wgrid.maximum
             in
-                Color.rgb intensity intensity 0
+                if distance == -1 then Color.white
+                else Color.rgb intensity intensity 0
 

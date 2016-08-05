@@ -5,6 +5,7 @@ import GridCell exposing (GridCell)
 import DistanceGrid exposing (CellDistances)
 import ColoredGrid exposing (Colored)
 import WeightedGrid exposing (Weighted)
+import Distances exposing (Distances)
 
 import Html
 import Graphics.Element as GE

@@ -222,14 +222,16 @@ viewWeightedDistances maze =
         wgrid = WeightedGrid.createGrid maze.grid start
         pathDistances = DistanceGrid.pathTo wgrid.dgrid start finish
         -- shortest path: set distances to -1 if not on path
-        --shortestPathGrid = {wgrid | dists = pathDistances}
+        shortestPathGrid = {wgrid | dists = pathDistances}
         -- rootStr = GridCell.toString center
     in
        div [] [
           text <| "Cell distances from " ++ (GridCell.toString start)
           , br [] []
           , Html.fromElement <| GridRenderer.toWeightedElement wgrid Grid.painter cellSize
-          --, text <| "Shortest path from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString finish)
+          , text <| "Shortest path from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString finish)
+          , Html.fromElement <| GridRenderer.toWeightedElement shortestPathGrid Grid.painter cellSize
+
           --, pre [] [text <| DistanceGrid.viewDistances shortestPathGrid.dgrid]
           -- , pre [] [text <| DistanceGrid.viewDistances shortestPathGrid]
           -- , text "Longest path in maze:"
