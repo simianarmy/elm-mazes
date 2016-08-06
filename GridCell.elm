@@ -126,5 +126,13 @@ setTag gc strTag =
     in
        cellToGridCell gc bc'
 
+-- probably a better way to update a base property...
+setWeight : GridCell -> Int -> GridCell
+setWeight gc w =
+    let bc = base gc
+        bc' = { bc | weight = w }
+    in
+       cellToGridCell gc bc'
+
 toString : GridCell -> String
 toString gc = Cell.cellToString (base gc)

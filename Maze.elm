@@ -17,6 +17,8 @@ import AldousBroder
 import Wilsons
 import HuntAndKill
 import RecursiveBacktracker 
+import GridUtils
+
 import Random.PCG as Random exposing (Seed, initialSeed, split) 
 import Html exposing (pre, br, text, div)
 import Html.Attributes exposing (..)
@@ -56,7 +58,7 @@ type alias Maze a = {
 }
 
 defaultAlgorithm = NoOp
-defaultBraidFactor = 0
+defaultBraidFactor = 0.5
 
 -- Data formatted for html selects
 displays = [(Ascii, "ASCII")
@@ -221,9 +223,16 @@ viewWeightedDistances maze =
         finish = GridCell.maybeGridCellToGridCell <| getCell maze.grid (maze.grid.rows - 1) (maze.grid.cols - 1)
         wgrid = WeightedGrid.createGrid maze.grid start
         pathDistances = DistanceGrid.pathTo wgrid.dgrid start finish
-        -- shortest path: set distances to -1 if not on path
         shortestPathGrid = {wgrid | dists = pathDistances}
-        -- rootStr = GridCell.toString center
+        -- pick cell on path to be lava
+        pathCells = List.filter (\gc -> (GridCell.base gc).weight > 0) <| Grid.cellsList wgrid.dgrid.grid.cells
+        -- sample = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell pathCells maze.grid.rnd
+        sample = GridCell.maybeGridCellToGridCell <| Grid.getCell wgrid.dgrid.grid 4 4
+        lava = GridCell.setWeight sample 50
+        lavaGrid = Grid.updateCellById wgrid.dgrid.grid (GridCell.id lava) lava
+        lavaDGrid = WeightedGrid.createGrid lavaGrid start
+        lavaPathDistances = DistanceGrid.pathTo lavaDGrid.dgrid start finish
+        lavaPathGrid = {lavaDGrid | dists = lavaPathDistances}
     in
        div [] [
           text <| "Cell distances from " ++ (GridCell.toString start)
@@ -232,6 +241,8 @@ viewWeightedDistances maze =
           , text <| "Shortest path from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString finish)
           , Html.fromElement <| GridRenderer.toWeightedElement shortestPathGrid Grid.painter cellSize
 
+          , text <| "Shortest path with lava from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString finish)
+          , Html.fromElement <| GridRenderer.toWeightedElement lavaPathGrid Grid.painter cellSize
           --, pre [] [text <| DistanceGrid.viewDistances shortestPathGrid.dgrid]
           -- , pre [] [text <| DistanceGrid.viewDistances shortestPathGrid]
           -- , text "Longest path in maze:"
