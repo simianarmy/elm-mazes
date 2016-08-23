@@ -227,11 +227,12 @@ viewWeightedDistances maze =
         -- pick cell on path to be lava
         pathCells = List.filter (\gc -> (GridCell.base gc).weight > 0) <| Grid.cellsList wgrid.dgrid.grid.cells
         -- sample = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell pathCells maze.grid.rnd
-        sample = GridCell.maybeGridCellToGridCell <| Grid.getCell wgrid.dgrid.grid 4 4
+        sample = GridCell.maybeGridCellToGridCell <| Grid.getCell wgrid.dgrid.grid 2 2
         lava = GridCell.setWeight sample 50
         lavaGrid = Grid.updateCellById wgrid.dgrid.grid (GridCell.id lava) lava
         lavaDGrid = WeightedGrid.createGrid lavaGrid start
-        lavaPathDistances = DistanceGrid.pathTo lavaDGrid.dgrid start finish
+        foo = Debug.log "lavadgrid dists" <| lavaDGrid.dists
+        lavaPathDistances = Debug.log "distances w/lava" <| DistanceGrid.pathTo lavaDGrid.dgrid start finish
         lavaPathGrid = {lavaDGrid | dists = lavaPathDistances}
     in
        div [] [
