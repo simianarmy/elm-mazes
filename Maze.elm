@@ -139,16 +139,22 @@ reset maze =
         step = 0
     }
 
+braid : Maze a -> Maze a
+braid maze =
+    let bgrid = Grid.braid maze.grid (neighborsFn maze) maze.braidFactor
+    in
+       { maze |
+       grid = bgrid
+       }
+
 update : Maze a -> Int -> Maze a
 update maze step =
     -- update rngs
     let -- apply maze generation algoritm
         grid' = maze.generator maze.grid maze.step
-        -- apply braiding
-        grid'' = Grid.braid grid' (neighborsFn maze) maze.braidFactor
     in 
        { maze |
-       grid = grid'',
+       grid = grid',
        step = Debug.watch "maze step" <| maze.step + step 
        }
 
@@ -174,16 +180,23 @@ updateBraiding maze factor =
 
 --view : Maze a -> Html
 view maze =
-    let gridHtml = case maze.display of
+    let braided = braid maze
+        gridHtml = case maze.display of
             Ascii ->
-                div [] [ pre [] [text <| GridRenderer.toAscii maze.grid Grid.cellToAscii]
-                , viewDistances maze]
+                div [] [
+                       text <| (toString <| List.length (Grid.deadEnds maze.grid)) ++ " deadends"
+                       , pre [] [text <| GridRenderer.toAscii maze.grid Grid.cellToAscii]
+                       --, text <| "With braid factor " ++ (toString braided.braidFactor)
+                       --, br [] []
+                       --, text <| (toString <| List.length (Grid.deadEnds braided.grid)) ++ " deadends"
+                       --, pre [] [text <| GridRenderer.toAscii braided.grid Grid.cellToAscii]
+                        , viewDistances maze]
 
             Colored ->
                 Html.fromElement <| mazeToElement maze
 
             Weighted ->
-                viewWeightedDistances maze
+                viewWeightedDistances <| braid {maze | braidFactor = 0.5}
 
     in
        div [] [
@@ -191,7 +204,6 @@ view maze =
            , br [] []
            , text <| (toString maze.grid.cols) ++ " X " ++ (toString maze.grid.rows)
            , br [] []
-           , text <| (toString <| List.length (Grid.deadEnds maze.grid)) ++ " deadends"
            , gridHtml
            ]
 
@@ -217,22 +229,24 @@ viewDistances maze =
           , pre [] [text <| DistanceGrid.viewDistances longestPathGrid]
            ]
 
+-- displays braided maze with and without lava in the path
 viewWeightedDistances : Maze a -> Html.Html
 viewWeightedDistances maze =
     let start = GridCell.maybeGridCellToGridCell <| Grid.getCell maze.grid 0 0
         finish = GridCell.maybeGridCellToGridCell <| getCell maze.grid (maze.grid.rows - 1) (maze.grid.cols - 1)
         wgrid = WeightedGrid.createGrid maze.grid start
-        pathDistances = DistanceGrid.pathTo wgrid.dgrid start finish
+        pathDistances = WeightedGrid.pathTo wgrid finish
         shortestPathGrid = {wgrid | dists = pathDistances}
         -- pick cell on path to be lava
         pathCells = List.filter (\gc -> (GridCell.base gc).weight > 0) <| Grid.cellsList wgrid.dgrid.grid.cells
         -- sample = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell pathCells maze.grid.rnd
-        sample = GridCell.maybeGridCellToGridCell <| Grid.getCell wgrid.dgrid.grid 4 4
+        sample = GridCell.maybeGridCellToGridCell <| Grid.getCell wgrid.dgrid.grid 0 2
         lava = GridCell.setWeight sample 50
         lavaGrid = Grid.updateCellById wgrid.dgrid.grid (GridCell.id lava) lava
         lavaDGrid = WeightedGrid.createGrid lavaGrid start
-        lavaPathDistances = DistanceGrid.pathTo lavaDGrid.dgrid start finish
-        lavaPathGrid = {lavaDGrid | dists = lavaPathDistances}
+        lavaPathDistances = WeightedGrid.pathTo lavaDGrid finish
+        lavaPathGrid = {lavaDGrid | dists = Debug.log "lava distances" <| lavaPathDistances}
+        --lavaPathGrid = Debug.log "lava dgrid "  lavaDGrid
     in
        div [] [
           text <| "Cell distances from " ++ (GridCell.toString start)

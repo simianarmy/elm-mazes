@@ -43,6 +43,7 @@ viewDistances dgrid =
     Grid.toAscii dgrid.grid (cellToAscii dgrid)
 
 ---- Finds shortest path between 2 cells
+-- Uses Distances type
 pathTo : CellDistances a -> GridCell -> GridCell -> Distances
 pathTo dgrid gcroot gcgoal =
     let root = GridCell.base gcroot

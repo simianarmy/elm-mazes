@@ -14,12 +14,13 @@ import Random.PCG as Random exposing (Seed, initialSeed, split)
 import Time exposing (Time, every, fps)
 import Slider
 
+-- defaults
 initWidth   = 5
 initHeight  = 5
 initDisplay = Maze.Colored
 initShape   = Maze.Rect
 -- controls speed of the generation (lower = faster)
-mazeGenStepTime = 50
+mazeGenStepTime = 5
 
 --- MODEL ---
 
@@ -210,6 +211,7 @@ view address model =
         , footer [] []
         ]
 
+-- this seems like not the right way to do it
 displayFromString : String -> Display
 displayFromString str =
     if str == "ASCII"
@@ -266,7 +268,7 @@ actions =
     Signal.mailbox NoOp
 
 tick : Signal Action 
-tick  = Signal.map (\dt -> Tick dt) (fps 16)
+tick = Signal.map (\dt -> Tick dt) (fps 16)
 
 startTimeSeed : Random.Seed
 -- uncomment to debug with consistent seed

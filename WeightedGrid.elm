@@ -1,8 +1,10 @@
 module WeightedGrid where
 
-import Distances exposing (Distances)
+import Distances exposing (Distances, lookup)
 import DistanceGrid exposing (CellDistances)
-import GridCell exposing (GridCell)
+import DijkstraWeighted
+import GridCell exposing (..)
+import Cell exposing (Cell)
 import Grid exposing (Grid)
 import ColoredGrid exposing (Colored)
 
@@ -16,8 +18,8 @@ type alias Weighted a =
 
 createGrid : Grid a -> GridCell -> Weighted a
 createGrid grid start =
-    let dg = DistanceGrid.createGrid grid start
-        ds = distances dg start
+    let dg = Debug.log "dgrid" <| DistanceGrid.createGrid grid start
+        ds = Debug.log "weighted distances" <| DijkstraWeighted.cellDistances dg start
         (farthest, max) = Distances.max ds
     in
        {
@@ -26,59 +28,36 @@ createGrid grid start =
            maximum = max
        }
 
--- Accumulator for distances function
-type alias Diter = {
-    curCell : GridCell,
-    weights : Distances,
-    pending : List GridCell
-}
+---- Finds shortest path between 2 cells
+-- Uses Distances type
+pathTo : Weighted a -> GridCell -> Distances
+pathTo wgrid gcgoal =
+    let root = wgrid.dists.root
+        current = GridCell.base gcgoal
+        breadcrumbs = Distances.add (Distances.init root) current (lookup wgrid.dists current)
 
--- Our modified Dijkstra's returns a Distances type
-distances : CellDistances a -> GridCell -> Distances
-distances dgrid root =
-    -- create a CellDistances grid
-    -- we use our Distances class to track the cost of each cell, but instead of having a frontier set, we now have a pending set, which tracks which cells have yet to be processed. We initialize that to be an array containing just self—the cell that we’re asking to compute the distances. We then repeat the following steps until that array is empty.
-    let weights = dgrid.dists
-        acc = {
-            curCell = root,
-            weights = weights,
-            -- TODO: Use a priority queue for faster lookups
-            pending = [root]
-        }
-
-        scanCellLinks : GridCell -> Diter -> Diter
-        scanCellLinks neighbor acc =
-            let ncell = GridCell.base neighbor
-                totalWeight = (Distances.lookup acc.weights (GridCell.base acc.curCell)) + ncell.weight
-                nWeight = Distances.lookup acc.weights ncell
-            in
-               if (nWeight < 0) || (totalWeight < nWeight)
-                  then { acc |
-                      weights = Distances.add acc.weights ncell totalWeight,
-                      pending = List.append acc.pending [neighbor]
-                  }
-                  else acc
-
-        -- Each pass through the loop will search that pending set, looking for the cell with the lowest cost and then removing the cell that it finds. This cell is our current cell.
-        pendingAcc : Diter -> Diter
-        pendingAcc acc =
-            if List.isEmpty acc.pending
-               then acc
+        walkPath : Distances -> Cell -> Distances
+        walkPath xpbreadcrumbs xpcurrent =
+            if xpcurrent.id == root.id
+               then xpbreadcrumbs
                else
-               let sortedByWeight = List.sortBy (\c -> (GridCell.base c).weight) acc.pending
-                   cell = GridCell.maybeGridCellToGridCell <| List.head sortedByWeight
-                   cid = GridCell.id cell
-                   -- remove cell from pending list
-                   acc' = {acc |
-                       curCell = cell,
-                       pending = GridCell.filterGridCells (\c -> not (c.id == cid)) acc.pending
-                   }
+               -- scan each linked cell
+               let links = Grid.gridCellsToBaseCells <| Grid.linkedCells wgrid.dgrid.grid (RectCellTag xpcurrent)
+                   currentDistance = lookup wgrid.dists xpcurrent
+                   res = List.filter (\neighbor ->
+                       (lookup wgrid.dists neighbor) < currentDistance
+                   ) links
                in
-                  -- The next loop looks at each of the cells that are linked to the current cell. For each one, we compute the cumulative weight of the path from the starting cell, and then check to see if that’s better than any previously recorded weight for that neighbor. If so, we add the neighbor to the pending list, and update its cumulative weight.
-                  pendingAcc <| List.foldl scanCellLinks acc' (Grid.linkedCells dgrid.grid cell)
+                  if List.isEmpty res
+                     then xpbreadcrumbs
+                     else
+                     let neighbor = Grid.toValidCell <| List.head res
+                         ixpbreadcrumbs = Distances.add xpbreadcrumbs neighbor (lookup wgrid.dists neighbor)
+                     in
+                        walkPath ixpbreadcrumbs neighbor
 
     in
-       .weights (pendingAcc acc)
+       walkPath breadcrumbs current
 
 
 cellBackgroundColor : Weighted a -> GridCell -> Color
