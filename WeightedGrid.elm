@@ -18,8 +18,8 @@ type alias Weighted a =
 
 createGrid : Grid a -> GridCell -> Weighted a
 createGrid grid start =
-    let dg = Debug.log "dgrid" <| DistanceGrid.createGrid grid start
-        ds = Debug.log "weighted distances" <| DijkstraWeighted.cellDistances dg start
+    let dg = DistanceGrid.createGrid grid start
+        ds = DijkstraWeighted.cellDistances dg start
         (farthest, max) = Distances.max ds
     in
        {

@@ -16,7 +16,7 @@ type alias Diter = {
 cellDistances : CellDistances a -> GridCell -> Distances
 cellDistances dgrid root =
     -- we use our Distances class to track the cost of each cell, but instead of having a frontier set, we now have a pending set, which tracks which cells have yet to be processed. We initialize that to be an array containing just self—the cell that we’re asking to compute the distances. We then repeat the following steps until that array is empty.
-    let weights = Debug.log "weights" <| dgrid.dists
+    let weights = Distances.init (GridCell.base root)
         acc = {
             curCell = root,
             weights = weights,
@@ -46,9 +46,9 @@ cellDistances dgrid root =
                let sortedByWeight = List.sortBy (\c -> (GridCell.base c).weight) acc.pending
                    cell = GridCell.maybeGridCellToGridCell <| List.head sortedByWeight
                    cid = GridCell.id cell
-                   -- remove cell from pending list
                    acc' = {acc |
                        curCell = cell,
+                       -- remove cell from pending list
                        pending = GridCell.filterGridCells (\c -> not (c.id == cid)) acc.pending
                    }
                in

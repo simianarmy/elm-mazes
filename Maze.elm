@@ -23,6 +23,7 @@ import Random.PCG as Random exposing (Seed, initialSeed, split)
 import Html exposing (pre, br, text, div)
 import Html.Attributes exposing (..)
 import Graphics.Element exposing (Element)
+import Dict
 
 type Algorithm = NoOp
                | BinaryTree
@@ -237,16 +238,6 @@ viewWeightedDistances maze =
         wgrid = WeightedGrid.createGrid maze.grid start
         pathDistances = WeightedGrid.pathTo wgrid finish
         shortestPathGrid = {wgrid | dists = pathDistances}
-        -- pick cell on path to be lava
-        pathCells = List.filter (\gc -> (GridCell.base gc).weight > 0) <| Grid.cellsList wgrid.dgrid.grid.cells
-        -- sample = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell pathCells maze.grid.rnd
-        sample = GridCell.maybeGridCellToGridCell <| Grid.getCell wgrid.dgrid.grid 0 2
-        lava = GridCell.setWeight sample 50
-        lavaGrid = Grid.updateCellById wgrid.dgrid.grid (GridCell.id lava) lava
-        lavaDGrid = WeightedGrid.createGrid lavaGrid start
-        lavaPathDistances = WeightedGrid.pathTo lavaDGrid finish
-        lavaPathGrid = {lavaDGrid | dists = Debug.log "lava distances" <| lavaPathDistances}
-        --lavaPathGrid = Debug.log "lava dgrid "  lavaDGrid
     in
        div [] [
           text <| "Cell distances from " ++ (GridCell.toString start)
@@ -254,14 +245,34 @@ viewWeightedDistances maze =
           , Html.fromElement <| GridRenderer.toWeightedElement wgrid Grid.painter cellSize
           , text <| "Shortest path from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString finish)
           , Html.fromElement <| GridRenderer.toWeightedElement shortestPathGrid Grid.painter cellSize
-
-          , text <| "Shortest path with lava from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString finish)
-          , Html.fromElement <| GridRenderer.toWeightedElement lavaPathGrid Grid.painter cellSize
+          , if False --(Maybe.withDefault -1 <| Dict.get (GridCell.id finish) pathDistances.cells) == -1
+               then text "N/A"
+               else viewWeightedDistancesWithLava wgrid.dgrid.grid start finish
           --, pre [] [text <| DistanceGrid.viewDistances shortestPathGrid.dgrid]
           -- , pre [] [text <| DistanceGrid.viewDistances shortestPathGrid]
           -- , text "Longest path in maze:"
           -- , pre [] [text <| DistanceGrid.viewDistances longestPathGrid]
            ]
+
+viewWeightedDistancesWithLava : Grid a -> GridCell -> GridCell -> Html.Html
+viewWeightedDistancesWithLava grid start goal =
+    let -- pick cell on path to be lava
+        pathCells = List.filter (\gc -> (GridCell.base gc).weight > 0) <| Grid.cellsList grid.cells
+        -- As much as I'd like to pick a random cell from the shortest path, the randomness makes it shitty
+        -- sample = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell pathCells grid.rnd
+        -- sample = GridCell.maybeGridCellToGridCell <| List.head <| List.reverse <| List.take ((List.length pathCells) // 2) pathCells
+        -- Best to pick a cell near the beginning or end I guess...
+        sample = GridCell.maybeGridCellToGridCell <| Grid.getCell grid 0 1
+        lava = GridCell.setWeight sample 50
+        lavaGrid = Grid.updateCellById grid (GridCell.id lava) lava
+        lavaDGrid = WeightedGrid.createGrid lavaGrid start
+        lavaPathDistances = WeightedGrid.pathTo lavaDGrid goal
+        lavaPathGrid = {lavaDGrid | dists = lavaPathDistances}
+    in
+       div [] [
+          text <| "Shortest path with lava from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString goal)
+          , Html.fromElement <| GridRenderer.toWeightedElement lavaPathGrid Grid.painter cellSize
+          ]
 
 -- Renders maze as an HTML element
 mazeToElement : Maze a -> Element
