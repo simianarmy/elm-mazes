@@ -1,7 +1,7 @@
 -- Sidewinder.elm
 -- Module definiing the maze-generating Sidewinder algorithm
 --
-module Sidewinder (on, step) where
+module Sidewinder exposing (on, step) where
 
 import Debug
 import GridUtils

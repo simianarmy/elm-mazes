@@ -1,4 +1,4 @@
-module Main where
+module Main exposing (main)
 
 import Maze exposing (..)
 import Mask exposing (Mask)
@@ -6,7 +6,6 @@ import Mask exposing (Mask)
 import Debug
 import Array exposing (Array)
 import String
-import Signal exposing (Signal, Address)
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
@@ -50,7 +49,7 @@ type Generation =
 -- A description of the kinds of actions that can be performed on the model of
 -- our application. See the following for more info on this pattern and
 -- some alternatives: https://github.com/evancz/elm-architecture-tutorial/
-type Action = 
+type Msg = 
     NoOp
     | Tick Float
     -- | Prev
@@ -67,10 +66,10 @@ type Action =
     | LoadAsciiMask (List String)
     | LoadImageMask PngData
 
--- How we update our Model on a given Action?
---update : Action -> Model a -> Model a
-update action model =
-    case action of
+-- How we update our Model on a given Msg?
+--update : Msg -> Model a -> Model a
+update msg model =
+    case msg of
         NoOp -> model
 
         Refresh ->
@@ -162,15 +161,16 @@ update action model =
             }
 
 --- VIEW ---
---view : Address Action -> Model a -> Html
-view address model =
+--view : Model a -> Html
+view : Model a -> Html Msg
+view model =
     let
         selectAlg = Html.Events.on "change" targetValue
-            (\val -> Signal.message address <| SelectAlg <| val)
+            (\val -> Signal.message <| SelectAlg <| val)
         selectView = Html.Events.on "change" targetValue
-            (\val -> Signal.message address <| SelectView <| displayFromString val)
+            (\val -> Signal.message <| SelectView <| displayFromString val)
         selectShape = Html.Events.on "change" targetValue
-            (\val -> Signal.message address <| SelectShape <| shapeFromString val)
+            (\val -> Signal.message <| SelectShape <| shapeFromString val)
         algToOptions attr =
             option [selected (attr.alg == model.maze.alg)] [text attr.name]
         viewToOption opt =
@@ -188,23 +188,23 @@ view address model =
         , text "width X height"
         , br [] []
         , input [ class "sizeInput", value (toString maze.grid.cols)
-              , on "input" targetValue (Signal.message address << UpdateWidth) ] []
+              , on "input" targetValue (Signal.message UpdateWidth) ] []
         , text " X "
         , input [ class "sizeInput", value (toString maze.grid.rows)
-              , on "input" targetValue (Signal.message address << UpdateHeight)] []
+              , on "input" targetValue (Signal.message UpdateHeight)] []
         , br [] []
         , select [ selectAlg ] (List.map algToOptions <| Maze.algorithms maze.shape)
         , select [ selectView ] (List.map viewToOption Maze.displays)
         , select [ selectShape ] (List.map shapeToOption Maze.shapes)
         , br [] []
         , text "Braids (0 = max deadends, 1 = no deadends):"
-        --, Slider.view (Signal.forwardTo address Braid) model.braidSlider
+        --, map Braid (Slider.view model.braidSlider)
         , br [] []
         -- , button [ onClick address Prev ] [ text "<" ]
-        , button [ onClick address Next ] [ text ">" ]
-        , button [ onClick address Run ] [ text "Run" ]
-        , button [ onClick address Stop ] [ text "Stop" ]
-        , button [ onClick address Refresh ] [ text "REFRESH" ]
+        , button [ onClick Next ] [ text ">" ]
+        , button [ onClick Run ] [ text "Run" ]
+        , button [ onClick Stop ] [ text "Stop" ]
+        , button [ onClick Refresh ] [ text "REFRESH" ]
         , br [] []
         , text "Ascii Mask file: "
         , input [ type' "file", id "maskfileinput" ] []
@@ -234,9 +234,9 @@ shapeFromString str =
 -- wire the entire application together
 main : Signal Html
 main =
-    Signal.map (view actions.address) model
+    Signal.map (view msgs.address) model
 
-userInput : Signal Action
+userInput : Signal Msg
 userInput =
     Signal.mergeMany
         [ 
@@ -262,12 +262,12 @@ initialModel =
       , genState = Stepwise
     }
 
--- actions from user input
-actions : Signal.Mailbox Action
+-- msgs from user input
+actions : Signal.Mailbox Msg
 actions =
     Signal.mailbox NoOp
 
-tick : Signal Action 
+tick : Signal Msg 
 tick = Signal.map (\dt -> Tick dt) (fps 16)
 
 startTimeSeed : Random.Seed

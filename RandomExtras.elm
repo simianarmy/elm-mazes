@@ -1,4 +1,4 @@
-module RandomExtras (Generator, generate, permutation) where
+module RandomExtras exposing (Generator, generate, permutation) where
 
 import Random.PCG as Random
 

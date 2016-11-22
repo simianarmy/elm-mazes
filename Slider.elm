@@ -1,6 +1,6 @@
 -- Thanks Evan
 -- https://gist.githubusercontent.com/evancz/954c9379f8272dfac2e7/raw/1f06a4e748cecce58b8d164349b39d8f0d1bca41/Slider.elm
-module Slider (Model, init, Action, update, view) where
+module Slider exposing (Model, init, Action, update, view) where
 
 import Html exposing (..)
 import Html.Attributes as Attributes

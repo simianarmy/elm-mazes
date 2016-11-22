@@ -1,5 +1,5 @@
 -- Module defining the Hunt & Kill maze creation algorithm
-module HuntAndKill (on, step) where
+module HuntAndKill exposing (on, step) where
 
 import Grid exposing (Grid)
 import GridCell exposing (..)
