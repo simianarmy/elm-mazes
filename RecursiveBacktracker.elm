@@ -1,5 +1,5 @@
 -- Module defining the Recursive Backtracker maze creation algorithm
-module RecursiveBacktracker exposing (on, step) where
+module RecursiveBacktracker exposing (on, step)
 
 import Grid exposing (Grid)
 import PolarGrid

@@ -1,4 +1,4 @@
-module TriangleGrid where
+module TriangleGrid exposing (..)
 
 import Grid exposing (..)
 import Mask exposing (Mask)
@@ -8,8 +8,8 @@ import GridUtils
 import Arithmetic
 
 import Array exposing (Array)
-import Graphics.Element as GE
-import Graphics.Collage as GC
+import Element as GE
+import Collage as GC
 import Html
 import Color exposing (Color)
 

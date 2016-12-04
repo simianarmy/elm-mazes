@@ -1,4 +1,8 @@
-module GridRenderer where
+module GridRenderer exposing
+    ( toAscii
+    , toColoredElement
+    , toWeightedElement
+    )
 
 import Grid exposing (Grid)
 import GridCell exposing (GridCell)
@@ -8,7 +12,7 @@ import WeightedGrid exposing (Weighted)
 import Distances exposing (Distances)
 
 import Html
-import Graphics.Element as GE
+import Element as GE
 import Color exposing (Color, rgb)
 
 toAscii :

@@ -1,5 +1,5 @@
 -- Module defining the Aldous-Broder maze creation algorithm
-module AldousBroder exposing (on, step) where
+module AldousBroder exposing (on, step)
 
 import Grid exposing (Grid)
 import PolarGrid
@@ -12,7 +12,7 @@ import GridUtils
 import Random
 import List
 import Array
-import Trampoline exposing (..)
+import Trampoline exposing (Trampoline)
 import Debug exposing (log)
 
 on : (Grid a -> Maybe GridCell) ->

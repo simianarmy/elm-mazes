@@ -1,5 +1,5 @@
 -- racist grid
-module ColoredGrid where
+module ColoredGrid exposing (createGrid, cellBackgroundColor)
 
 import Distances exposing (Distances)
 import DistanceGrid exposing (CellDistances)

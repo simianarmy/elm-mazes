@@ -1,7 +1,7 @@
 -- BinaryTree.elm
 -- Module defining the maze Binary Tree maze creation algorithm
 
-module BinaryTree where
+module BinaryTree exposing (on, step)
 
 import List exposing (..)
 import Random exposing (..)

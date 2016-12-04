@@ -1,4 +1,4 @@
-module Distances where
+module Distances exposing (..)
 
 import Cell exposing (Cell, CellID)
 import Dict exposing (Dict)
@@ -23,7 +23,7 @@ add dists cell dist =
 -- Returns cell id and distance of largest distance
 max : Distances -> (CellID, Int)
 max dists =
-    let maxDist = List.reverse <| List.sortBy snd <| Dict.toList dists.cells
+    let maxDist = List.reverse <| List.sortBy Tuple.second <| Dict.toList dists.cells
     in
        case List.head maxDist of
            Just d -> d

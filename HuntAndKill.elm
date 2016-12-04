@@ -1,5 +1,5 @@
 -- Module defining the Hunt & Kill maze creation algorithm
-module HuntAndKill exposing (on, step) where
+module HuntAndKill exposing (on, step)
 
 import Grid exposing (Grid)
 import GridCell exposing (..)
@@ -49,7 +49,7 @@ step startCellFn neighborsFn grid i =
             let grid' = Grid.updateCells grid (\c -> GridCell.setTag c "")
                 foo = Debug.log "FOUND DEADEND, TIME TO HUNT!"
             in
-                fst <| hunt grid' neighborsFn
+                Tuple.first <| hunt grid' neighborsFn
             else
             -- get the cell that the hunt produced
             let hunted = GridCell.maybeGridCellToGridCell <| head <| GridCell.filterGridCells (\e -> e.tag == "HUNTED") cells

@@ -9,7 +9,7 @@ import String
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
-import Random.PCG as Random exposing (Seed, initialSeed, split)
+import Random.Pcg as Random exposing (Seed, initialSeed, split)
 import Time exposing (Time, every, fps)
 import Slider
 
@@ -174,9 +174,9 @@ view model =
         algToOptions attr =
             option [selected (attr.alg == model.maze.alg)] [text attr.name]
         viewToOption opt =
-            option [selected ((fst opt) == model.maze.display)] [text (snd opt)]
+            option [selected ((Tuple.first opt) == model.maze.display)] [text (Tuple.second opt)]
         shapeToOption opt =
-            option [selected ((fst opt) == model.maze.shape)] [text (snd opt)]
+            option [selected ((Tuple.first opt) == model.maze.shape)] [text (Tuple.second opt)]
         maze = model.maze
     in
     div [ id "main" ] [
@@ -223,11 +223,11 @@ displayFromString str =
                        else Maze.Colored
 
 shapeFromString str =
-    let s = List.filter (\e -> (snd e) == str) Maze.shapes
+    let s = List.filter (\e -> (Tuple.second e) == str) Maze.shapes
     in
        case List.head s of
            Nothing -> initShape
-           Just item -> fst item
+           Just item -> Tuple.first item
 
 ---- INPUTS ----
 

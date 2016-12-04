@@ -1,4 +1,4 @@
-module Grid where
+module Grid exposing (..)
 
 import Mask exposing (Mask)
 import Cell exposing (BaseCell, Cell, CellID, CellLinks)
@@ -12,9 +12,9 @@ import Array exposing (Array)
 import String
 import Color
 import Rnd exposing (..)
-import Random.PCG as Random
-import Graphics.Collage exposing (..)
-import Graphics.Element exposing (Element)
+import Random.Pcg as Random
+import Collage exposing (..)
+import Element exposing (Element)
 import Color exposing (..)
 import Text exposing (..)
 
@@ -253,7 +253,7 @@ getCellById : {a | cells : CellGrid, rows : Int, cols : Int }
     -> CellID
     -> Maybe GridCell
 getCellById grid cid =
-    getCell grid (fst cid) (snd cid)
+    getCell grid (Tuple.first cid) (Tuple.second cid)
 
 -- commonly used to map a maybe cell to a cell
 toValidCell : Maybe Cell -> Cell
@@ -349,7 +349,7 @@ braid grid neighborsFn p =
                   then g'
                   else linkNeighbor g' deadEnd
 
-        randomDeadEnds = fst <| ListUtils.shuffle (deadEnds grid) grid.rnd.seed
+        randomDeadEnds = Tuple.first <| ListUtils.shuffle (deadEnds grid) grid.rnd.seed
         grid' = updateRnd grid
     in
        List.foldl processDeadEnd grid' randomDeadEnds
@@ -439,8 +439,8 @@ gridIndex grid row col =
 -- returns cell by its id
 cellIdToCell : Grid a -> Cell.CellID -> GridCell
 cellIdToCell grid cellid =
-    let row = (fst cellid)
-        col = (snd cellid)
+    let row = (Tuple.first cellid)
+        col = (Tuple.second cellid)
     in
         maybeGridCellToGridCell <| getCell grid row col
 

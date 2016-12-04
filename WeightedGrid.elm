@@ -1,4 +1,4 @@
-module WeightedGrid where
+module WeightedGrid exposing (..)
 
 import Distances exposing (Distances, lookup)
 import DistanceGrid exposing (CellDistances)

@@ -1,12 +1,13 @@
 -- kind of useful functions for grids
 -- there should be more in here
-module GridUtils where
+module GridUtils exposing (..)
 
 import Rnd
 import GridCell exposing (GridCell)
 import Cell exposing (Cell)
 
-import Random.PCG as Random
+import Random
+import Random.List as RL
 import List
 import ListUtils
 import Array
@@ -14,9 +15,10 @@ import String
 
 sampleCell : List GridCell -> Rnd.GridRnd -> Maybe GridCell
 sampleCell sample rnd =
-    let (rand, seed) = Random.generate (Random.int 0 ((List.length sample) - 1)) rnd.seed
+    let generator = RL.choose sample
+        res = Tuple.first <| Random.step generator rnd.seed
     in
-       Array.get rand (Array.fromList sample)
+        Tuple.first res
 
 -- returns 0-based index of a cell in a list or -1 if not found
 indexOfCell : GridCell -> List GridCell -> Int

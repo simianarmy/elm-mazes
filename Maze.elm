@@ -1,4 +1,4 @@
-module Maze where
+module Maze exposing (..)
 
 import Grid exposing (..)
 import DistanceGrid
@@ -19,10 +19,10 @@ import HuntAndKill
 import RecursiveBacktracker 
 import GridUtils
 
-import Random.PCG as Random exposing (Seed, initialSeed, split) 
+import Random.Pcg as Random exposing (Seed, initialSeed, split) 
 import Html exposing (pre, br, text, div)
 import Html.Attributes exposing (..)
-import Graphics.Element exposing (Element)
+import Element exposing (Element)
 import Dict
 
 type Algorithm = NoOp

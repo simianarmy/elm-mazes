@@ -1,4 +1,4 @@
-module IntToBaseX where
+module IntToBaseX exposing (toBaseX)
 
 import String
 
@@ -26,7 +26,7 @@ toBaseX num base =
           if num == 0 then
              "0"
              else
-             let num' = (if (num < 0) then negate num else num)
-                 res = convert "" num'
+             let num_ = (if (num < 0) then negate num else num)
+                 res = convert "" num_
              in
                 if num < 0 then ("-" ++ res) else res

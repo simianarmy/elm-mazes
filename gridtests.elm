@@ -8,8 +8,8 @@ import List exposing (head)
 import TestHelpers exposing (..)
 
 import ElmTest exposing (..)
-import Random.PCG exposing (..)
-import Graphics.Element exposing (Element)
+import Random.Pcg exposing (..)
+import Element exposing (Element)
 
 createRectCell row col =
     RectCellTag (Cell.createCell row col)

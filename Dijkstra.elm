@@ -1,4 +1,4 @@
-module Dijkstra where
+module Dijkstra exposing (cellDistances)
 
 import Distances exposing (Distances)
 import Cell exposing (Cell)

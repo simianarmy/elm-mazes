@@ -1,4 +1,4 @@
-module DijkstraWeighted where
+module DijkstraWeighted exposing (cellDistances)
 
 import DistanceGrid exposing (CellDistances)
 import Distances exposing (Distances)

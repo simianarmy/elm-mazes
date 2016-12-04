@@ -1,5 +1,5 @@
 -- Module defining the (David Bruce) wilson's maze creation algorithm
-module Wilsons exposing (on, step) where
+module Wilsons exposing (on, step)
 
 import Grid exposing (Grid)
 import PolarGrid

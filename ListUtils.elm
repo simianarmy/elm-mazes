@@ -1,15 +1,17 @@
-module ListUtils where
+module ListUtils exposing (..)
 
 import List
-import Random.PCG as Random exposing (Seed)
-import RandomExtras
+import Random
+import Random.List
+
+--import Random.Pcg as Random exposing (Seed)
 
 indicesOf : a -> List a -> List Int
 indicesOf thing things =
     things
     |> List.indexedMap (,)
     |> List.filter (\(idx, item) -> item == thing)
-    |> List.map fst
+    |> List.map Tuple.first
 
 firstIndexOf : a -> List a -> Int
 firstIndexOf thing things =
@@ -19,6 +21,6 @@ firstIndexOf thing things =
 
 shuffle : List a -> Random.Seed -> (List a, Random.Seed)
 shuffle l seed =
-    let generator = RandomExtras.permutation l
+    let generator = Random.List.shuffle l
     in
-        RandomExtras.generate generator seed
+       Random.step generator seed

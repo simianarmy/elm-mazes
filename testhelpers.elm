@@ -2,7 +2,7 @@ module TestHelpers where
 
 import GridCell exposing (..)
 import Grid
-import Random.PCG
+import Random.Pcg
 
 unmaybeCell cell =
     GridCell.toString <| maybeGridCellToGridCell cell

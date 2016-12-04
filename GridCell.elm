@@ -1,4 +1,4 @@
-module GridCell where
+module GridCell exposing (..)
 
 import Cell exposing (BaseCell, CellID, CellLinks)
 import Set
@@ -22,11 +22,11 @@ id gc =
 
 row : GridCell -> Int
 row gc =
-    fst <| id gc
+    Tuple.first <| id gc
 
 col : GridCell -> Int
 col gc =
-    snd <| id gc
+    Tuple.second <| id gc
 
 isValidCell : Maybe GridCell -> Bool
 isValidCell cell =
@@ -114,25 +114,25 @@ cellToGridCell gc bc =
 setVisited: GridCell -> GridCell
 setVisited gc =
     let bc = base gc
-        bc' = { bc | visited = True }
+        bc_ = { bc | visited = True }
     in
-       cellToGridCell gc bc'
+       cellToGridCell gc bc_
 
 -- probably a better way to update a base property...
 setTag : GridCell -> String -> GridCell
 setTag gc strTag =
     let bc = base gc
-        bc' = { bc | tag = strTag }
+        bc_ = { bc | tag = strTag }
     in
-       cellToGridCell gc bc'
+       cellToGridCell gc bc_
 
 -- probably a better way to update a base property...
 setWeight : GridCell -> Int -> GridCell
 setWeight gc w =
     let bc = base gc
-        bc' = { bc | weight = w }
+        bc_ = { bc | weight = w }
     in
-       cellToGridCell gc bc'
+       cellToGridCell gc bc_
 
 toString : GridCell -> String
 toString gc = Cell.cellToString (base gc)

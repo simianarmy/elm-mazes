@@ -5,7 +5,7 @@ import Grid exposing (..)
 import Cell
 
 import ElmTest exposing (..)
-import Graphics.Element exposing (Element)
+import Element exposing (Element)
 
 createRectCell row col =
     Cell.createCell row col |> GridCell.RectCellTag

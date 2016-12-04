@@ -1,5 +1,5 @@
 -- Polar Grid module
-module PolarGrid where
+module PolarGrid exposing (..)
 
 import Grid exposing (..)
 import Mask exposing (Mask)
@@ -10,8 +10,8 @@ import Rnd
 
 import Set
 import Array exposing (Array)
-import Graphics.Element as GE
-import Graphics.Collage as GC
+import Element as GE
+import Collage as GC
 import Html
 import Color exposing (Color)
 
@@ -215,8 +215,8 @@ painter grid cellPainter cellSize =
                 midX = (center + (outerRadius * (cos midTheta)))
                 midY = (center + (outerRadius * (sin midTheta)))
 
-                linkedInward = Cell.isLinked cell (fst <| GridCell.toPolarCell <| (cellIdToCell grid inward))
-                linkedCw  = Cell.isLinked cell (fst <| toValidCell (clockwiseCell grid cell))
+                linkedInward = Cell.isLinked cell (Tuple.first <| GridCell.toPolarCell <| (cellIdToCell grid inward))
+                linkedCw  = Cell.isLinked cell (Tuple.first <| toValidCell (clockwiseCell grid cell))
                 line1 = if not linkedInward
                            then [GC.segment (ax, ay) (cx, cy)]
                            else []
@@ -229,7 +229,7 @@ painter grid cellPainter cellSize =
 
         circleForm = GC.outlined GC.defaultLine <| GC.circle (toFloat radius)
         drawables = List.concatMap cellLines <| 
-            List.filter (\c -> (fst (toPolarCell c)).row > 0) (Grid.cellsList grid.cells)
+            List.filter (\c -> (Tuple.first (toPolarCell c)).row > 0) (Grid.cellsList grid.cells)
 
         forms = circleForm :: [GC.group drawables |> GC.move (negate center, negate center)]
     in

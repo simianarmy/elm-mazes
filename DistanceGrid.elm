@@ -1,4 +1,4 @@
-module DistanceGrid where
+module DistanceGrid exposing (..)
 
 import Grid exposing (Grid, linkedCells, toAscii)
 import GridCell exposing (..)

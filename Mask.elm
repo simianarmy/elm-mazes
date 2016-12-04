@@ -1,5 +1,5 @@
 -- Mask module for shaping grids
-module Mask where
+module Mask exposing (..)
 
 import  Rnd
 
@@ -50,8 +50,8 @@ set mask (row, col) isOn =
 -- 0-based indices
 mset : Mask -> List ((Int, Int), Bool) -> Mask
 mset mask vals =
-    let setone e mask' =
-        set mask' (fst e) (snd e)
+    let setone e mask_ =
+        set mask_ (Tuple.first e) (Tuple.second e)
     in
         List.foldl setone mask vals
 

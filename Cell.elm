@@ -1,4 +1,4 @@
-module Cell where
+module Cell exposing (..)
 
 import Set exposing (..)
 
