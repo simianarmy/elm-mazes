@@ -3,7 +3,7 @@
 -- import GridCell
 -- import DistanceGrid
 -- import WeightedGrid
--- import Random.Pcg as Random
+-- import Random
 
 -- -- create maze
 -- m = Maze.init Maze.RecursiveBacktracker 10 10 (Random.initialSeed 123) Maze.Rect Maze.Ascii |> Maze.update

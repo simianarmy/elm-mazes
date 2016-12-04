@@ -17,10 +17,10 @@ on : (Grid a -> Maybe GridCell) ->
      (Grid a -> GridCell -> List GridCell) ->
      Grid a -> Grid a
 on startCellFn neighborsFn grid =
-    let grid' = Grid.updateRnd grid
+    let grid_ = Grid.updateRnd grid
         startCell = GridCell.maybeGridCellToGridCell (startCellFn grid)
     in
-       trampoline (work grid' startCell neighborsFn)
+       trampoline (work grid_ startCell neighborsFn)
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn't care about shape of the grid
@@ -37,29 +37,29 @@ step startCellFn neighborsFn grid i =
           then
           -- pick a random starting cell
           let startCell = GridCell.maybeGridCellToGridCell <| startCellFn grid
-              grid' = Grid.updateRnd grid
+              grid_ = Grid.updateRnd grid
           in
               -- and start a random walk
-              randomWalk grid' startCell neighborsFn
+              randomWalk grid_ startCell neighborsFn
          -- if hunt is over, begin walk
          else
          if List.any (\e -> (GridCell.base e).tag == "DEADEND") cells
             then
             -- erase the deadend tag
-            let grid' = Grid.updateCells grid (\c -> GridCell.setTag c "")
+            let grid_ = Grid.updateCells grid (\c -> GridCell.setTag c "")
                 foo = Debug.log "FOUND DEADEND, TIME TO HUNT!"
             in
-                Tuple.first <| hunt grid' neighborsFn
+                Tuple.first <| hunt grid_ neighborsFn
             else
             -- get the cell that the hunt produced
             let hunted = GridCell.maybeGridCellToGridCell <| head <| GridCell.filterGridCells (\e -> e.tag == "HUNTED") cells
                 -- erase the hunted tag from the cell
-                hunted' = GridCell.setTag hunted ""
+                hunted_ = GridCell.setTag hunted ""
             in
-               randomWalk grid hunted' neighborsFn
+               randomWalk grid hunted_ neighborsFn
 
 
--- Walks randomly then returns when we're stuck
+-- Walks randomly then returns when we_re stuck
 randomWalk : Grid a ->
     GridCell ->
     (Grid a -> GridCell -> List GridCell) ->
@@ -72,23 +72,23 @@ randomWalk grid gcell neighborsFn =
           else
           let unvisitedNeighbors = Grid.filterNeighbors2 neighborsFn (\c -> not <| Cell.hasLinks (GridCell.base c)) grid gcell
               -- refresh cell state from grid
-              gcell' = GridCell.maybeGridCellToGridCell <| Grid.getCellById grid cell.id
+              gcell_ = GridCell.maybeGridCellToGridCell <| Grid.getCellById grid cell.id
           in
              if isEmpty unvisitedNeighbors
                 -- At a dead-end, mark the cell and return the grid
              then 
              -- first get the cell from the grid to keep state
-             let deadend = GridCell.setTag gcell' "DEADEND"
+             let deadend = GridCell.setTag gcell_ "DEADEND"
              in
                 Grid.updateCellById grid (Debug.log "DEADEND CELL" <| cell.id) deadend
              else
              -- random walk phase
              let neighbor = GridUtils.sampleCell unvisitedNeighbors grid.rnd
                  |> GridCell.maybeGridCellToGridCell
-                 grid' = Grid.linkCells grid gcell' neighbor True
-                 grid'' = Grid.updateRnd grid'
+                 grid_ = Grid.linkCells grid gcell_ neighbor True
+                 grid__ = Grid.updateRnd grid_
              in
-                 randomWalk grid'' neighbor neighborsFn
+                 randomWalk grid__ neighbor neighborsFn
 
 -- Breaking out to try trampoline
 work : Grid a ->
@@ -108,15 +108,15 @@ work grid gcell neighborsFn =
                 -- random walk phase
                 let neighbor = GridUtils.sampleCell unvisitedNeighbors grid.rnd
                     |> GridCell.maybeGridCellToGridCell
-                    grid' = Grid.linkCells grid gcell neighbor True
-                    grid'' = Grid.updateRnd grid'
+                    grid_ = Grid.linkCells grid gcell neighbor True
+                    grid__ = Grid.updateRnd grid_
                 in
-                   Continue (\() -> work grid'' neighbor neighborsFn)
+                   Continue (\() -> work grid__ neighbor neighborsFn)
                else
                -- hunt phase
-               let (grid', current) = hunt grid neighborsFn
+               let (grid_, current) = hunt grid neighborsFn
                in
-                  Continue (\() -> work grid' current neighborsFn)
+                  Continue (\() -> work grid_ current neighborsFn)
 
 
 hunt : Grid a ->
@@ -137,9 +137,9 @@ hunt grid neighborsFn =
           Nothing -> (grid, (RectCellTag Cell.createNilCell))
           Just a ->
               -- mark cell as hunted
-              let hunted' = GridCell.setTag a "HUNTED"
+              let hunted_ = GridCell.setTag a "HUNTED"
                   linked = GridUtils.sampleCell (visitedNeighbors a) grid.rnd
                          |> GridCell.maybeGridCellToGridCell
               in
-                 ((Grid.linkCells (Grid.updateRnd grid) hunted' linked True), hunted')
+                 ((Grid.linkCells (Grid.updateRnd grid) hunted_ linked True), hunted_)
 

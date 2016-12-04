@@ -12,7 +12,7 @@ import Array exposing (Array)
 import String
 import Color
 import Rnd exposing (..)
-import Random.Pcg as Random
+import Random
 import Collage exposing (..)
 import Element exposing (Element)
 import Color exposing (..)
@@ -40,8 +40,8 @@ type alias RowAscii = {
 -- constructor
 -- createGrid : Int -> Int -> Seed -> (Mask -> CellGrid) -> Grid a
 createGrid rows cols initSeed cellMaker =
-    let mask' = Mask.createMask cols rows
-    in createGridFromMask mask' initSeed cellMaker
+    let mask_ = Mask.createMask cols rows
+    in createGridFromMask mask_ initSeed cellMaker
 
 --createGridFromMask : Mask -> Seed -> Grid a
 createGridFromMask mask initSeed cellMaker =
@@ -111,7 +111,7 @@ toAscii grid cellViewer =
                finalascii.top ++ "\n" ++ finalascii.bottom ++ "\n"
     in
        "+" ++ (String.repeat grid.cols "---+") ++ "\n" ++
-       String.concat (List.map rowToStrings [0..grid.rows-1])
+       String.concat (List.map rowToStrings (List.range 0 (grid.rows - 1)))
 
 -- generates rectangular grid element
 painter : Grid a -> (GridCell -> Color) -> Int -> Element
@@ -330,29 +330,29 @@ braid grid neighborsFn p =
             let neighbors = filterNeighbors2 neighborsFn (\c -> not <| Cell.isLinked (GridCell.base deadEnd) (GridCell.base c)) g deadEnd
                 -- select best neighbor
                 best = List.filter (\c -> Set.size (GridCell.links c) == 1) neighbors
-                best' = if List.isEmpty best
+                best_ = if List.isEmpty best
                            then neighbors
                            else best
-                neighbor = maybeGridCellToGridCell <| GridUtils.sampleCell best' g.rnd
-                g' = updateRnd g
+                neighbor = maybeGridCellToGridCell <| GridUtils.sampleCell best_ g.rnd
+                g_ = updateRnd g
             in
                if Cell.isNilCellID (GridCell.id neighbor)
-                  then Debug.crash "NIL NEIGHBOR in braid:linkNeighbor!" g'
-                  else linkCells g' deadEnd neighbor True
+                  then Debug.crash "NIL NEIGHBOR in braid:linkNeighbor!" g_
+                  else linkCells g_ deadEnd neighbor True
 
         processDeadEnd : GridCell -> Grid a -> Grid a
         processDeadEnd deadEnd g =
             let (randp, _) = randpGen g.rnd.seed
-                g' = updateRnd g
+                g_ = updateRnd g
             in
                if (randp > p) || (not <| Set.size (GridCell.links deadEnd) == 1)
-                  then g'
-                  else linkNeighbor g' deadEnd
+                  then g_
+                  else linkNeighbor g_ deadEnd
 
         randomDeadEnds = Tuple.first <| ListUtils.shuffle (deadEnds grid) grid.rnd.seed
-        grid' = updateRnd grid
+        grid_ = updateRnd grid
     in
-       List.foldl processDeadEnd grid' randomDeadEnds
+       List.foldl processDeadEnd grid_ randomDeadEnds
 
 -- alias to GridCell.id
 gridCellID : GridCell -> CellID
@@ -392,11 +392,11 @@ linkCells : Grid a -> GridCell -> GridCell -> Bool -> Grid a
 linkCells grid cell cell2 bidi =
     let b1 = GridCell.base <| Debug.log "Linking" cell
         b2 = GridCell.base <| Debug.log "to" cell2
-        grid' = linkCellsHelper grid b1 b2
+        grid_ = linkCellsHelper grid b1 b2
     in
        if bidi
-          then linkCellsHelper grid' b2 b1
-          else grid'
+          then linkCellsHelper grid_ b2 b1
+          else grid_
 
 -- returns all cells linked to a cell
 linkedCells : Grid a -> GridCell -> List GridCell

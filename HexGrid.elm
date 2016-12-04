@@ -151,7 +151,7 @@ painter grid cellPainter cellSize =
                 style = { dl | width = 3 }
                 cx = cellSize + 3 * cell.col * round asize
                 cy = bsize + (toFloat cell.row) * height
-                cy' = round <| if Arithmetic.isOdd cell.col
+                cy_ = round <| if Arithmetic.isOdd cell.col
                         then cy + bsize
                         else cy
                 -- f/n = far/near
@@ -162,9 +162,9 @@ painter grid cellPainter cellSize =
                    , x_ne = toFloat cx + asize
                    , x_fe = toFloat cx + toFloat cellSize
                     -- m = middle
-                   , y_n = toFloat cy' - bsize
-                   , y_m = toFloat cy'
-                   , y_s = toFloat cy' + bsize
+                   , y_n = toFloat cy_ - bsize
+                   , y_m = toFloat cy_
+                   , y_s = toFloat cy_ + bsize
                }
             in
                GC.group <| ((cellBackground gc vertices) :: (cellWalls style gc vertices))

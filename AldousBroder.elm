@@ -19,16 +19,16 @@ on : (Grid a -> Maybe GridCell) ->
     (Grid a -> GridCell -> List GridCell) ->
     Grid a -> Grid a
 on startCellFn neighborsFn grid =
-    let grid' = Grid.updateRnd grid
+    let grid_ = Grid.updateRnd grid
         startCell = GridCell.maybeGridCellToGridCell <| startCellFn grid
         gridSize = case startCell of
-            PolarCellTag c -> PolarGrid.size grid'
-            _ -> Grid.size grid'
+            PolarCellTag c -> PolarGrid.size grid_
+            _ -> Grid.size grid_
     in
        trampoline (walkRandomly grid' neighborsFn startCell (gridSize - 1))
 
 -- Processes a single cell (using single 1-based index for lookup)
--- step value shouldn't care about shape of the grid
+-- step value shouldn_t care about shape of the grid
 step : (Grid a -> Maybe GridCell) ->
      (Grid a -> GridCell -> List GridCell) ->
      Grid a -> Int ->
@@ -40,16 +40,16 @@ step startCellFn neighborsFn grid i =
         startCell = Debug.log "start" <| if List.isEmpty current
           then GridCell.maybeGridCellToGridCell <| startCellFn grid
           else GridCell.maybeGridCellToGridCell <| List.head current
-        startCell' = GridCell.setTag startCell "PROCESSING"
-        gridSize = case startCell' of
+        startCell_ = GridCell.setTag startCell "PROCESSING"
+        gridSize = case startCell_ of
             PolarCellTag c -> PolarGrid.size grid
             _ -> Grid.size grid
-        grid' = Grid.updateRnd grid
+        grid_ = Grid.updateRnd grid
     in
        if List.length visited == gridSize
-          then grid'
+          then grid_
           else
-          work grid' neighborsFn startCell'
+          work grid_ neighborsFn startCell_
 
 work : Grid a -> 
     (Grid a -> GridCell -> List GridCell) ->
@@ -58,7 +58,7 @@ work : Grid a ->
 work grid neighborsFn cell =
     let sample = neighborsFn grid cell
         -- grid's cell list needs to be updated with the cells new processing states
-        cell' = GridCell.setTag cell "PROCESSED"
+        cell_ = GridCell.setTag cell "PROCESSED"
         gcneighbor = Debug.log "neighbor" <| GridCell.setTag (GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd)
             "PROCESSING"
         -- basecell
@@ -67,11 +67,11 @@ work grid neighborsFn cell =
        if Cell.hasLinks neighbor
           then 
           -- update cell and neighbor in grid
-          let grid' = Grid.updateCellById grid (GridCell.id cell') cell'
+          let grid_ = Grid.updateCellById grid (GridCell.id cell_) cell_
           in
-             Grid.updateCellById grid' (GridCell.id gcneighbor) gcneighbor
+             Grid.updateCellById grid_ (GridCell.id gcneighbor) gcneighbor
           -- linkCells will save the the grid's new cell states
-         else Grid.linkCells grid (Debug.log "linking" cell') (Debug.log "to" gcneighbor) True
+         else Grid.linkCells grid (Debug.log "linking" cell_) (Debug.log "to" gcneighbor) True
 
 -- Breaking out to try trampoline
 walkRandomly : Grid a -> 
@@ -84,8 +84,8 @@ walkRandomly grid neighborsFn cell unvisited =
        -- Pick a random neighbor of cell
        let 
            -- refresh rng
-           grid' = Grid.updateRnd grid
-           sample = neighborsFn grid' cell
+           grid_ = Grid.updateRnd grid
+           sample = neighborsFn grid_ cell
            -- gridcell
            gcneighbor = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd
            -- basecell
@@ -95,10 +95,10 @@ walkRandomly grid neighborsFn cell unvisited =
           if not <| Cell.hasLinks neighbor
              then
              -- link cell to neighbor and move to the neighbor
-             let grid'' = Grid.linkCells grid' cell gcneighbor True
+             let grid__ = Grid.linkCells grid_ cell gcneighbor True
              in
-                Continue (\() -> walkRandomly grid'' neighborsFn gcneighbor (unvisited - 1))
+                Continue (\() -> walkRandomly grid__ neighborsFn gcneighbor (unvisited - 1))
              else
              -- move to the neighbor w/out linking
-             Continue (\() -> walkRandomly grid' neighborsFn gcneighbor unvisited)
+             Continue (\() -> walkRandomly grid_ neighborsFn gcneighbor unvisited)
 

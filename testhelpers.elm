@@ -2,11 +2,11 @@ module TestHelpers where
 
 import GridCell exposing (..)
 import Grid
-import Random.Pcg
+import Random
 
 unmaybeCell cell =
     GridCell.toString <| maybeGridCellToGridCell cell
 
 createGrid rows cols =
-    Grid.createGrid rows cols (Random.PCG.initialSeed 123) Grid.makeCells
+    Grid.createGrid rows cols (Random.initialSeed 123) Grid.makeCells
 

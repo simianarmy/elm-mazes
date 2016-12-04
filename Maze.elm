@@ -19,7 +19,7 @@ import HuntAndKill
 import RecursiveBacktracker 
 import GridUtils
 
-import Random.Pcg as Random exposing (Seed, initialSeed, split) 
+import Random exposing (Seed, initialSeed, split) 
 import Html exposing (pre, br, text, div)
 import Html.Attributes exposing (..)
 import Element exposing (Element)

@@ -24,9 +24,9 @@ gridcellTests = suite "GridCell test suite"
             let grid = TestHelpers.createGrid 2 2
                 c1 = createRectCell 0 0
                 c2 = createRectCell 0 1
-                grid' = linkCells grid c1 c2 True
-                c1' = maybeGridCellToGridCell (getCell grid' 0 0)
-                pc1 = Debug.log "pc1" <| setProcessed c1'
+                grid_ = linkCells grid c1 c2 True
+                c1_ = maybeGridCellToGridCell (getCell grid_ 0 0)
+                pc1 = Debug.log "pc1" <| setProcessed c1_
             in
                assert (Cell.isLinked (GridCell.base pc1) (GridCell.base c2))
            )

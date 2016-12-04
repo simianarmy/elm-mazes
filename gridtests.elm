@@ -8,7 +8,7 @@ import List exposing (head)
 import TestHelpers exposing (..)
 
 import ElmTest exposing (..)
-import Random.Pcg exposing (..)
+import Random exposing (..)
 import Element exposing (Element)
 
 createRectCell row col =
@@ -52,27 +52,27 @@ gridTests = suite "Grid test suite"
             let grid = createGrid 2 2
                 c1 = createRectCell 0 1
                 c2 = createRectCell 1 1
-                grid' = linkCells grid c1 c2 True
-                oneone = maybeGridCellToCell (getCell grid' 0 1)
+                grid_ = linkCells grid c1 c2 True
+                oneone = maybeGridCellToCell (getCell grid_ 0 1)
             in
-               assert (isLinked oneone (maybeGridCellToCell (south grid' oneone))))
+               assert (isLinked oneone (maybeGridCellToCell (south grid_ oneone))))
         , test "Linking the same cell repeatedly maintains original links" (
             let grid = createGrid 3 3
                 c1 = createRectCell 1 1
                 c2 = createRectCell 2 1
-                grid' = linkCells grid c1 c2 True
-                c1' = Debug.log "c1'" <| maybeGridCellToGridCell (getCell grid' 1 1)
-                grid'' = linkCells grid' c1' (createRectCell 1 2) True
-                oneone = Debug.log "1,1" <| maybeGridCellToCell (getCell grid'' 1 1)
+                grid_ = linkCells grid c1 c2 True
+                c1_ = Debug.log "c1_" <| maybeGridCellToGridCell (getCell grid_ 1 1)
+                grid__ = linkCells grid_ c1_ (createRectCell 1 2) True
+                oneone = Debug.log "1,1" <| maybeGridCellToCell (getCell grid__ 1 1)
             in
                assert ((Set.member (2,1) oneone.links) && (Set.member (1,2) oneone.links)))
         , test "Linking cells in a row removes their east/west wall" (
             let grid = createGrid 2 2
                 c1 = createRectCell 0 0
                 c2 = createRectCell 0 1
-                grid' = linkCells grid c1 c2 True
-                bc2 = maybeGridCellToCell <| east grid' (GridCell.base c1)
-                bc1 = maybeGridCellToCell <| west grid' (GridCell.base c2)
+                grid_ = linkCells grid c1 c2 True
+                bc2 = maybeGridCellToCell <| east grid_ (GridCell.base c1)
+                bc1 = maybeGridCellToCell <| west grid_ (GridCell.base c2)
             in
                assert ((Cell.isLinked bc1 bc2) && (Cell.isLinked bc2 bc1)
                ))

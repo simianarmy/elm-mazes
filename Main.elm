@@ -9,7 +9,7 @@ import String
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
-import Random.Pcg as Random exposing (Seed, initialSeed, split)
+import Random exposing (Seed, initialSeed, split)
 import Time exposing (Time, every, fps)
 import Slider
 

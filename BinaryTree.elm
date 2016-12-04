@@ -39,29 +39,29 @@ work : (Grid a -> Maybe GridCell) ->
      Grid a
 work startCellFn neighborsFn grid cells =
     let getRandomNeighbor : Grid a -> GridCell -> Maybe GridCell
-        getRandomNeighbor grid' cell =
+        getRandomNeighbor grid_ cell =
             let acell = GridCell.base cell
                 gcneighbors = GridUtils.smooshMaybes [
-                    north grid' acell,
-                    east grid' acell
+                    north grid_ acell,
+                    east grid_ acell
                     ]
             in
                -- TODO: Maybe.andThen here?
                if isEmpty gcneighbors
                   then Nothing
                   else
-                  case (GridUtils.sampleCell gcneighbors grid'.rnd) of
+                  case (GridUtils.sampleCell gcneighbors grid_.rnd) of
                       Nothing -> Nothing
                       Just c -> Just c
 
         processCell : GridCell -> Grid a -> Grid a
         processCell cell grid =
             let neighbor = getRandomNeighbor grid cell
-                grid' = updateRnd grid
+                grid_ = updateRnd grid
             in
                case neighbor of
-                   Nothing -> grid'
-                   Just neighbor -> linkCells grid' cell neighbor True
+                   Nothing -> grid_
+                   Just neighbor -> linkCells grid_ cell neighbor True
     in
        -- We want to somehow map over each cell while keeping the linking states
         List.foldl processCell grid cells

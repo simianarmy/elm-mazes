@@ -46,14 +46,14 @@ cellDistances dgrid root =
                let sortedByWeight = List.sortBy (\c -> (GridCell.base c).weight) acc.pending
                    cell = GridCell.maybeGridCellToGridCell <| List.head sortedByWeight
                    cid = GridCell.id cell
-                   acc' = {acc |
+                   acc_ = {acc |
                        curCell = cell,
                        -- remove cell from pending list
                        pending = GridCell.filterGridCells (\c -> not (c.id == cid)) acc.pending
                    }
                in
                   -- The next loop looks at each of the cells that are linked to the current cell. For each one, we compute the cumulative weight of the path from the starting cell, and then check to see if that’s better than any previously recorded weight for that neighbor. If so, we add the neighbor to the pending list, and update its cumulative weight.
-                  pendingAcc <| List.foldl scanCellLinks acc' (Grid.linkedCells dgrid.grid cell)
+                  pendingAcc <| List.foldl scanCellLinks acc_ (Grid.linkedCells dgrid.grid cell)
 
     in
        .weights (pendingAcc acc)

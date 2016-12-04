@@ -4,8 +4,6 @@ import List
 import Random
 import Random.List
 
---import Random.Pcg as Random exposing (Seed)
-
 indicesOf : a -> List a -> List Int
 indicesOf thing things =
     things
