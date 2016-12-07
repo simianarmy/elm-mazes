@@ -67,7 +67,7 @@ type Msg =
     | LoadImageMask PngData
 
 -- How we update our Model on a given Msg?
---update : Msg -> Model a -> Model a
+update : Msg -> Model a -> Model a
 update msg model =
     case msg of
         NoOp -> model
@@ -165,12 +165,9 @@ update msg model =
 view : Model a -> Html Msg
 view model =
     let
-        selectAlg = Html.Events.on "change" targetValue
-            (\val -> Signal.message <| SelectAlg <| val)
-        selectView = Html.Events.on "change" targetValue
-            (\val -> Signal.message <| SelectView <| displayFromString val)
-        selectShape = Html.Events.on "change" targetValue
-            (\val -> Signal.message <| SelectShape <| shapeFromString val)
+        selectAlg = Html.Events.on "change" (Json.map SelectAlg targetValue)
+        selectView = Html.Events.on "change" (Json.map SelectView targetValue)
+        selectShape = Html.Events.on "change" (Json.map SelectShape targetValue)
         algToOptions attr =
             option [selected (attr.alg == model.maze.alg)] [text attr.name]
         viewToOption opt =
@@ -222,6 +219,7 @@ displayFromString str =
                        then Maze.Weighted
                        else Maze.Colored
 
+shapeFromString : String -> Shape
 shapeFromString str =
     let s = List.filter (\e -> (Tuple.second e) == str) Maze.shapes
     in
@@ -232,26 +230,30 @@ shapeFromString str =
 ---- INPUTS ----
 
 -- wire the entire application together
-main : Signal Html
-main =
-    Signal.map (view msgs.address) model
+main : Program Never
+main = Html.program {
+        model = initialModel,
+        view = view,
+        update = update,
+        subscriptions = \_ -> Sub.none
+    }
 
-userInput : Signal Msg
-userInput =
-    Signal.mergeMany
-        [ 
-        actions.signal
-        , tick
-        -- Signal.map LoadAsciiMask outputFromFileAscii
-        --, Signal.map LoadImageMask outputFromFilePNG
-        ]
+--userInput : Signal Msg
+--userInput =
+    --Signal.mergeMany
+        --[ 
+        --actions.signal
+        --, tick
+        ---- Signal.map LoadAsciiMask outputFromFileAscii
+        ----, Signal.map LoadImageMask outputFromFilePNG
+        --]
 
 -- manage the model of our application over time
 --model : Signal (Model a)
-model =
-    Signal.foldp update initialModel userInput
+--model =
+    --Signal.foldp update initialModel userInput
 
---initialModel : Model a
+initialModel : Model a
 initialModel =
     {
         maze = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initShape initDisplay
@@ -262,13 +264,9 @@ initialModel =
       , genState = Stepwise
     }
 
--- msgs from user input
-actions : Signal.Mailbox Msg
-actions =
-    Signal.mailbox NoOp
 
-tick : Signal Msg 
-tick = Signal.map (\dt -> Tick dt) (fps 16)
+--tick : Signal Msg 
+--tick = Signal.map (\dt -> Tick dt) (fps 16)
 
 startTimeSeed : Random.Seed
 -- uncomment to debug with consistent seed
