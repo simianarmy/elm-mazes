@@ -22,7 +22,7 @@ makeCells mask =
         rowHeight = 1 / (toFloat nrows)
         -- Create initial CellGrid representation
         rows = Array.initialize nrows (\r -> Array.empty)
-        rows' = Array.set 0 (Array.fromList [GridCell.cellToPolarCell (Cell.createCell 0 0)]) rows
+        rows_ = Array.set 0 (Array.fromList [GridCell.cellToPolarCell (Cell.createCell 0 0)]) rows
 
         -- row: 1..rows
         makeCellRows : CellGrid -> Int -> CellGrid
@@ -39,12 +39,12 @@ makeCells mask =
                    rowCells = Array.initialize ncells (\a -> 
                        GridCell.cellToPolarCell (Cell.createCell row a)
                    )
-                   res' = Array.set row rowCells res
+                   res_ = Array.set row rowCells res
                in
-                  makeCellRows res' (row + 1)
+                  makeCellRows res_ (row + 1)
 
         -- populate the 2D array
-        acells = makeCellRows rows' 1
+        acells = makeCellRows rows_ 1
     in
        configureCells nrows mask.cols acells
 
@@ -94,18 +94,18 @@ configureCells rows cols incells =
                            (rc.row == cell.row - 1 && rc.col == pcol)
                        ) work.cells
                 -- update the CellLinks (outward) of this parent
-                parent' = GridCell.addOutwardLink parent gc
+                parent_ = GridCell.addOutwardLink parent gc
                 -- update the inward of this cell
-                cell' = GridCell.setInwardCell gc parent'
+                cell_ = GridCell.setInwardCell gc parent_
                 -- Transform newCells to contain the modified parent' and cell' cells
                 newCells = List.map (\c ->
                     let pcId = GridCell.id c
                     in
-                       if pcId == GridCell.id parent'
-                          then parent'
+                       if pcId == GridCell.id parent_
+                          then parent_
                           else
-                          if pcId == GridCell.id cell'
-                             then cell'
+                          if pcId == GridCell.id cell_
+                             then cell_
                              else c
                          ) work.cells
             in
@@ -165,13 +165,13 @@ size grid =
 
 randomCell: Grid a -> Maybe GridCell
 randomCell grid =
-    let grid' = updateRnd grid
-        randRow = grid'.rnd.row
+    let grid_ = updateRnd grid
+        randRow = grid_.rnd.row
         rowLen = List.length <| Grid.rowCells grid randRow
         -- col is rand(grid[row].length)
-        randCol = Rnd.randInt grid'.rnd rowLen
+        randCol = Rnd.randInt grid_.rnd rowLen
     in
-        getCell grid' randRow randCol
+        getCell grid_ randRow randCol
 
 neighbors : Grid a -> GridCell -> List GridCell
 neighbors grid cell =

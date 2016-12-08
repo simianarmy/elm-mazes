@@ -7,7 +7,7 @@ module GridRenderer exposing
 import Grid exposing (Grid)
 import GridCell exposing (GridCell)
 import DistanceGrid exposing (CellDistances)
-import ColoredGrid exposing (Colored)
+import ColoredGrid
 import WeightedGrid exposing (Weighted)
 import Distances exposing (Distances)
 

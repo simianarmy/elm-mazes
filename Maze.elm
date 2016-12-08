@@ -19,8 +19,8 @@ import HuntAndKill
 import RecursiveBacktracker 
 import GridUtils
 
-import Random exposing (Seed, initialSeed, split) 
-import Html exposing (pre, br, text, div)
+import Random exposing (Seed, initialSeed) 
+import Html exposing (..)
 import Html.Attributes exposing (..)
 import Element exposing (Element)
 import Dict
@@ -84,10 +84,10 @@ init algType width height seed shape display =
             Polar -> PolarGrid.makeCells
             Hex -> HexGrid.makeCells
             Triangle -> TriangleGrid.makeCells
-        grid' = Grid.createGridFromMask mask seed cellGenFn
+        grid_ = Grid.createGridFromMask mask seed cellGenFn
     in
        {
-           grid = grid',
+           grid = grid_,
            generator = genAlg algType shape,
            alg = algType,
            shape = shape,
@@ -152,11 +152,11 @@ update : Maze a -> Int -> Maze a
 update maze step =
     -- update rngs
     let -- apply maze generation algoritm
-        grid' = maze.generator maze.grid maze.step
+        grid_ = maze.generator maze.grid maze.step
     in 
        { maze |
-       grid = grid',
-       step = Debug.watch "maze step" <| maze.step + step 
+       grid = grid_,
+       step = Debug.log "maze step" <| maze.step + step 
        }
 
 -- INVALIDATES MASK, SO REFRESH MAZE
@@ -170,16 +170,16 @@ updateView maze displayType =
 
 -- setMask : Maze a -> Mask -> Maze a
 setMask maze mask =
-    let grid' = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker
+    let grid_ = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker
         -- we want to run the algorithm to completion now
-    in {maze | grid = maze.generator grid' (Grid.size maze.grid)}
+    in {maze | grid = maze.generator grid_ (Grid.size maze.grid)}
 
 updateBraiding: Maze a -> Float -> Maze a
 updateBraiding maze factor =
-    let maze' = {maze | braidFactor = factor}
-    in update maze' 1
+    let maze_ = {maze | braidFactor = factor}
+    in update maze_ 1
 
---view : Maze a -> Html
+view : Maze a -> Html msg
 view maze =
     let braided = braid maze
         gridHtml = case maze.display of
@@ -194,7 +194,7 @@ view maze =
                         , viewDistances maze]
 
             Colored ->
-                Html.fromElement <| mazeToElement maze
+                Element.toHtml <| mazeToElement maze
 
             Weighted ->
                 viewWeightedDistances <| braid {maze | braidFactor = 0.5}
@@ -208,7 +208,7 @@ view maze =
            , gridHtml
            ]
 
---viewDistances : Maze a -> Html.Html
+viewDistances : Maze a -> Html msg
 viewDistances maze =
     let center = Grid.center maze.grid
         start = center
@@ -231,7 +231,7 @@ viewDistances maze =
            ]
 
 -- displays braided maze with and without lava in the path
-viewWeightedDistances : Maze a -> Html.Html
+viewWeightedDistances : Maze a -> Html msg
 viewWeightedDistances maze =
     let start = GridCell.maybeGridCellToGridCell <| Grid.getCell maze.grid 0 0
         finish = GridCell.maybeGridCellToGridCell <| getCell maze.grid (maze.grid.rows - 1) (maze.grid.cols - 1)
@@ -242,9 +242,9 @@ viewWeightedDistances maze =
        div [] [
           text <| "Cell distances from " ++ (GridCell.toString start)
           , br [] []
-          , Html.fromElement <| GridRenderer.toWeightedElement wgrid Grid.painter cellSize
+          , Element.toHtml <| GridRenderer.toWeightedElement wgrid Grid.painter cellSize
           , text <| "Shortest path from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString finish)
-          , Html.fromElement <| GridRenderer.toWeightedElement shortestPathGrid Grid.painter cellSize
+          , Element.toHtml <| GridRenderer.toWeightedElement shortestPathGrid Grid.painter cellSize
           , if False --(Maybe.withDefault -1 <| Dict.get (GridCell.id finish) pathDistances.cells) == -1
                then text "N/A"
                else viewWeightedDistancesWithLava wgrid.dgrid.grid start finish
@@ -254,7 +254,7 @@ viewWeightedDistances maze =
           -- , pre [] [text <| DistanceGrid.viewDistances longestPathGrid]
            ]
 
-viewWeightedDistancesWithLava : Grid a -> GridCell -> GridCell -> Html.Html
+viewWeightedDistancesWithLava : Grid a -> GridCell -> GridCell -> Html msg
 viewWeightedDistancesWithLava grid start goal =
     let -- pick cell on path to be lava
         pathCells = List.filter (\gc -> (GridCell.base gc).weight > 0) <| Grid.cellsList grid.cells
@@ -271,14 +271,14 @@ viewWeightedDistancesWithLava grid start goal =
     in
        div [] [
           text <| "Shortest path with lava from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString goal)
-          , Html.fromElement <| GridRenderer.toWeightedElement lavaPathGrid Grid.painter cellSize
+          , Element.toHtml <| GridRenderer.toWeightedElement lavaPathGrid Grid.painter cellSize
           ]
 
 -- Renders maze as an HTML element
 mazeToElement : Maze a -> Element
 mazeToElement maze =
     let renderer = GridRenderer.toColoredElement maze.grid
-        renderer' = case maze.shape of
+        renderer_ = case maze.shape of
             Rect ->
                 let root = Grid.center maze.grid
                 in
@@ -299,7 +299,7 @@ mazeToElement maze =
                 in
                    renderer TriangleGrid.painter root
     in
-       renderer' cellSize
+       renderer_ cellSize
 
 -- returns available maze algorithms for the maze shape
 algorithms : Shape -> List AlgAttr

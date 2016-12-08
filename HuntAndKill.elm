@@ -10,7 +10,7 @@ import Random
 import Array
 import List exposing (..)
 import List.Extra as LE
-import Trampoline exposing (..)
+import Trampoline as TRAMP
 import Debug exposing (log)
 
 on : (Grid a -> Maybe GridCell) ->
@@ -20,7 +20,7 @@ on startCellFn neighborsFn grid =
     let grid_ = Grid.updateRnd grid
         startCell = GridCell.maybeGridCellToGridCell (startCellFn grid)
     in
-       trampoline (work grid_ startCell neighborsFn)
+       TRAMP.evaluate (work grid_ startCell neighborsFn)
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn't care about shape of the grid
@@ -94,12 +94,12 @@ randomWalk grid gcell neighborsFn =
 work : Grid a ->
     GridCell ->
     (Grid a -> GridCell -> List GridCell) ->
-    Trampoline (Grid a)
+    TRAMP.Trampoline (Grid a)
 work grid gcell neighborsFn =
     let cell = GridCell.base gcell
     in
        if Cell.isNilCell cell
-          then Done grid
+          then TRAMP.done grid
           else
           let unvisitedNeighbors = Grid.filterNeighbors2 neighborsFn (\c -> not <| Cell.hasLinks (GridCell.base c)) grid gcell
           in
@@ -111,12 +111,12 @@ work grid gcell neighborsFn =
                     grid_ = Grid.linkCells grid gcell neighbor True
                     grid__ = Grid.updateRnd grid_
                 in
-                   Continue (\() -> work grid__ neighbor neighborsFn)
+                   TRAMP.jump (\() -> work grid__ neighbor neighborsFn)
                else
                -- hunt phase
                let (grid_, current) = hunt grid neighborsFn
                in
-                  Continue (\() -> work grid_ current neighborsFn)
+                  TRAMP.jump (\() -> work grid_ current neighborsFn)
 
 
 hunt : Grid a ->

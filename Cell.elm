@@ -36,6 +36,7 @@ createCell row col =
     }
 
 -- helper to create a nil cell
+createMaskedCell : Int -> Int -> Cell
 createMaskedCell row col =
     let cell = createCell row col
     in

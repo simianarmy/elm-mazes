@@ -38,12 +38,12 @@ type alias RowAscii = {
 }
 
 -- constructor
--- createGrid : Int -> Int -> Seed -> (Mask -> CellGrid) -> Grid a
+createGrid : Int -> Int -> Random.Seed -> (Mask -> CellGrid) -> Grid {}
 createGrid rows cols initSeed cellMaker =
     let mask_ = Mask.createMask cols rows
     in createGridFromMask mask_ initSeed cellMaker
 
---createGridFromMask : Mask -> Seed -> Grid a
+createGridFromMask : Mask -> Random.Seed -> (Mask -> CellGrid) -> Grid {}
 createGridFromMask mask initSeed cellMaker =
     {
         rows = mask.rows,
@@ -63,6 +63,7 @@ updateRnd grid =
     }
 
 -- regenerates all cells based the current mask
+reset : Grid a -> Grid a
 reset grid =
     {grid |
         cells = grid.cellMaker grid.mask
@@ -317,12 +318,14 @@ deadEnds grid =
 
 -- creates braids by removing deadends
 -- p (0 - 1.0) controls braid factor 0 is none, 1.0 is all deadends processed
--- braid : Grid a -> 
---     -- neighbors fn
---     (Grid a -> GridCell -> List GridCell) ->
---         Float -> Grid a
+braid : Grid a ->
+     -- neighbors fn
+     (Grid a -> GridCell -> List GridCell) ->
+     -- braid factor
+     Float ->
+     Grid a
 braid grid neighborsFn p =
-    let randpGen = Random.generate (Random.float 0 1.0)
+    let randpGen = Random.float 0 1.0
 
         linkNeighbor : Grid a -> GridCell -> Grid a
         linkNeighbor g deadEnd =
@@ -342,7 +345,7 @@ braid grid neighborsFn p =
 
         processDeadEnd : GridCell -> Grid a -> Grid a
         processDeadEnd deadEnd g =
-            let (randp, _) = randpGen g.rnd.seed
+            let (randp, _) = Random.step randpGen g.rnd.seed
                 g_ = updateRnd g
             in
                if (randp > p) || (not <| Set.size (GridCell.links deadEnd) == 1)

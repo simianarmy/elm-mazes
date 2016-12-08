@@ -103,8 +103,8 @@ type alias HexVertices = {
 
 painter : Grid a -> (GridCell -> Color) -> Int -> GE.Element
 painter grid cellPainter cellSize =
-    let asize = cellSize / 2
-        bsize = cellSize * (sqrt 3) / 2
+    let asize = (toFloat cellSize) / 2
+        bsize = (toFloat cellSize) * (sqrt 3) / 2
         width = cellSize * 2
         height = bsize * 2
         imgWidth = round (3 * asize * (toFloat grid.cols) + asize + 0.5)

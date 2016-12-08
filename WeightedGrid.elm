@@ -6,7 +6,7 @@ import DijkstraWeighted
 import GridCell exposing (..)
 import Cell exposing (Cell)
 import Grid exposing (Grid)
-import ColoredGrid exposing (Colored)
+import ColoredGrid
 
 import Color exposing (Color, rgb)
 
@@ -68,8 +68,8 @@ cellBackgroundColor wgrid gc =
         then Color.rgb 255 0 0
         else
             let distance = Distances.lookup wgrid.dists bc
-                distance' = if distance == -1 then 0 else distance
-                intensity = 64 + 191 * (wgrid.maximum - distance') // wgrid.maximum
+                distance_ = if distance == -1 then 0 else distance
+                intensity = 64 + 191 * (wgrid.maximum - distance_) // wgrid.maximum
             in
                 if distance == -1 then Color.white
                 else Color.rgb intensity intensity 0

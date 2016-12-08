@@ -9,8 +9,8 @@ import String
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
-import Random exposing (Seed, initialSeed, split)
-import Time exposing (Time, every, fps)
+import Random exposing (Seed, initialSeed)
+import Time exposing (Time, every)
 import Slider
 
 -- defaults
@@ -76,40 +76,40 @@ update msg model =
             {model | maze = Maze.reset model.maze}
 
         UpdateWidth str ->
-            let maze' = Maze.updateSize model.maze (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.maze.grid.cols) model.maze.grid.rows
+            let maze_ = Maze.updateSize model.maze (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.maze.grid.cols) model.maze.grid.rows
             in
-               {model | maze = maze'}
+               {model | maze = maze_}
 
         UpdateHeight str ->
-            let maze' = Maze.updateSize model.maze model.maze.grid.cols (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.maze.grid.rows)
+            let maze_ = Maze.updateSize model.maze model.maze.grid.cols (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.maze.grid.rows)
             in
-               {model | maze = maze'}
+               {model | maze = maze_}
 
         SelectAlg str ->
             let maze = model.maze
-                maze' = Maze.init (Maze.algByName str) maze.grid.cols maze.grid.rows maze.grid.rnd.seed maze.shape maze.display
+                maze_ = Maze.init (Maze.algByName str) maze.grid.cols maze.grid.rows maze.grid.rnd.seed maze.shape maze.display
             in
-               {model | maze = maze'}
+               {model | maze = maze_}
 
         SelectView display ->
-            let maze = Maze.updateView model.maze <| Debug.watch "display" display
+            let maze = Maze.updateView model.maze <| Debug.log "display" display
             in
                {model | maze = maze}
 
         SelectShape shape ->
             -- new grid, re-init time
             let maze = model.maze
-                maze' = Maze.init maze.alg maze.grid.cols maze.grid.rows maze.grid.rnd.seed shape maze.display
+                maze_ = Maze.init maze.alg maze.grid.cols maze.grid.rows maze.grid.rnd.seed shape maze.display
             in
-               {model | maze = maze'}
+               {model | maze = maze_}
 
         Braid act ->
             -- TODO: elm-reactor 0.16 breaks on Slider.init!  Re-enable when it's fixed
             -- let factor = Result.withDefault Maze.defaultBraidFactor (String.toFloat model.braidSlider.value)
-            --     maze' = Maze.updateBraiding model.maze factor
+            --     maze_ = Maze.updateBraiding model.maze factor
             -- in
             --    {model |
-            --        maze = maze',
+            --        maze = maze_,
             --        braidSlider = Slider.update act model.braidSlider
             --    }
             model
@@ -204,7 +204,7 @@ view model =
         , button [ onClick Refresh ] [ text "REFRESH" ]
         , br [] []
         , text "Ascii Mask file: "
-        , input [ type' "file", id "maskfileinput" ] []
+        , input [ type_ "file", id "maskfileinput" ] []
         , footer [] []
         ]
 

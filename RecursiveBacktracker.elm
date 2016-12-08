@@ -12,7 +12,7 @@ import Random
 import Array
 import List exposing (..)
 import List.Extra as LE
-import Trampoline exposing (..)
+import Trampoline exposing (Trampoline, evaluate, done, jump)
 import Debug exposing (log)
 
 on : (Grid a -> Maybe GridCell) ->
@@ -20,10 +20,10 @@ on : (Grid a -> Maybe GridCell) ->
      Grid a ->
      Grid a
 on startCellFn neighborsFn grid =
-    let grid' = Grid.updateRnd grid
+    let grid_ = Grid.updateRnd grid
         gcell = GridCell.maybeGridCellToGridCell <| startCellFn grid
     in
-       trampoline (walkRandomly grid' neighborsFn [gcell])
+       evaluate (walkRandomly grid_ neighborsFn [gcell])
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn't care about shape of the grid
@@ -63,19 +63,19 @@ work grid neighborsFn currentCell =
        -- is current cell at a dead end?
        if isEmpty neighbors
           then
-          let stack' = Maybe.withDefault [] (tail grid.stack)
+          let stack_ = Maybe.withDefault [] (tail grid.stack)
           in
-             {grid | stack = stack'}
+             {grid | stack = stack_}
           else
           -- carve a path to a random neighbor
           let neighbor = GridUtils.sampleCell neighbors grid.rnd
               |> GridCell.maybeGridCellToGridCell
-              grid' = Grid.linkCells grid currentCell neighbor True
-              grid'' = Grid.updateRnd grid'
+              grid_ = Grid.linkCells grid currentCell neighbor True
+              grid__ = Grid.updateRnd grid_
           in
               -- and make it the head of the stack
-             {grid'' |
-             stack = (GridCell.id neighbor) :: grid''.stack
+             {grid__ |
+             stack = (GridCell.id neighbor) :: grid__.stack
          }
 
 walkRandomly : Grid a ->
@@ -84,7 +84,7 @@ walkRandomly : Grid a ->
     Trampoline (Grid a)
 walkRandomly grid neighborsFn stack =
     if isEmpty stack
-       then Done grid
+       then done grid
        else
        let current = head stack |> GridCell.maybeGridCellToGridCell
            -- foo = case current of
@@ -94,12 +94,12 @@ walkRandomly grid neighborsFn stack =
            neighbors = Grid.filterNeighbors2 neighborsFn (\c -> not <| Cell.hasLinks (GridCell.base c)) grid current
        in
            if isEmpty neighbors
-              then Continue (\() -> walkRandomly grid neighborsFn (Maybe.withDefault [] (tail stack)))
+              then jump (\() -> walkRandomly grid neighborsFn (Maybe.withDefault [] (tail stack)))
               else
               let neighbor = GridUtils.sampleCell neighbors grid.rnd
                            |> GridCell.maybeGridCellToGridCell
-                  grid' = Grid.linkCells grid current neighbor True
-                  grid'' = Grid.updateRnd grid'
+                  grid_ = Grid.linkCells grid current neighbor True
+                  grid__ = Grid.updateRnd grid_
               in
-                  Continue (\() -> walkRandomly grid'' neighborsFn (neighbor :: stack))
+                  jump (\() -> walkRandomly grid__ neighborsFn (neighbor :: stack))
 

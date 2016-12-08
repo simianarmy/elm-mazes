@@ -26,7 +26,7 @@ on startCellFn neighborsFn grid =
             in
                work state (Grid.rowCells curGrid row)
     in
-        List.foldl processRow grid (List.reverse [0..grid.rows-1])
+        List.foldl processRow grid (List.reverse (List.range 0 (grid.rows-1)))
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn't care about shape of the grid
@@ -42,9 +42,9 @@ step startCellFn neighborsFn grid i =
         generateRun : List GridCell -> List GridCell
         generateRun rcells =
             let run = List.take i rcells
-                run' =  Debug.log "Run1" <| List.filter (\c -> Cell.isLinked (GridCell.base c) (GridCell.maybeGridCellToCell (Grid.east grid (GridCell.base c)))) run
+                run_ =  Debug.log "Run1" <| List.filter (\c -> Cell.isLinked (GridCell.base c) (GridCell.maybeGridCellToCell (Grid.east grid (GridCell.base c)))) run
             in
-               run'
+               run_
     in
        case cell of
            Just c ->
@@ -67,26 +67,26 @@ work state cells =
             if rowState.stop
                then rowState
                else
-               -- Fetch cell from grid before processing since it's state may have been modified
+               -- Fetch cell from grid before processing since it_s state may have been modified
                 let cell = maybeGridCellToGridCell <| Grid.getCell rowState.grid (GridCell.row ogCell) (GridCell.col ogCell)
-                    run' = cell :: rowState.run
-                    runstr = GridUtils.cellsToString run'
+                    run_ = cell :: rowState.run
+                    runstr = GridUtils.cellsToString run_
                     basecell = GridCell.base cell
                     atEasternBoundary = not (GridCell.isValidCell (Grid.east rowState.grid basecell))
                     atNorthernBoundary = not (GridCell.isValidCell (Grid.north rowState.grid basecell))
-                    -- update grid's rnd
-                    grid' = Grid.updateRnd rowState.grid
-                    shouldCloseOut = atEasternBoundary || ((not atNorthernBoundary) && grid'.rnd.heads)
+                    -- update grid_s rnd
+                    grid_ = Grid.updateRnd rowState.grid
+                    shouldCloseOut = atEasternBoundary || ((not atNorthernBoundary) && grid_.rnd.heads)
                 in
                    if shouldCloseOut
                       then 
                       -- get random cell from run
-                      let runCell = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell run' grid'.rnd
+                      let runCell = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell run_ grid_.rnd
                           -- fetch cell from grid to keep up to date
-                          member = maybeGridCellToGridCell <| Grid.getCell grid' (GridCell.row runCell) (GridCell.col runCell)
+                          member = maybeGridCellToGridCell <| Grid.getCell grid_ (GridCell.row runCell) (GridCell.col runCell)
                           bm = GridCell.base member
-                          northern = Grid.north grid' bm
-                          grid'' = Grid.updateRnd grid'
+                          northern = Grid.north grid_ bm
+                          grid__ = Grid.updateRnd grid_
                       in
                          if GridCell.isValidCell northern
                             then
@@ -94,7 +94,7 @@ work state cells =
                                 run = [],
                                 stop = True,
                                 -- link cells and update the grid RND
-                                grid = Grid.linkCells grid'' 
+                                grid = Grid.linkCells grid__ 
                                     (GridCell.setTag member "PROCESSED")
                                     (GridCell.maybeGridCellToGridCell northern)
                                     True
@@ -102,18 +102,18 @@ work state cells =
                             else
                             {
                                 run = [],
-                                grid = grid'',
+                                grid = grid__,
                                 stop = False
                             } 
                       else 
                       {
                           rowState |
-                          run = run',
+                          run = run_,
                           stop = False,
                           -- link cells and update the grid RND
-                          grid = Grid.linkCells grid' 
+                          grid = Grid.linkCells grid_ 
                               (GridCell.setTag cell "PROCESSED")
-                              (GridCell.setTag (GridCell.maybeGridCellToGridCell <| Grid.east grid' basecell) "PROCESSED")
+                              (GridCell.setTag (GridCell.maybeGridCellToGridCell <| Grid.east grid_ basecell) "PROCESSED")
                               True
                       }
 

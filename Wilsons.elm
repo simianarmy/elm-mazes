@@ -10,7 +10,7 @@ import GridUtils
 import Random
 import Array
 import List exposing (..)
-import Trampoline exposing (..)
+import Trampoline exposing (Trampoline, evaluate, done, jump)
 import Debug exposing (log)
 
 type alias RandomWalkPath a = {
@@ -25,13 +25,13 @@ on : (Grid a -> Maybe GridCell) ->
      Grid a -> Grid a
 on startCellFn neighborsFn grid =
     let startCell = GridCell.maybeGridCellToGridCell <| startCellFn grid
-        grid' = Grid.updateRnd grid
+        grid_ = Grid.updateRnd grid
         -- get all cells but the sampled one
         unvisited = GridCell.filterGridCells (\e ->
             not <| e.id == (GridCell.id startCell)
         ) <| Grid.cellsList grid.cells
     in
-       trampoline (work grid' unvisited neighborsFn)
+       evaluate (work grid_ unvisited neighborsFn)
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn't care about shape of the grid
@@ -49,16 +49,16 @@ step startCellFn neighborsFn grid i =
            -- first time around, mark a random cell as visited
            if i == 0
               then
-              let cell = Debug.log "first cell" <| GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell unvisited grid'.rnd
-                  grid' = Grid.updateRnd grid
+              let cell = Debug.log "first cell" <| GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell unvisited grid_.rnd
+                  grid_ = Grid.updateRnd grid
               in
-                 Grid.updateCellById grid' (GridCell.id cell) (GridCell.setVisited cell)
+                 Grid.updateCellById grid_ (GridCell.id cell) (GridCell.setVisited cell)
               else
-              let grid' = Grid.updateRnd grid
-                  cell = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell unvisited grid'.rnd
-                  --unvisited' = List.filter (\c -> not <| GridCell.id c == GridCell.id cell) unvisited
+              let grid_ = Grid.updateRnd grid
+                  cell = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell unvisited grid_.rnd
+                  --unvisited_ = List.filter (\c -> not <| GridCell.id c == GridCell.id cell) unvisited
                   rwp = loopErasedRandomWalk {
-                      grid = Grid.updateRnd grid',
+                      grid = Grid.updateRnd grid_,
                       cell = cell,
                       path = [cell],
                       unvisited = unvisited
@@ -72,7 +72,7 @@ work : Grid a ->
     Trampoline (Grid a)
 work grid unvisited neighborsFn =
     if isEmpty unvisited
-       then Done grid
+       then done grid
        else
        let (cell) = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell unvisited grid.rnd
            rwp = loopErasedRandomWalk {
@@ -82,7 +82,7 @@ work grid unvisited neighborsFn =
                unvisited = unvisited
            } neighborsFn
        in
-          Continue (\() -> (work rwp.grid rwp.unvisited neighborsFn))
+          jump (\() -> (work rwp.grid rwp.unvisited neighborsFn))
 
 loopErasedRandomWalk : RandomWalkPath a ->
      (Grid a -> GridCell -> List GridCell) ->
@@ -109,20 +109,20 @@ carvePassage rwp =
     let pathArr = Array.fromList rwp.path
 
         carve : Int -> RandomWalkPath a -> RandomWalkPath a
-        carve index rwp' =
+        carve index rwp_ =
             let icell = GridCell.maybeGridCellToGridCell <| Array.get index pathArr
                 icellId = GridCell.id icell
-                icell' = GridCell.maybeGridCellToGridCell <| Grid.getCellById rwp'.grid icellId
+                icell_ = GridCell.maybeGridCellToGridCell <| Grid.getCellById rwp_.grid icellId
                 nextcell = GridCell.maybeGridCellToGridCell  <| Array.get (index + 1) pathArr
-                nextcell' = GridCell.maybeGridCellToGridCell <| Grid.getCellById rwp'.grid (GridCell.id nextcell)
-                grid' = Grid.linkCells rwp'.grid icell' nextcell' True
+                nextcell_ = GridCell.maybeGridCellToGridCell <| Grid.getCellById rwp_.grid (GridCell.id nextcell)
+                grid_ = Grid.linkCells rwp_.grid icell_ nextcell_ True
                 -- delete icell from unvisited
-                unvisited' = GridCell.filterGridCells (\e -> not <| e.id == icellId) rwp'.unvisited
+                unvisited_ = GridCell.filterGridCells (\e -> not <| e.id == icellId) rwp_.unvisited
             in
-               {rwp' |
-                   grid = grid',
-                   unvisited = unvisited'
+               {rwp_ |
+                   grid = grid_,
+                   unvisited = unvisited_
                }
     in
-       foldl carve rwp [0..((length rwp.path) - 2)]
+       foldl carve rwp (List.range 0 ((length rwp.path) - 2))
 

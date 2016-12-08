@@ -25,7 +25,7 @@ on startCellFn neighborsFn grid =
             PolarCellTag c -> PolarGrid.size grid_
             _ -> Grid.size grid_
     in
-       trampoline (walkRandomly grid' neighborsFn startCell (gridSize - 1))
+       Trampoline.evaluate (walkRandomly grid_ neighborsFn startCell (gridSize - 1))
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn_t care about shape of the grid
@@ -76,10 +76,10 @@ work grid neighborsFn cell =
 -- Breaking out to try trampoline
 walkRandomly : Grid a -> 
     (Grid a -> GridCell -> List GridCell) ->
-    GridCell -> Int -> Trampoline (Grid a)
+    GridCell -> Int -> Trampoline.Trampoline (Grid a)
 walkRandomly grid neighborsFn cell unvisited =
     if unvisited == 0
-       then Done grid
+       then Trampoline.done grid
        else
        -- Pick a random neighbor of cell
        let 
@@ -97,8 +97,8 @@ walkRandomly grid neighborsFn cell unvisited =
              -- link cell to neighbor and move to the neighbor
              let grid__ = Grid.linkCells grid_ cell gcneighbor True
              in
-                Continue (\() -> walkRandomly grid__ neighborsFn gcneighbor (unvisited - 1))
+                Trampoline.jump (\() -> walkRandomly grid__ neighborsFn gcneighbor (unvisited - 1))
              else
              -- move to the neighbor w/out linking
-             Continue (\() -> walkRandomly grid_ neighborsFn gcneighbor unvisited)
+             Trampoline.jump (\() -> walkRandomly grid_ neighborsFn gcneighbor unvisited)
 
