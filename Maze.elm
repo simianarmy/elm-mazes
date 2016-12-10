@@ -9,7 +9,7 @@ import HexGrid
 import TriangleGrid
 import GridRenderer
 import Rnd
-import Mask
+import Mask exposing (Mask)
 import GridCell exposing (GridCell)
 import BinaryTree
 import Sidewinder
@@ -48,12 +48,14 @@ type Shape = Rect
             | Hex
             | Triangle
 
+type alias MazeGenerator a = Grid a -> Int -> Grid a
+
 type alias Maze a = {
     grid : Grid a,
     alg : Algorithm,
     shape: Shape,
     display : Display,
-    generator : Grid a -> Int -> Grid a,
+    generator : MazeGenerator a,
     braidFactor : Float,
     step: Int
 }
@@ -76,7 +78,7 @@ cellSize : Int
 cellSize = 30
 
 
---init : Algorithm -> Int -> Int -> Seed -> Shape -> Display -> Maze a
+init : Algorithm -> Int -> Int -> Seed -> Shape -> Display -> Maze a
 init algType width height seed shape display =
     let mask = Mask.createMask width height
         cellGenFn = case shape of
@@ -97,7 +99,7 @@ init algType width height seed shape display =
        }
 
 -- generates maze algorithm function taking a grid and returning a grid
-genAlg : Algorithm -> Shape -> (Grid a -> Int -> Grid a)
+genAlg : Algorithm -> Shape -> MazeGenerator a
 genAlg algName shape =
     let randCellFn = case shape of
             Polar -> PolarGrid.randomCell
@@ -160,15 +162,15 @@ update maze step =
        }
 
 -- INVALIDATES MASK, SO REFRESH MAZE
---updateSize : Maze a -> Int -> Int -> Maze a
+updateSize : Maze a -> Int -> Int -> Maze a
 updateSize maze width height =
     init maze.alg width height maze.grid.rnd.seed maze.shape maze.display
 
--- updateView : Maze a -> Display -> Maze b
+updateView : Maze a -> Display -> Maze b
 updateView maze displayType =
     {maze | display = displayType}
 
--- setMask : Maze a -> Mask -> Maze a
+setMask : Maze a -> Mask -> Maze a
 setMask maze mask =
     let grid_ = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker
         -- we want to run the algorithm to completion now

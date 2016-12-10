@@ -9,6 +9,7 @@ import String
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
+import Json.Decode as Json
 import Random exposing (Seed, initialSeed)
 import Time exposing (Time, every)
 import Slider
@@ -62,7 +63,7 @@ type Msg =
     | SelectAlg String
     | SelectView Maze.Display
     | SelectShape Maze.Shape
-    | Braid Slider.Action
+    | Braid Slider.Msg
     | LoadAsciiMask (List String)
     | LoadImageMask PngData
 
@@ -185,10 +186,10 @@ view model =
         , text "width X height"
         , br [] []
         , input [ class "sizeInput", value (toString maze.grid.cols)
-              , on "input" targetValue (Signal.message UpdateWidth) ] []
+              , on "input" (Json.map UpdateWidth targetValue) ] []
         , text " X "
         , input [ class "sizeInput", value (toString maze.grid.rows)
-              , on "input" targetValue (Signal.message UpdateHeight)] []
+              , on "input" (Json.map UpdateHeight targetValue)] []
         , br [] []
         , select [ selectAlg ] (List.map algToOptions <| Maze.algorithms maze.shape)
         , select [ selectView ] (List.map viewToOption Maze.displays)
