@@ -13,9 +13,9 @@ import List.Extra as LE
 import Trampoline as TRAMP
 import Debug exposing (log)
 
-on : (Grid a -> Maybe GridCell) ->
-     (Grid a -> GridCell -> List GridCell) ->
-     Grid a -> Grid a
+on : (Grid -> Maybe GridCell) ->
+     (Grid -> GridCell -> List GridCell) ->
+     Grid -> Grid
 on startCellFn neighborsFn grid =
     let grid_ = Grid.updateRnd grid
         startCell = GridCell.maybeGridCellToGridCell (startCellFn grid)
@@ -24,10 +24,10 @@ on startCellFn neighborsFn grid =
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn't care about shape of the grid
-step : (Grid a -> Maybe GridCell) ->
-     (Grid a -> GridCell -> List GridCell) ->
-     Grid a -> Int ->
-     Grid a
+step : (Grid -> Maybe GridCell) ->
+     (Grid -> GridCell -> List GridCell) ->
+     Grid -> Int ->
+     Grid
 step startCellFn neighborsFn grid i =
     -- If first time through,
     let cells = Grid.cellsList grid.cells
@@ -60,10 +60,10 @@ step startCellFn neighborsFn grid i =
 
 
 -- Walks randomly then returns when we_re stuck
-randomWalk : Grid a ->
+randomWalk : Grid ->
     GridCell ->
-    (Grid a -> GridCell -> List GridCell) ->
-    Grid a
+    (Grid -> GridCell -> List GridCell) ->
+    Grid
 randomWalk grid gcell neighborsFn =
     let cell = Debug.log "random walk from " <| GridCell.base gcell
     in
@@ -91,10 +91,10 @@ randomWalk grid gcell neighborsFn =
                  randomWalk grid__ neighbor neighborsFn
 
 -- Breaking out to try trampoline
-work : Grid a ->
+work : Grid ->
     GridCell ->
-    (Grid a -> GridCell -> List GridCell) ->
-    TRAMP.Trampoline (Grid a)
+    (Grid -> GridCell -> List GridCell) ->
+    TRAMP.Trampoline (Grid)
 work grid gcell neighborsFn =
     let cell = GridCell.base gcell
     in
@@ -119,9 +119,9 @@ work grid gcell neighborsFn =
                   TRAMP.jump (\() -> work grid_ current neighborsFn)
 
 
-hunt : Grid a ->
-     (Grid a -> GridCell -> List GridCell) ->
-    (Grid a, GridCell)
+hunt : Grid ->
+     (Grid -> GridCell -> List GridCell) ->
+    (Grid, GridCell)
 hunt grid neighborsFn =
     let visitedNeighbors : GridCell -> List GridCell
         visitedNeighbors cell = Grid.filterNeighbors2 neighborsFn (\c -> Cell.hasLinks (GridCell.base c)) grid cell

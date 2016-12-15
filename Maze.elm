@@ -48,14 +48,14 @@ type Shape = Rect
             | Hex
             | Triangle
 
-type alias MazeGenerator a = Grid a -> Int -> Grid a
+type alias MazeGenerator = Grid -> Int -> Grid
 
-type alias Maze a = {
-    grid : Grid a,
+type alias Maze = {
+    grid : Grid,
     alg : Algorithm,
     shape: Shape,
     display : Display,
-    generator : MazeGenerator a,
+    generator : MazeGenerator,
     braidFactor : Float,
     step: Int
 }
@@ -78,7 +78,7 @@ cellSize : Int
 cellSize = 30
 
 
-init : Algorithm -> Int -> Int -> Seed -> Shape -> Display -> Maze a
+init : Algorithm -> Int -> Int -> Seed -> Shape -> Display -> Maze
 init algType width height seed shape display =
     let mask = Mask.createMask width height
         cellGenFn = case shape of
@@ -99,7 +99,7 @@ init algType width height seed shape display =
        }
 
 -- generates maze algorithm function taking a grid and returning a grid
-genAlg : Algorithm -> Shape -> MazeGenerator a
+genAlg : Algorithm -> Shape -> MazeGenerator
 genAlg algName shape =
     let randCellFn = case shape of
             Polar -> PolarGrid.randomCell
@@ -127,7 +127,7 @@ genAlg algName shape =
            RecursiveBacktracker -> RecursiveBacktracker.step randCellFn neighborFn
 
 -- returns neighbors function for the grid type
-neighborsFn : Maze a -> (Grid a -> GridCell -> List GridCell)
+neighborsFn : Maze -> (Grid -> GridCell -> List GridCell)
 neighborsFn maze =
     case maze.shape of
         Rect -> Grid.neighbors
@@ -135,14 +135,14 @@ neighborsFn maze =
         Hex -> HexGrid.neighbors
         Triangle -> TriangleGrid.neighbors
 
-reset : Maze a -> Maze a
+reset : Maze -> Maze
 reset maze =
     {maze |
         grid = Grid.reset maze.grid,
         step = 0
     }
 
-braid : Maze a -> Maze a
+braid : Maze -> Maze
 braid maze =
     let bgrid = Grid.braid maze.grid (neighborsFn maze) maze.braidFactor
     in
@@ -150,7 +150,7 @@ braid maze =
        grid = bgrid
        }
 
-update : Maze a -> Int -> Maze a
+update : Maze -> Int -> Maze
 update maze step =
     -- update rngs
     let -- apply maze generation algoritm
@@ -162,26 +162,26 @@ update maze step =
        }
 
 -- INVALIDATES MASK, SO REFRESH MAZE
-updateSize : Maze a -> Int -> Int -> Maze a
+updateSize : Maze -> Int -> Int -> Maze
 updateSize maze width height =
     init maze.alg width height maze.grid.rnd.seed maze.shape maze.display
 
-updateView : Maze a -> Display -> Maze b
+updateView : Maze -> Display -> Maze
 updateView maze displayType =
     {maze | display = displayType}
 
-setMask : Maze a -> Mask -> Maze a
+setMask : Maze -> Mask -> Maze
 setMask maze mask =
     let grid_ = Grid.createGridFromMask mask maze.grid.rnd.seed maze.grid.cellMaker
         -- we want to run the algorithm to completion now
     in {maze | grid = maze.generator grid_ (Grid.size maze.grid)}
 
-updateBraiding: Maze a -> Float -> Maze a
+updateBraiding: Maze -> Float -> Maze
 updateBraiding maze factor =
     let maze_ = {maze | braidFactor = factor}
     in update maze_ 1
 
-view : Maze a -> Html msg
+view : Maze -> Html msg
 view maze =
     let braided = braid maze
         gridHtml = case maze.display of
@@ -210,7 +210,7 @@ view maze =
            , gridHtml
            ]
 
-viewDistances : Maze a -> Html msg
+viewDistances : Maze -> Html msg
 viewDistances maze =
     let center = Grid.center maze.grid
         start = center
@@ -233,7 +233,7 @@ viewDistances maze =
            ]
 
 -- displays braided maze with and without lava in the path
-viewWeightedDistances : Maze a -> Html msg
+viewWeightedDistances : Maze -> Html msg
 viewWeightedDistances maze =
     let start = GridCell.maybeGridCellToGridCell <| Grid.getCell maze.grid 0 0
         finish = GridCell.maybeGridCellToGridCell <| getCell maze.grid (maze.grid.rows - 1) (maze.grid.cols - 1)
@@ -256,7 +256,7 @@ viewWeightedDistances maze =
           -- , pre [] [text <| DistanceGrid.viewDistances longestPathGrid]
            ]
 
-viewWeightedDistancesWithLava : Grid a -> GridCell -> GridCell -> Html msg
+viewWeightedDistancesWithLava : Grid -> GridCell -> GridCell -> Html msg
 viewWeightedDistancesWithLava grid start goal =
     let -- pick cell on path to be lava
         pathCells = List.filter (\gc -> (GridCell.base gc).weight > 0) <| Grid.cellsList grid.cells
@@ -277,7 +277,7 @@ viewWeightedDistancesWithLava grid start goal =
           ]
 
 -- Renders maze as an HTML element
-mazeToElement : Maze a -> Element
+mazeToElement : Maze -> Element
 mazeToElement maze =
     let renderer = GridRenderer.toColoredElement maze.grid
         renderer_ = case maze.shape of

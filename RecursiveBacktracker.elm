@@ -15,10 +15,10 @@ import List.Extra as LE
 import Trampoline exposing (Trampoline, evaluate, done, jump)
 import Debug exposing (log)
 
-on : (Grid a -> Maybe GridCell) ->
-     (Grid a -> GridCell -> List GridCell) ->
-     Grid a ->
-     Grid a
+on : (Grid -> Maybe GridCell) ->
+     (Grid -> GridCell -> List GridCell) ->
+     Grid ->
+     Grid
 on startCellFn neighborsFn grid =
     let grid_ = Grid.updateRnd grid
         gcell = GridCell.maybeGridCellToGridCell <| startCellFn grid
@@ -27,10 +27,10 @@ on startCellFn neighborsFn grid =
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn't care about shape of the grid
-step : (Grid a -> Maybe GridCell) ->
-     (Grid a -> GridCell -> List GridCell) ->
-     Grid a -> Int ->
-     Grid a
+step : (Grid -> Maybe GridCell) ->
+     (Grid -> GridCell -> List GridCell) ->
+     Grid -> Int ->
+     Grid
 step startCellFn neighborsFn grid i =
     -- Find most recent cell using the tag property
     if List.isEmpty <| grid.stack
@@ -53,10 +53,10 @@ step startCellFn neighborsFn grid i =
                     let currentCell = GridCell.maybeGridCellToGridCell <| Grid.getCellById grid cid
                     in work grid neighborsFn currentCell
 
-work : Grid a -> 
-    (Grid a -> GridCell -> List GridCell) ->
+work : Grid -> 
+    (Grid -> GridCell -> List GridCell) ->
     GridCell ->
-    Grid a
+    Grid
 work grid neighborsFn currentCell =
     let neighbors = Grid.filterNeighbors2 neighborsFn (\c -> not <| Cell.hasLinks (GridCell.base c)) grid currentCell
     in
@@ -78,10 +78,10 @@ work grid neighborsFn currentCell =
              stack = (GridCell.id neighbor) :: grid__.stack
          }
 
-walkRandomly : Grid a ->
-    (Grid a -> GridCell -> List GridCell) ->
+walkRandomly : Grid ->
+    (Grid -> GridCell -> List GridCell) ->
     List GridCell ->
-    Trampoline (Grid a)
+    Trampoline (Grid)
 walkRandomly grid neighborsFn stack =
     if isEmpty stack
        then done grid

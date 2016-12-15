@@ -117,21 +117,21 @@ configureCells rows cols incells =
        -- convert back to 2D grid
        Grid.cellsListToCellGrid result.cells
 
-clockwiseCell : Grid a -> BaseCell -> Maybe (BaseCell, (CellID, CellLinks))
+clockwiseCell : Grid -> BaseCell -> Maybe (BaseCell, (CellID, CellLinks))
 clockwiseCell grid cell =
     maybeGridCellToMaybePolarCell <| getCell grid cell.row (cell.col + 1)
 
-counterClockwiseCell : Grid a -> (BaseCell) -> Maybe (BaseCell, (CellID, CellLinks))
+counterClockwiseCell : Grid -> (BaseCell) -> Maybe (BaseCell, (CellID, CellLinks))
 counterClockwiseCell grid cell =
     maybeGridCellToMaybePolarCell <| getCell grid cell.row (cell.col - 1)
 
-outwardCells : Grid a -> CellLinks -> List GridCell
+outwardCells : Grid -> CellLinks -> List GridCell
 outwardCells grid outward =
     let outwardIds = Set.toList outward
     in
         List.map (cellIdToCell grid) outwardIds
 
-center: Grid a -> GridCell
+center: Grid -> GridCell
 center grid =
     getCell grid 0 0 |> maybeGridCellToGridCell
 
@@ -159,11 +159,11 @@ maybeGridCellToMaybePolarCell : Maybe GridCell -> Maybe (BaseCell, (CellID, Cell
 maybeGridCellToMaybePolarCell cell =
     Maybe.map GridCell.toPolarCell cell
 
-size : Grid a -> Int
+size : Grid -> Int
 size grid =
     List.length <| cellsList grid.cells
 
-randomCell: Grid a -> Maybe GridCell
+randomCell: Grid -> Maybe GridCell
 randomCell grid =
     let grid_ = updateRnd grid
         randRow = grid_.rnd.row
@@ -173,7 +173,7 @@ randomCell grid =
     in
         getCell grid_ randRow randCol
 
-neighbors : Grid a -> GridCell -> List GridCell
+neighbors : Grid -> GridCell -> List GridCell
 neighbors grid cell =
     case cell of
         PolarCellTag (c, (inId, outwardIds)) ->
@@ -188,7 +188,7 @@ neighbors grid cell =
                List.append (List.concat [cw, ccw, inward]) outward
         _ -> []
 
-painter : Grid a -> (GridCell -> Color) -> Int -> GE.Element
+painter : Grid -> (GridCell -> Color) -> Int -> GE.Element
 painter grid cellPainter cellSize =
     let imgSize = 2 * grid.rows * cellSize
         wall = Color.black

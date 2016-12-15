@@ -25,8 +25,8 @@ mazeGenStepTime = 5
 --- MODEL ---
 
 -- The full application state
-type alias AppState a = 
-    { maze : Maze a
+type alias AppState = 
+    { maze : Maze
     , seedInitialized : Bool
     , seed: Random.Seed
     --, braidSlider: Slider.Model
@@ -40,7 +40,7 @@ type alias PngData =
       blackFlags : Array Bool
     }
 
-type alias Model a = AppState a
+type alias Model = AppState
 type Generation =
     Stepwise
     | Automatic
@@ -68,7 +68,7 @@ type Msg =
     | LoadImageMask PngData
 
 -- How we update our Model on a given Msg?
-update : Msg -> Model a -> Model a
+update : Msg -> Model -> Model
 update msg model =
     case msg of
         NoOp -> model
@@ -162,8 +162,8 @@ update msg model =
             }
 
 --- VIEW ---
---view : Model a -> Html
-view : Model a -> Html Msg
+--view : Model -> Html
+view : Model -> Html Msg
 view model =
     let
         selectAlg = Html.Events.on "change" (Json.map SelectAlg targetValue)
@@ -250,11 +250,11 @@ main = Html.program {
         --]
 
 -- manage the model of our application over time
---model : Signal (Model a)
+--model : Signal (Model)
 --model =
     --Signal.foldp update initialModel userInput
 
-initialModel : Model a
+initialModel : Model
 initialModel =
     {
         maze = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initShape initDisplay

@@ -15,9 +15,9 @@ import Array
 import Trampoline exposing (Trampoline)
 import Debug exposing (log)
 
-on : (Grid a -> Maybe GridCell) ->
-    (Grid a -> GridCell -> List GridCell) ->
-    Grid a -> Grid a
+on : (Grid -> Maybe GridCell) ->
+    (Grid -> GridCell -> List GridCell) ->
+    Grid -> Grid
 on startCellFn neighborsFn grid =
     let grid_ = Grid.updateRnd grid
         startCell = GridCell.maybeGridCellToGridCell <| startCellFn grid
@@ -29,10 +29,10 @@ on startCellFn neighborsFn grid =
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn_t care about shape of the grid
-step : (Grid a -> Maybe GridCell) ->
-     (Grid a -> GridCell -> List GridCell) ->
-     Grid a -> Int ->
-     Grid a
+step : (Grid -> Maybe GridCell) ->
+     (Grid -> GridCell -> List GridCell) ->
+     Grid -> Int ->
+     Grid
 step startCellFn neighborsFn grid i =
     -- pick last processed cell or random starting cell
     let current = List.filter (\c -> (GridCell.base c).tag == "PROCESSING") <| Grid.cellsList grid.cells
@@ -51,10 +51,10 @@ step startCellFn neighborsFn grid i =
           else
           work grid_ neighborsFn startCell_
 
-work : Grid a -> 
-    (Grid a -> GridCell -> List GridCell) ->
+work : Grid -> 
+    (Grid -> GridCell -> List GridCell) ->
     GridCell ->
-    Grid a
+    Grid
 work grid neighborsFn cell =
     let sample = neighborsFn grid cell
         -- grid's cell list needs to be updated with the cells new processing states
@@ -74,9 +74,9 @@ work grid neighborsFn cell =
          else Grid.linkCells grid (Debug.log "linking" cell_) (Debug.log "to" gcneighbor) True
 
 -- Breaking out to try trampoline
-walkRandomly : Grid a -> 
-    (Grid a -> GridCell -> List GridCell) ->
-    GridCell -> Int -> Trampoline.Trampoline (Grid a)
+walkRandomly : Grid -> 
+    (Grid -> GridCell -> List GridCell) ->
+    GridCell -> Int -> Trampoline.Trampoline (Grid)
 walkRandomly grid neighborsFn cell unvisited =
     if unvisited == 0
        then Trampoline.done grid

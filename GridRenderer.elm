@@ -17,9 +17,9 @@ import Color exposing (Color, rgb)
 
 toAscii :
     -- maze grid
-    Grid a ->
+    Grid ->
     -- cell painter
-    (Grid a -> GridCell -> String) ->
+    (Grid -> GridCell -> String) ->
     -- returns
     String
 toAscii grid cellPainter =
@@ -33,9 +33,9 @@ toAscii grid cellPainter =
 -- Takes 2 painter functions: one for the whole grid and one for each cell
 toColoredElement :
     -- maze grid
-    Grid a ->
+    Grid ->
     -- grid painter
-    (Grid a -> (GridCell -> Color) -> Int -> GE.Element) ->
+    (Grid -> (GridCell -> Color) -> Int -> GE.Element) ->
     -- start cell
     GridCell ->
     -- cell size
@@ -52,9 +52,9 @@ toColoredElement grid gridPainter startCell cellSize =
 
 toWeightedElement :
     -- maze grid
-    Weighted a ->
+    Weighted ->
     -- grid painter
-    (Grid a -> (GridCell -> Color) -> Int -> GE.Element) ->
+    (Grid -> (GridCell -> Color) -> Int -> GE.Element) ->
     -- cell size
     Int ->
     -- returns

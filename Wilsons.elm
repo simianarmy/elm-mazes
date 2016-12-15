@@ -13,16 +13,16 @@ import List exposing (..)
 import Trampoline exposing (Trampoline, evaluate, done, jump)
 import Debug exposing (log)
 
-type alias RandomWalkPath a = {
-    grid : Grid a,
+type alias RandomWalkPath = {
+    grid : Grid,
     cell : GridCell,
     path : List GridCell,
     unvisited : List GridCell
 }
 
-on : (Grid a -> Maybe GridCell) ->
-     (Grid a -> GridCell -> List GridCell) ->
-     Grid a -> Grid a
+on : (Grid -> Maybe GridCell) ->
+     (Grid -> GridCell -> List GridCell) ->
+     Grid -> Grid
 on startCellFn neighborsFn grid =
     let startCell = GridCell.maybeGridCellToGridCell <| startCellFn grid
         grid_ = Grid.updateRnd grid
@@ -35,10 +35,10 @@ on startCellFn neighborsFn grid =
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn't care about shape of the grid
-step : (Grid a -> Maybe GridCell) ->
-     (Grid a -> GridCell -> List GridCell) ->
-     Grid a -> Int ->
-     Grid a
+step : (Grid -> Maybe GridCell) ->
+     (Grid -> GridCell -> List GridCell) ->
+     Grid -> Int ->
+     Grid
 step startCellFn neighborsFn grid i =
     let unvisited = GridCell.filterGridCells (\e -> not <| e.visited) <| Grid.cellsList grid.cells
     in
@@ -66,10 +66,10 @@ step startCellFn neighborsFn grid i =
               in
                  rwp.grid
 
-work : Grid a -> 
+work : Grid -> 
     List GridCell -> 
-    (Grid a -> GridCell -> List GridCell) ->
-    Trampoline (Grid a)
+    (Grid -> GridCell -> List GridCell) ->
+    Trampoline (Grid)
 work grid unvisited neighborsFn =
     if isEmpty unvisited
        then done grid
@@ -84,9 +84,9 @@ work grid unvisited neighborsFn =
        in
           jump (\() -> (work rwp.grid rwp.unvisited neighborsFn))
 
-loopErasedRandomWalk : RandomWalkPath a ->
-     (Grid a -> GridCell -> List GridCell) ->
-    RandomWalkPath a
+loopErasedRandomWalk : RandomWalkPath ->
+     (Grid -> GridCell -> List GridCell) ->
+    RandomWalkPath
 loopErasedRandomWalk rwp neighborsFn =
     -- while cell is in unvisited
     if not <| member rwp.cell rwp.unvisited
@@ -103,12 +103,12 @@ loopErasedRandomWalk rwp neighborsFn =
              else
              loopErasedRandomWalk {rwp | grid = grid, cell = gccell, path = List.concat [rwp.path, [gccell]]} neighborsFn
 
-carvePassage : RandomWalkPath a -> RandomWalkPath a
+carvePassage : RandomWalkPath -> RandomWalkPath
 carvePassage rwp =
     -- Use an array for easy indexing into the path
     let pathArr = Array.fromList rwp.path
 
-        carve : Int -> RandomWalkPath a -> RandomWalkPath a
+        carve : Int -> RandomWalkPath -> RandomWalkPath
         carve index rwp_ =
             let icell = GridCell.maybeGridCellToGridCell <| Array.get index pathArr
                 icellId = GridCell.id icell

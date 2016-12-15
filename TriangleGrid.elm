@@ -36,27 +36,27 @@ upright : BaseCell -> Bool
 upright {row, col} =
     Arithmetic.isEven (row + col)
 
-north : Grid a -> BaseCell -> Maybe GridCell
+north : Grid -> BaseCell -> Maybe GridCell
 north grid cell =
     if upright cell
        then Nothing
        else getCell grid (cell.row - 1) cell.col
 
-south : Grid a -> BaseCell -> Maybe GridCell
+south : Grid -> BaseCell -> Maybe GridCell
 south grid cell =
     if upright cell
        then getCell grid (cell.row + 1) cell.col
        else Nothing
 
--- east : Grid a -> BaseCell -> Maybe GridCell
+-- east : Grid -> BaseCell -> Maybe GridCell
 -- east grid cell =
 --     Grid.east grid cell
 --
--- west : Grid a -> BaseCell -> Maybe GridCell
+-- west : Grid -> BaseCell -> Maybe GridCell
 -- west grid cell =
 --     Grid.west grid cell
 
-neighbors : Grid a -> GridCell -> List GridCell
+neighbors : Grid -> GridCell -> List GridCell
 neighbors grid gc =
     case gc of
         TriangleCellTag cell ->
@@ -77,7 +77,7 @@ type alias Points = {
     baseY : Float
 }
 
-painter : Grid a -> (GridCell -> Color) -> Int -> GE.Element
+painter : Grid -> (GridCell -> Color) -> Int -> GE.Element
 painter grid cellPainter cellSize =
     let halfWidth = (toFloat cellSize) / 2
         height = (toFloat cellSize) * (sqrt 3) / 2

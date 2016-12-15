@@ -21,9 +21,8 @@ import Text exposing (..)
 type alias CellGrid = Array (Array GridCell)
 
 -- made extensible to contain additional data (ie. distances)
-type alias Grid a =
-    {a |
-        rows: Int,
+type alias Grid =
+    { rows: Int,
         cols: Int,
         cells: CellGrid,
         cellMaker: (Mask -> CellGrid),
@@ -38,12 +37,12 @@ type alias RowAscii = {
 }
 
 -- constructor
-createGrid : Int -> Int -> Random.Seed -> (Mask -> CellGrid) -> Grid {}
+createGrid : Int -> Int -> Random.Seed -> (Mask -> CellGrid) -> Grid
 createGrid rows cols initSeed cellMaker =
     let mask_ = Mask.createMask cols rows
     in createGridFromMask mask_ initSeed cellMaker
 
-createGridFromMask : Mask -> Random.Seed -> (Mask -> CellGrid) -> Grid {}
+createGridFromMask : Mask -> Random.Seed -> (Mask -> CellGrid) -> Grid
 createGridFromMask mask initSeed cellMaker =
     {
         rows = mask.rows,
@@ -56,14 +55,14 @@ createGridFromMask mask initSeed cellMaker =
     }
 
 -- updates all rngs with fresh seeds
-updateRnd : Grid a -> Grid a
+updateRnd : Grid -> Grid
 updateRnd grid =
     {grid |
         rnd = Rnd.refresh grid.rnd
     }
 
 -- regenerates all cells based the current mask
-reset : Grid a -> Grid a
+reset : Grid -> Grid
 reset grid =
     {grid |
         cells = grid.cellMaker grid.mask
@@ -83,7 +82,7 @@ makeCells mask =
        Array.initialize mask.rows (\n -> makeRow n mask.cols)
 
 -- Returns string ASCII representation of a grid
-toAscii : Grid a -> (GridCell -> String) -> String
+toAscii : Grid -> (GridCell -> String) -> String
 toAscii grid cellViewer =
     let cellToString : GridCell -> RowAscii -> RowAscii
         cellToString cell ascii =
@@ -115,7 +114,7 @@ toAscii grid cellViewer =
        String.concat (List.map rowToStrings (List.range 0 (grid.rows - 1)))
 
 -- generates rectangular grid element
-painter : Grid a -> (GridCell -> Color) -> Int -> Element
+painter : Grid -> (GridCell -> Color) -> Int -> Element
 painter grid cellPainter cellSize =
     let imgWidth = cellSize * grid.cols
         imgHeight = cellSize * grid.rows
@@ -191,14 +190,14 @@ cellsListToCellGrid cells =
        Array.initialize (rowMax + 1) (\row -> Array.fromList <| List.filter (\c -> (GridCell.row c) == row) cells)
 
 -- apply a function to all cells
-updateCells : Grid a -> (GridCell -> GridCell) -> Grid a
+updateCells : Grid -> (GridCell -> GridCell) -> Grid
 updateCells grid fn =
     {grid | 
         cells = List.map fn (cellsList grid.cells) |> cellsListToCellGrid
     }
 
 -- update a single cell by id
-updateCellById : Grid a -> CellID -> GridCell -> Grid a
+updateCellById : Grid -> CellID -> GridCell -> Grid
 updateCellById grid cid gc =
     let fn c =
         if GridCell.id c == cid
@@ -263,33 +262,33 @@ toValidCell cell =
         Just cell -> cell
         Nothing -> Cell.createNilCell
 
-north : Grid a -> Cell -> Maybe GridCell
+north : Grid -> Cell -> Maybe GridCell
 north grid cell =
     getCell grid (cell.row - 1) cell.col
 
-south : Grid a -> Cell -> Maybe GridCell
+south : Grid -> Cell -> Maybe GridCell
 south grid cell =
     getCell grid (cell.row + 1) cell.col
 
-west : Grid a -> Cell -> Maybe GridCell
+west : Grid -> Cell -> Maybe GridCell
 west grid cell =
     getCell grid cell.row (cell.col - 1)
 
-east : Grid a -> Cell -> Maybe GridCell
+east : Grid -> Cell -> Maybe GridCell
 east grid cell =
     getCell grid cell.row (cell.col + 1)
 
-center : Grid a -> GridCell
+center : Grid -> GridCell
 center grid =
     maybeGridCellToGridCell <| getCell grid (grid.rows // 2) (grid.cols // 2)
 
-randomCell : Grid a -> Maybe GridCell
+randomCell : Grid -> Maybe GridCell
 randomCell grid =
     let (row, col) = Mask.randomLocation grid.mask grid.rnd
     in
        getCell grid row col
 
-neighbors : Grid a -> GridCell -> List GridCell
+neighbors : Grid -> GridCell -> List GridCell
 neighbors grid cell =
     case cell of
         RectCellTag c ->
@@ -303,31 +302,31 @@ neighbors grid cell =
         _ -> []
 
 -- sometimes useful to filter the neighbors of a cell by some criteria
-filterNeighbors2 : (Grid a -> GridCell -> List GridCell) ->
+filterNeighbors2 : (Grid -> GridCell -> List GridCell) ->
     (GridCell -> Bool) ->
-    Grid a ->
+    Grid ->
     GridCell ->
     List GridCell
 filterNeighbors2 neighborsFn pred grid cell =
     List.filter pred <| neighborsFn grid cell
 
 -- returns all cells with only 1 link
-deadEnds : Grid a -> List GridCell
+deadEnds : Grid -> List GridCell
 deadEnds grid =
     List.filter (\c -> (List.length (Set.toList (GridCell.links c)) == 1)) (cellsList grid.cells)
 
 -- creates braids by removing deadends
 -- p (0 - 1.0) controls braid factor 0 is none, 1.0 is all deadends processed
-braid : Grid a ->
+braid : Grid ->
      -- neighbors fn
-     (Grid a -> GridCell -> List GridCell) ->
+     (Grid -> GridCell -> List GridCell) ->
      -- braid factor
      Float ->
-     Grid a
+     Grid
 braid grid neighborsFn p =
     let randpGen = Random.float 0 1.0
 
-        linkNeighbor : Grid a -> GridCell -> Grid a
+        linkNeighbor : Grid -> GridCell -> Grid
         linkNeighbor g deadEnd =
             -- get all neighbors not linked to the cell
             let neighbors = filterNeighbors2 neighborsFn (\c -> not <| Cell.isLinked (GridCell.base deadEnd) (GridCell.base c)) g deadEnd
@@ -343,7 +342,7 @@ braid grid neighborsFn p =
                   then Debug.crash "NIL NEIGHBOR in braid:linkNeighbor!" g_
                   else linkCells g_ deadEnd neighbor True
 
-        processDeadEnd : GridCell -> Grid a -> Grid a
+        processDeadEnd : GridCell -> Grid -> Grid
         processDeadEnd deadEnd g =
             let (randp, _) = Random.step randpGen g.rnd.seed
                 g_ = updateRnd g
@@ -362,7 +361,7 @@ gridCellID : GridCell -> CellID
 gridCellID gc =
     GridCell.id gc
 
-linkCellsHelper : Grid a -> BaseCell -> BaseCell -> Grid a
+linkCellsHelper : Grid -> BaseCell -> BaseCell -> Grid
 linkCellsHelper grid cell cellToLink =
     let linkCell : BaseCell -> BaseCell -> BaseCell
         linkCell cell1 cell2 = {
@@ -391,7 +390,7 @@ linkCellsHelper grid cell cellToLink =
        {grid | cells = cellsListToCellGrid <| List.map linkMatched (cellsList grid.cells)}
 
 -- link 2 cells
-linkCells : Grid a -> GridCell -> GridCell -> Bool -> Grid a
+linkCells : Grid -> GridCell -> GridCell -> Bool -> Grid
 linkCells grid cell cell2 bidi =
     let b1 = GridCell.base <| Debug.log "Linking" cell
         b2 = GridCell.base <| Debug.log "to" cell2
@@ -402,7 +401,7 @@ linkCells grid cell cell2 bidi =
           else grid_
 
 -- returns all cells linked to a cell
-linkedCells : Grid a -> GridCell -> List GridCell
+linkedCells : Grid -> GridCell -> List GridCell
 linkedCells grid cell =
     let base = GridCell.base cell
     in
@@ -423,12 +422,12 @@ gridCellsToBaseCells gridcells =
     List.map GridCell.base gridcells
 
 -- Not all grid types have the same # cells
-size : Grid a -> Int
+size : Grid -> Int
 size grid =
     Mask.count grid.mask
 
 -- cardinal index of a cell in a grid (1,1) = 1, etc
-cellIndex : Grid a -> GridCell -> Int
+cellIndex : Grid -> GridCell -> Int
 cellIndex grid cell =
     let rc = GridCell.base cell
     in
@@ -440,24 +439,24 @@ gridIndex grid row col =
     grid.cols * row + col
 
 -- returns cell by its id
-cellIdToCell : Grid a -> Cell.CellID -> GridCell
+cellIdToCell : Grid -> Cell.CellID -> GridCell
 cellIdToCell grid cellid =
     let row = (Tuple.first cellid)
         col = (Tuple.second cellid)
     in
         maybeGridCellToGridCell <| getCell grid row col
 
-toTitle : Grid a -> String
+toTitle : Grid -> String
 toTitle grid =
     Basics.toString grid.rows ++ " X " ++ Basics.toString grid.cols ++ " Grid"
 
-cellToAscii : Grid a -> GridCell -> String
+cellToAscii : Grid -> GridCell -> String
 cellToAscii grid cell = 
     if (GridCell.base cell).masked
        then "M"
        else " "
 
-cellBackgroundColor : Grid a -> GridCell -> Color
+cellBackgroundColor : Grid -> GridCell -> Color
 cellBackgroundColor grid cell =
     Color.white
 

@@ -13,7 +13,7 @@ type alias Diter = {
 }
 
 -- Our modified Dijkstra's returns a Distances type
-cellDistances : CellDistances a -> GridCell -> Distances
+cellDistances : CellDistances -> GridCell -> Distances
 cellDistances dgrid root =
     -- we use our Distances class to track the cost of each cell, but instead of having a frontier set, we now have a pending set, which tracks which cells have yet to be processed. We initialize that to be an array containing just self—the cell that we’re asking to compute the distances. We then repeat the following steps until that array is empty.
     let weights = Distances.init (GridCell.base root)

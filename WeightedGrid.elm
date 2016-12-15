@@ -10,13 +10,13 @@ import ColoredGrid
 
 import Color exposing (Color, rgb)
 
-type alias Weighted a =
-    { dgrid : CellDistances a,
+type alias Weighted =
+    { dgrid : CellDistances,
       dists : Distances,
       maximum : Int
   }
 
-createGrid : Grid a -> GridCell -> Weighted a
+createGrid : Grid -> GridCell -> Weighted
 createGrid grid start =
     let dg = DistanceGrid.createGrid grid start
         ds = DijkstraWeighted.cellDistances dg start
@@ -30,7 +30,7 @@ createGrid grid start =
 
 ---- Finds shortest path between 2 cells
 -- Uses Distances type
-pathTo : Weighted a -> GridCell -> Distances
+pathTo : Weighted -> GridCell -> Distances
 pathTo wgrid gcgoal =
     let root = wgrid.dists.root
         current = GridCell.base gcgoal
@@ -60,7 +60,7 @@ pathTo wgrid gcgoal =
        walkPath breadcrumbs current
 
 
-cellBackgroundColor : Weighted a -> GridCell -> Color
+cellBackgroundColor : Weighted -> GridCell -> Color
 cellBackgroundColor wgrid gc =
     let bc = GridCell.base gc
     in

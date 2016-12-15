@@ -11,18 +11,18 @@ import Grid exposing (..)
 import GridCell exposing (..)
 
 -- Processes entire grid
-on : (Grid a -> Maybe GridCell) ->
-     (Grid a -> GridCell -> List GridCell) ->
-     Grid a -> Grid a
+on : (Grid -> Maybe GridCell) ->
+     (Grid -> GridCell -> List GridCell) ->
+     Grid -> Grid
 on startCellFn neighborsFn grid =
     work startCellFn neighborsFn grid (Grid.cellsList grid.cells)
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn't care about shape of the grid
-step : (Grid a -> Maybe GridCell) ->
-     (Grid a -> GridCell -> List GridCell) ->
-     Grid a -> Int ->
-     Grid a
+step : (Grid -> Maybe GridCell) ->
+     (Grid -> GridCell -> List GridCell) ->
+     Grid -> Int ->
+     Grid
 step startCellFn neighborsFn grid i =
     let cell = List.head <| List.reverse <| List.take i (Grid.cellsList grid.cells)
     in
@@ -32,13 +32,13 @@ step startCellFn neighborsFn grid i =
            Nothing ->
                grid
 
-work : (Grid a -> Maybe GridCell) ->
-     (Grid a -> GridCell -> List GridCell) ->
-     Grid a ->
+work : (Grid -> Maybe GridCell) ->
+     (Grid -> GridCell -> List GridCell) ->
+     Grid ->
      List GridCell ->
-     Grid a
+     Grid
 work startCellFn neighborsFn grid cells =
-    let getRandomNeighbor : Grid a -> GridCell -> Maybe GridCell
+    let getRandomNeighbor : Grid -> GridCell -> Maybe GridCell
         getRandomNeighbor grid_ cell =
             let acell = GridCell.base cell
                 gcneighbors = GridUtils.smooshMaybes [
@@ -54,7 +54,7 @@ work startCellFn neighborsFn grid cells =
                       Nothing -> Nothing
                       Just c -> Just c
 
-        processCell : GridCell -> Grid a -> Grid a
+        processCell : GridCell -> Grid -> Grid
         processCell cell grid =
             let neighbor = getRandomNeighbor grid cell
                 grid_ = updateRnd grid

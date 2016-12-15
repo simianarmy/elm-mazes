@@ -48,35 +48,35 @@ southDiag cell =
        then cell.row
        else cell.row + 1
 
-northwest : Grid a -> BaseCell -> Maybe GridCell
+northwest : Grid -> BaseCell -> Maybe GridCell
 northwest grid cell =
     getCell grid (northDiag cell) (cell.col - 1)
 
-north : Grid a -> BaseCell -> Maybe GridCell
+north : Grid -> BaseCell -> Maybe GridCell
 north grid cell =
     getCell grid (cell.row - 1) cell.col
 
-northeast : Grid a -> BaseCell -> Maybe GridCell
+northeast : Grid -> BaseCell -> Maybe GridCell
 northeast grid cell =
     getCell grid (northDiag cell) (cell.col + 1)
 
-southwest : Grid a -> BaseCell -> Maybe GridCell
+southwest : Grid -> BaseCell -> Maybe GridCell
 southwest grid cell =
     getCell grid (southDiag cell) (cell.col - 1)
 
-south : Grid a -> BaseCell -> Maybe GridCell
+south : Grid -> BaseCell -> Maybe GridCell
 south grid cell =
     getCell grid (cell.row + 1) cell.col
 
-southeast : Grid a -> BaseCell -> Maybe GridCell
+southeast : Grid -> BaseCell -> Maybe GridCell
 southeast grid cell =
     getCell grid (southDiag cell) (cell.col + 1)
 
-getCell : Grid a -> Int -> Int -> Maybe GridCell
+getCell : Grid -> Int -> Int -> Maybe GridCell
 getCell grid row col =
     Grid.getCell grid row col
 
-neighbors : Grid a -> GridCell -> List GridCell
+neighbors : Grid -> GridCell -> List GridCell
 neighbors grid gc =
     case gc of
         HexCellTag cell ->
@@ -101,7 +101,7 @@ type alias HexVertices = {
     y_s : Float
 }
 
-painter : Grid a -> (GridCell -> Color) -> Int -> GE.Element
+painter : Grid -> (GridCell -> Color) -> Int -> GE.Element
 painter grid cellPainter cellSize =
     let asize = (toFloat cellSize) / 2
         bsize = (toFloat cellSize) * (sqrt 3) / 2
@@ -175,6 +175,6 @@ painter grid cellPainter cellSize =
        GC.collage (imgWidth + 1) (imgHeight + 1) forms
 
 
-cellBackgroundColor : Grid a -> GridCell -> Color
+cellBackgroundColor : Grid -> GridCell -> Color
 cellBackgroundColor grid gridcell =
     Color.rgb 255 255 255

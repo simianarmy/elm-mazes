@@ -9,12 +9,12 @@ import Grid exposing (Grid)
 
 import Color exposing (Color, rgb)
 
-type alias Colored a =
-    { dgrid : CellDistances a
+type alias Colored =
+    { dgrid : CellDistances
     , maximum : Int
     }
 
-createGrid : Grid a -> GridCell -> Colored a
+createGrid : Grid -> GridCell -> Colored
 createGrid grid root =
     let dgrid = DistanceGrid.createGrid grid root
         (farthest, max) = Distances.max dgrid.dists
@@ -25,7 +25,7 @@ createGrid grid root =
        }
 
 
-cellBackgroundColor : Colored a -> GridCell -> Color
+cellBackgroundColor : Colored -> GridCell -> Color
 cellBackgroundColor cgrid gridcell =
     let cell = GridCell.toRectCell gridcell
         distance = Distances.lookup cgrid.dgrid.dists cell

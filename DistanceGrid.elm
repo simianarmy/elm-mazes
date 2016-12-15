@@ -9,13 +9,13 @@ import IntToBaseX exposing (toBaseX)
 
 import Html exposing (..)
 
-type alias CellDistances a =
-    { grid : Grid a
+type alias CellDistances =
+    { grid : Grid
     , dists : Distances
     }
 
 -- Creates grid with distances from Grid
-createGrid : Grid a -> GridCell -> CellDistances a
+createGrid : Grid -> GridCell -> CellDistances
 createGrid grid root =
     let cellDistances = distances grid root
     in
@@ -25,11 +25,11 @@ createGrid grid root =
        }
 
 -- Returns all distances from a root cell
-distances : Grid a -> GridCell -> Distances
+distances : Grid -> GridCell -> Distances
 distances grid root =
     Dijkstra.cellDistances grid (GridCell.base root)
 
-cellToAscii : CellDistances a -> GridCell -> String
+cellToAscii : CellDistances -> GridCell -> String
 cellToAscii dgrid cell =
     let dist = lookup dgrid.dists (GridCell.base cell)
     in
@@ -38,13 +38,13 @@ cellToAscii dgrid cell =
           else toBaseX dist 36
 
 ---- distances view
-viewDistances : CellDistances a -> String
+viewDistances : CellDistances -> String
 viewDistances dgrid =
     Grid.toAscii dgrid.grid (cellToAscii dgrid)
 
 ---- Finds shortest path between 2 cells
 -- Uses Distances type
-pathTo : CellDistances a -> GridCell -> GridCell -> Distances
+pathTo : CellDistances -> GridCell -> GridCell -> Distances
 pathTo dgrid gcroot gcgoal =
     let root = GridCell.base gcroot
         goal = GridCell.base gcgoal
@@ -76,7 +76,7 @@ pathTo dgrid gcroot gcgoal =
        walkPath breadcrumbs current
 
 ---- Finds longest path from a cell
-longestPath : CellDistances a -> GridCell -> Distances
+longestPath : CellDistances -> GridCell -> Distances
 longestPath dgrid root =
     let dgrid_ = createGrid dgrid.grid root
         (cellId, foo) = Distances.max dgrid_.dists

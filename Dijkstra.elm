@@ -5,19 +5,19 @@ import Cell exposing (Cell)
 import GridCell exposing (..)
 import Grid exposing (Grid)
 
-type alias DijkstraIter a = {
+type alias DijkstraIter = {
     dists : Distances,
-    grid: Grid a,
+    grid: Grid,
     frontier : List Cell,
     newFrontier : List Cell
 }
 
 -- the public api
-cellDistances : Grid a -> Cell -> Distances
+cellDistances : Grid -> Cell -> Distances
 cellDistances grid cell =
 
     -- process a link
-    let scanCell : Cell -> Cell -> DijkstraIter a -> DijkstraIter a
+    let scanCell : Cell -> Cell -> DijkstraIter -> DijkstraIter
         scanCell cell linked diter =
             if not ((Distances.lookup diter.dists linked) == -1)
                then diter
@@ -31,7 +31,7 @@ cellDistances grid cell =
                   }
 
         -- iterate over each cell link
-        scanCellLinks : Cell -> DijkstraIter a -> DijkstraIter a
+        scanCellLinks : Cell -> DijkstraIter -> DijkstraIter
         scanCellLinks cell diter =
             -- force a cell to a gridcell for linkedCells to work
             List.foldl (scanCell cell) diter <|
@@ -39,14 +39,14 @@ cellDistances grid cell =
             Grid.linkedCells diter.grid (RectCellTag cell)
 
         -- iterate over each frontier
-        scanFrontier : DijkstraIter a -> DijkstraIter a
+        scanFrontier : DijkstraIter -> DijkstraIter
         scanFrontier diter =
             let res = List.foldl scanCellLinks diter diter.frontier
             in
                {res | frontier = res.newFrontier}
 
         -- recursively scan frontiers
-        frontierAcc : DijkstraIter a -> DijkstraIter a
+        frontierAcc : DijkstraIter -> DijkstraIter
         frontierAcc diter =
             if List.isEmpty diter.frontier
                then diter

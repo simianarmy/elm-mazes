@@ -12,15 +12,15 @@ import Cell
 import List exposing (..)
 import Random exposing (..)
 
-type alias RowState a = {run : List GridCell, grid : Grid a, stop : Bool}
+type alias RowState = {run : List GridCell, grid : Grid, stop : Bool}
 
-on : (Grid a -> Maybe GridCell) ->
-     (Grid a -> GridCell -> List GridCell) ->
-     Grid a ->
-     Grid a
+on : (Grid -> Maybe GridCell) ->
+     (Grid -> GridCell -> List GridCell) ->
+     Grid ->
+     Grid
 on startCellFn neighborsFn grid =
     let -- bias is to start at the bottom left...may not matter
-        --processRow : Int -> Grid a -> Grid a
+        --processRow : Int -> Grid -> Grid
         processRow row curGrid =
             let state = {run = [], grid = curGrid, stop = False}
             in
@@ -30,10 +30,10 @@ on startCellFn neighborsFn grid =
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn't care about shape of the grid
-step : (Grid a -> Maybe GridCell) ->
-     (Grid a -> GridCell -> List GridCell) ->
-     Grid a -> Int ->
-     Grid a
+step : (Grid -> Maybe GridCell) ->
+     (Grid -> GridCell -> List GridCell) ->
+     Grid -> Int ->
+     Grid
 step startCellFn neighborsFn grid i =
     -- get the current cell
     let cell = List.head <| List.reverse <| List.take (Debug.log "STEP" i) (Grid.cellsList grid.cells)
@@ -60,9 +60,9 @@ step startCellFn neighborsFn grid i =
 -- Will link row cells until Heads or boundary.  On heads will link a random row cell to its northern neighbor.
 -- Returns after Northern link is made or eastern edge reached.
 -- Makes iterative processing difficult since each 'step' can result in multiple links.
-work : RowState a -> List GridCell -> Grid a
+work : RowState -> List GridCell -> Grid
 work state cells =
-    let processCell : GridCell -> RowState a -> RowState a
+    let processCell : GridCell -> RowState -> RowState
         processCell ogCell rowState =
             if rowState.stop
                then rowState
