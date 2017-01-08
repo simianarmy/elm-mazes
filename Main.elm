@@ -9,7 +9,7 @@ import String
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
-import Json.Decode as Json
+import Json.Decode as Json exposing (..)
 import Random exposing (Seed, initialSeed)
 import Time exposing (Time, every)
 import Slider
@@ -61,8 +61,8 @@ type Msg =
     | UpdateWidth String
     | UpdateHeight String
     | SelectAlg String
-    | SelectView Maze.Display
-    | SelectShape Maze.Shape
+    | SelectView String
+    | SelectShape String
     | Braid Slider.Msg
     | LoadAsciiMask (List String)
     | LoadImageMask PngData
@@ -93,14 +93,14 @@ update msg model =
                {model | maze = maze_}
 
         SelectView display ->
-            let maze = Maze.updateView model.maze <| Debug.log "display" display
+            let maze = Maze.updateView model.maze <| Debug.log "display" (displayFromString display)
             in
                {model | maze = maze}
 
         SelectShape shape ->
             -- new grid, re-init time
             let maze = model.maze
-                maze_ = Maze.init maze.alg maze.grid.cols maze.grid.rows maze.grid.rnd.seed shape maze.display
+                maze_ = Maze.init maze.alg maze.grid.cols maze.grid.rows maze.grid.rnd.seed (shapeFromString shape) maze.display
             in
                {model | maze = maze_}
 
@@ -166,9 +166,6 @@ update msg model =
 view : Model -> Html Msg
 view model =
     let
-        selectAlg = Html.Events.on "change" (Json.map SelectAlg targetValue)
-        selectView = Html.Events.on "change" (Json.map SelectView targetValue)
-        selectShape = Html.Events.on "change" (Json.map SelectShape targetValue)
         algToOptions attr =
             option [selected (attr.alg == model.maze.alg)] [text attr.name]
         viewToOption opt =
@@ -185,15 +182,15 @@ view model =
         -- controls
         , text "width X height"
         , br [] []
-        , input [ class "sizeInput", value (toString maze.grid.cols)
+        , input [ class "sizeInput", HA.value (toString maze.grid.cols)
               , on "input" (Json.map UpdateWidth targetValue) ] []
         , text " X "
-        , input [ class "sizeInput", value (toString maze.grid.rows)
+        , input [ class "sizeInput", HA.value (toString maze.grid.rows)
               , on "input" (Json.map UpdateHeight targetValue)] []
         , br [] []
-        , select [ selectAlg ] (List.map algToOptions <| Maze.algorithms maze.shape)
-        , select [ selectView ] (List.map viewToOption Maze.displays)
-        , select [ selectShape ] (List.map shapeToOption Maze.shapes)
+        , select [ on "change" (Json.map SelectAlg targetSelectedAlg) ] (List.map algToOptions <| Maze.algorithms maze.shape)
+        , select [ on "change" (Json.map SelectView targetSelectedDisplay) ] (List.map viewToOption Maze.displays)
+        , select [ on "change" (Json.map SelectShape targetSelectedShape) ] (List.map shapeToOption Maze.shapes)
         , br [] []
         , text "Braids (0 = max deadends, 1 = no deadends):"
         --, map Braid (Slider.view model.braidSlider)
@@ -208,6 +205,20 @@ view model =
         , input [ type_ "file", id "maskfileinput" ] []
         , footer [] []
         ]
+
+-- Form select helpers
+
+targetSelectedAlg : Json.Decoder String
+targetSelectedAlg =
+    at ["target", "value"] string
+
+targetSelectedDisplay : Json.Decoder String
+targetSelectedDisplay =
+    at ["target", "value"] string
+
+targetSelectedShape : Json.Decoder String
+targetSelectedShape =
+    at ["target", "value"] string
 
 -- this seems like not the right way to do it
 displayFromString : String -> Display
@@ -231,12 +242,12 @@ shapeFromString str =
 ---- INPUTS ----
 
 -- wire the entire application together
-main : Program Never
-main = Html.program {
-        model = initialModel,
-        view = view,
-        update = update,
-        subscriptions = \_ -> Sub.none
+--main : Program Never
+main = Html.beginnerProgram {
+        model = initialModel
+        , view = view
+        , update = update
+        --subscriptions = \_ -> Sub.none
     }
 
 --userInput : Signal Msg
