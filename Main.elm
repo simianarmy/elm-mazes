@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Maze exposing (..)
 import Mask exposing (Mask)
@@ -52,6 +52,7 @@ type Generation =
 -- some alternatives: https://github.com/evancz/elm-architecture-tutorial/
 type Msg = 
     NoOp
+    | NewTimeSeed Int
     | Tick Float
     -- | Prev
     | Next
@@ -68,41 +69,58 @@ type Msg =
     | LoadImageMask PngData
 
 -- How we update our Model on a given Msg?
-update : Msg -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
-        NoOp -> model
+        NoOp -> (model, Cmd.none)
+
+        NewTimeSeed seed ->
+            ({model | seed = Random.initialSeed (Debug.log "seed from port: " seed), seedInitialized = True}
+            , Cmd.none
+            )
 
         Refresh ->
-            {model | maze = Maze.reset model.maze}
+            ({model | maze = Maze.reset model.maze}
+            , Cmd.none
+            )
 
         UpdateWidth str ->
             let maze_ = Maze.updateSize model.maze (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.maze.grid.cols) model.maze.grid.rows
             in
-               {model | maze = maze_}
+               ({model | maze = maze_}
+               , Cmd.none
+               )
 
         UpdateHeight str ->
             let maze_ = Maze.updateSize model.maze model.maze.grid.cols (String.toInt str |> Result.toMaybe |> Maybe.withDefault model.maze.grid.rows)
             in
-               {model | maze = maze_}
+               ({model | maze = maze_}
+               , Cmd.none
+               )
 
         SelectAlg str ->
             let maze = model.maze
                 maze_ = Maze.init (Maze.algByName str) maze.grid.cols maze.grid.rows maze.grid.rnd.seed maze.shape maze.display
             in
-               {model | maze = maze_}
+               ({model | maze = maze_}
+               , Cmd.none
+               )
 
         SelectView display ->
             let maze = Maze.updateView model.maze <| Debug.log "display" (displayFromString display)
             in
-               {model | maze = maze}
+               ({model | maze = maze}
+               , Cmd.none
+               )
 
         SelectShape shape ->
             -- new grid, re-init time
             let maze = model.maze
                 maze_ = Maze.init maze.alg maze.grid.cols maze.grid.rows maze.grid.rnd.seed (shapeFromString shape) maze.display
             in
-               {model | maze = maze_}
+               ({model | maze = maze_}
+               , Cmd.none
+               )
 
         Braid act ->
             -- TODO: elm-reactor 0.16 breaks on Slider.init!  Re-enable when it's fixed
@@ -113,21 +131,25 @@ update msg model =
             --        maze = maze_,
             --        braidSlider = Slider.update act model.braidSlider
             --    }
-            model
+            (model, Cmd.none)
 
         LoadAsciiMask lines ->
             let mask = Mask.fromTxt lines
             in
-               {model | maze = Maze.setMask model.maze mask}
+               ({model | maze = Maze.setMask model.maze mask}
+               , Cmd.none
+               )
 
         LoadImageMask png ->
             let mask = Mask.fromImage (png.width, png.height) png.blackFlags
             in
-               {model | maze = Maze.setMask model.maze mask}
+               ({model | maze = Maze.setMask model.maze mask}
+               , Cmd.none
+               )
 
         Tick dt ->
             -- We can use this to display the maze-generation incrementally
-            if ((truncate model.totalTime) >= mazeGenStepTime)
+            let model_ = if ((truncate model.totalTime) >= mazeGenStepTime)
                 then {model |
                     maze = Maze.update model.maze 1,
                     totalTime = 0
@@ -138,6 +160,8 @@ update msg model =
                     Automatic -> {model |
                         totalTime = model.totalTime + dt
                     }
+            in
+               (model_, Cmd.none)
 
         -- Prev ->
         --     {model |
@@ -146,20 +170,26 @@ update msg model =
         --     }
 
         Next ->
-            {model |
+            ({model |
                 maze = Maze.update model.maze 1,
                 totalTime = 0
             }
+            , Cmd.none
+            )
 
         Run ->
-            {model |
+            ({model |
                 genState = Automatic
             }
+            , Cmd.none
+            )
 
         Stop ->
-            {model |
+            ({model |
                 genState = Stepwise
             }
+            , Cmd.none
+            )
 
 --- VIEW ---
 --view : Model -> Html
@@ -188,9 +218,9 @@ view model =
         , input [ class "sizeInput", HA.value (toString maze.grid.rows)
               , on "input" (Json.map UpdateHeight targetValue)] []
         , br [] []
-        , select [ on "change" (Json.map SelectAlg targetSelectedAlg) ] (List.map algToOptions <| Maze.algorithms maze.shape)
-        , select [ on "change" (Json.map SelectView targetSelectedDisplay) ] (List.map viewToOption Maze.displays)
-        , select [ on "change" (Json.map SelectShape targetSelectedShape) ] (List.map shapeToOption Maze.shapes)
+        , select [ on "change" (Json.map SelectAlg targetSelectedOption) ] (List.map algToOptions <| Maze.algorithms maze.shape)
+        , select [ on "change" (Json.map SelectView targetSelectedOption) ] (List.map viewToOption Maze.displays)
+        , select [ on "change" (Json.map SelectShape targetSelectedOption) ] (List.map shapeToOption Maze.shapes)
         , br [] []
         , text "Braids (0 = max deadends, 1 = no deadends):"
         --, map Braid (Slider.view model.braidSlider)
@@ -208,16 +238,8 @@ view model =
 
 -- Form select helpers
 
-targetSelectedAlg : Json.Decoder String
-targetSelectedAlg =
-    at ["target", "value"] string
-
-targetSelectedDisplay : Json.Decoder String
-targetSelectedDisplay =
-    at ["target", "value"] string
-
-targetSelectedShape : Json.Decoder String
-targetSelectedShape =
+targetSelectedOption : Json.Decoder String
+targetSelectedOption =
     at ["target", "value"] string
 
 -- this seems like not the right way to do it
@@ -243,11 +265,11 @@ shapeFromString str =
 
 -- wire the entire application together
 --main : Program Never
-main = Html.beginnerProgram {
-        model = initialModel
+main = Html.program {
+        init = init
         , view = view
         , update = update
-        --subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
     }
 
 --userInput : Signal Msg
@@ -276,6 +298,9 @@ initialModel =
       , genState = Stepwise
     }
 
+init : (Model, Cmd Msg)
+init =
+    (initialModel, Cmd.none)
 
 --tick : Signal Msg 
 --tick = Signal.map (\dt -> Tick dt) (fps 16)
@@ -286,7 +311,11 @@ startTimeSeed = Random.initialSeed 123
 --startTimeSeed = Random.initialSeed <| round startTime
 
 -- port to get current time for seeds
---port startTime : Float
+port startTime : (Int -> msg) -> Sub msg
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    startTime NewTimeSeed
 
 -- ports for file uploads
 --port outputFromFileAscii : Signal (List String)
