@@ -12,6 +12,7 @@ import Html.Events exposing (..)
 import Json.Decode as Json exposing (..)
 import Random exposing (Seed, initialSeed)
 import Time exposing (Time, every)
+import AnimationFrame exposing (..)
 import Slider
 
 -- defaults
@@ -272,21 +273,6 @@ main = Html.program {
         , subscriptions = subscriptions
     }
 
---userInput : Signal Msg
---userInput =
-    --Signal.mergeMany
-        --[ 
-        --actions.signal
-        --, tick
-        ---- Signal.map LoadAsciiMask outputFromFileAscii
-        ----, Signal.map LoadImageMask outputFromFilePNG
-        --]
-
--- manage the model of our application over time
---model : Signal (Model)
---model =
-    --Signal.foldp update initialModel userInput
-
 initialModel : Model
 initialModel =
     {
@@ -302,9 +288,6 @@ init : (Model, Cmd Msg)
 init =
     (initialModel, Cmd.none)
 
---tick : Signal Msg 
---tick = Signal.map (\dt -> Tick dt) (fps 16)
-
 startTimeSeed : Random.Seed
 -- uncomment to debug with consistent seed
 startTimeSeed = Random.initialSeed 123
@@ -315,7 +298,20 @@ port startTime : (Int -> msg) -> Sub msg
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    startTime NewTimeSeed
+    Sub.batch
+    [ AnimationFrame.diffs Tick
+    , startTime NewTimeSeed
+    ]
+
+--userInput : Signal Msg
+--userInput =
+    --Signal.mergeMany
+        --[ 
+        --actions.signal
+        --, tick
+        ---- Signal.map LoadAsciiMask outputFromFileAscii
+        ----, Signal.map LoadImageMask outputFromFilePNG
+        --]
 
 -- ports for file uploads
 --port outputFromFileAscii : Signal (List String)
