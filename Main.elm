@@ -30,7 +30,7 @@ type alias AppState =
     { maze : Maze
     , seedInitialized : Bool
     , seed: Random.Seed
-    --, braidSlider: Slider.Model
+    , braidSlider: Slider.Model
     , totalTime: Float
     , genState: Generation
     }
@@ -124,15 +124,15 @@ update msg model =
                )
 
         Braid act ->
-            -- TODO: elm-reactor 0.16 breaks on Slider.init!  Re-enable when it's fixed
-            -- let factor = Result.withDefault Maze.defaultBraidFactor (String.toFloat model.braidSlider.value)
-            --     maze_ = Maze.updateBraiding model.maze factor
-            -- in
-            --    {model |
-            --        maze = maze_,
-            --        braidSlider = Slider.update act model.braidSlider
-            --    }
-            (model, Cmd.none)
+            let factor = Result.withDefault Maze.defaultBraidFactor (String.toFloat model.braidSlider.value)
+                maze_ = Maze.updateBraiding model.maze factor
+            in
+               ({model |
+                   maze = maze_,
+                   braidSlider = Slider.update act model.braidSlider
+               }
+               , Cmd.none
+               )
 
         LoadAsciiMask lines ->
             let mask = Mask.fromTxt lines
@@ -224,7 +224,7 @@ view model =
         , select [ on "change" (Json.map SelectShape targetSelectedOption) ] (List.map shapeToOption Maze.shapes)
         , br [] []
         , text "Braids (0 = max deadends, 1 = no deadends):"
-        --, map Braid (Slider.view model.braidSlider)
+        , Html.map Braid (Slider.view model.braidSlider)
         , br [] []
         -- , button [ onClick address Prev ] [ text "<" ]
         , button [ onClick Next ] [ text ">" ]
@@ -279,7 +279,7 @@ initialModel =
         maze = Maze.init Maze.defaultAlgorithm initWidth initHeight startTimeSeed initShape initDisplay
       , seedInitialized = False
       , seed = initialSeed 45 -- This will not get used.
-      --, braidSlider = Slider.init { id="braid", label="Braid Factor", value=(toString Maze.defaultBraidFactor), min=0, max=1, step=0.1 }
+      , braidSlider = Slider.init { id="braid", label="Braid Factor", value=(toString Maze.defaultBraidFactor), min=0, max=1, step=0.1 }
       , totalTime = 0.0
       , genState = Stepwise
     }

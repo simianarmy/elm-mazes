@@ -184,19 +184,26 @@ updateBraiding maze factor =
 view : Maze -> Html msg
 view maze =
     let braided = braid maze
+        displayMetadata m =
+            div [] [
+                text <| "Braid factor " ++ (toString m.braidFactor)
+                , br [] []
+                , text <| (toString <| List.length (Grid.deadEnds m.grid)) ++ " deadends"
+                ]
         gridHtml = case maze.display of
             Ascii ->
                 div [] [
                        text <| (toString <| List.length (Grid.deadEnds maze.grid)) ++ " deadends"
                        , pre [] [text <| GridRenderer.toAscii maze.grid Grid.cellToAscii]
-                       --, text <| "With braid factor " ++ (toString braided.braidFactor)
-                       --, br [] []
-                       --, text <| (toString <| List.length (Grid.deadEnds braided.grid)) ++ " deadends"
-                       --, pre [] [text <| GridRenderer.toAscii braided.grid Grid.cellToAscii]
+                       , displayMetadata braided
+                       , pre [] [text <| GridRenderer.toAscii braided.grid Grid.cellToAscii]
                         , viewDistances maze]
 
             Colored ->
-                Element.toHtml <| mazeToElement maze
+                div [] [
+                    displayMetadata maze
+                   , Element.toHtml <| mazeToElement maze
+                   ]
 
             Weighted ->
                 viewWeightedDistances <| braid {maze | braidFactor = 0.5}
