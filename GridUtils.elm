@@ -13,6 +13,7 @@ import ListUtils
 import Array
 import String
 
+-- Returns random cell from list
 sampleCell : List GridCell -> Rnd.GridRnd -> Maybe GridCell
 sampleCell sample rnd =
     let generator = RL.choose sample

@@ -3,8 +3,6 @@ module AldousBroder exposing (on, step)
 
 import Grid exposing (Grid)
 import PolarGrid
-import HexGrid
-import TriangleGrid
 import GridCell exposing (..)
 import Cell exposing (Cell)
 import GridUtils
@@ -19,8 +17,10 @@ on : (Grid -> Maybe GridCell) ->
     (Grid -> GridCell -> List GridCell) ->
     Grid -> Grid
 on startCellFn neighborsFn grid =
-    let grid_ = Grid.updateRnd grid
-        startCell = GridCell.maybeGridCellToGridCell <| startCellFn grid
+    let startCell = GridCell.maybeGridCellToGridCell <| startCellFn grid
+        grid_ = Grid.updateRnd grid
+        -- special case handling of polar grid sizes here...shitty
+        -- where should a more generic size function live?
         gridSize = case startCell of
             PolarCellTag c -> PolarGrid.size grid_
             _ -> Grid.size grid_
@@ -74,30 +74,33 @@ work grid neighborsFn cell =
          else Grid.linkCells grid (Debug.log "linking" cell_) (Debug.log "to" gcneighbor) True
 
 -- Breaking out to try trampoline
-walkRandomly : Grid -> 
+walkRandomly : Grid ->
     (Grid -> GridCell -> List GridCell) ->
-    GridCell -> Int -> Trampoline.Trampoline (Grid)
+    GridCell -> Int ->
+    Trampoline.Trampoline (Grid)
 walkRandomly grid neighborsFn cell unvisited =
     if unvisited == 0
        then Trampoline.done grid
        else
        -- Pick a random neighbor of cell
-       let 
-           -- refresh rng
-           grid_ = Grid.updateRnd grid
-           sample = neighborsFn grid_ cell
+       let
+           neighbors = neighborsFn grid cell
            -- gridcell
-           gcneighbor = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell sample grid.rnd
+           gcneighbor = GridCell.maybeGridCellToGridCell <| GridUtils.sampleCell neighbors grid.rnd
            -- basecell
            neighbor = GridCell.base gcneighbor
+           -- update rng
+           grid_ = Grid.updateRnd grid
        in
           -- if neighbor has no links
           if not <| Cell.hasLinks neighbor
              then
              -- link cell to neighbor and move to the neighbor
              let grid__ = Grid.linkCells grid_ cell gcneighbor True
+                 -- get updated neighbor from grid
+                 neighbor_ = Grid.cellIdToCell grid_ <| Grid.gridCellID gcneighbor
              in
-                Trampoline.jump (\() -> walkRandomly grid__ neighborsFn gcneighbor (unvisited - 1))
+                Trampoline.jump (\() -> walkRandomly grid__ neighborsFn neighbor_ (unvisited - 1))
              else
              -- move to the neighbor w/out linking
              Trampoline.jump (\() -> walkRandomly grid_ neighborsFn gcneighbor unvisited)
