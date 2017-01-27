@@ -260,7 +260,7 @@ viewWeightedDistances maze =
           ++ " Distance: " ++ (toString <| Dict.size pathDistances.cells)
           , Element.toHtml <| GridRenderer.toWeightedElement shortestPathGrid Grid.painter cellSize
           -- long way of checking if the maze isn't complete yet
-          , if (Maybe.withDefault -1 <| Dict.get (GridCell.id finish) pathDistances.cells) == -1
+          , if not <| isGenerated maze
                then text "N/A"
                else
                -- non-lava maze is complete, take a cell from it's shortest path dictionary
@@ -341,6 +341,14 @@ algorithms shape =
            Polar -> List.concat [algs, allAlgs]
            Triangle -> List.concat [algs, triangleAlgs, allAlgs]
            _ -> List.concat [algs, rectAlgs, allAlgs]
+
+-- returns true iff maze generation is complete
+isGenerated : Maze -> Bool
+isGenerated maze =
+    let isUnlinkedCell gc =
+        List.isEmpty <| Grid.linkedCells maze.grid gc
+    in
+       not <| List.any isUnlinkedCell <| Grid.cellsList maze.grid.cells
 
 algToString : Algorithm -> String
 algToString algType =
