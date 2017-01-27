@@ -36,6 +36,17 @@ type alias RowAscii = {
     bottom : String
 }
 
+type alias CellCoords = {
+    x1: Float,
+    x2: Float,
+    x3: Float,
+    x4: Float,
+    y1: Float,
+    y2: Float,
+    y3: Float,
+    y4: Float
+    }
+
 -- constructor
 createGrid : Int -> Int -> Random.Seed -> (Mask -> CellGrid) -> Grid
 createGrid rows cols initSeed cellMaker =
@@ -114,12 +125,13 @@ toAscii grid cellViewer =
        String.concat (List.map rowToStrings (List.range 0 (grid.rows - 1)))
 
 -- generates rectangular grid element
-painter : Grid -> (GridCell -> Color) -> Int -> Element
-painter grid cellPainter cellSize =
+painter : Grid -> (GridCell -> Color) -> Int -> Float -> Element
+painter grid cellPainter cellSize cellInset =
     let imgWidth = cellSize * grid.cols
         imgHeight = cellSize * grid.rows
         ox = toFloat (negate imgWidth) / 2.0
         oy = toFloat imgHeight / 2.0
+        inset = round ((toFloat cellSize) * cellInset)
 
         maybeVisibleLine : LineStyle -> (Bool, Path) -> List Form
         maybeVisibleLine style (visible, seg) =
@@ -127,13 +139,28 @@ painter grid cellPainter cellSize =
                then [traced style seg]
                else []
 
-        cellWalls : LineStyle -> GridCell -> List Form
-        cellWalls style gridcell =
+        cellCoordinatesWithInset : Int -> Int -> Int -> Int -> CellCoords
+        cellCoordinatesWithInset x y cellSize inset =
+            let x1 = toFloat x
+                x4 = toFloat (x + cellSize)
+                x2 = x1 + (toFloat inset)
+                x3 = x4 - (toFloat inset)
+                y1 = toFloat (negate y)
+                y4 = toFloat (y - cellSize)
+                y2 = y1 - (toFloat inset)
+                y3 = y4 + (toFloat inset)
+            in
+                {x1 = x1, x2 = x2, x3 = x3, x4 = x4,
+                 y1 = y1, y2 = y2, y3 = y3, y4 = y4
+                }
+
+        cellWalls : LineStyle -> GridCell -> Int -> Int -> List Form
+        cellWalls style gridcell x y =
             let cell = GridCell.base gridcell
-                x1 = toFloat (cell.col * cellSize)
-                y1 = toFloat (negate cell.row * cellSize)
-                x2 = toFloat ((cell.col + 1) * cellSize)
-                y2 = toFloat (negate (cell.row + 1)  * cellSize)
+                x1 = toFloat x
+                y1 = toFloat (negate y)
+                x2 = x1 + (toFloat cellSize)
+                y2 = (y1 - toFloat cellSize)
             in
                if cell.masked
                   then []
@@ -144,6 +171,31 @@ painter grid cellPainter cellSize =
                       ((not <| GridCell.isValidCell (west grid cell)), (segment (x1, y1) (x1, y2))),
                       ((not <| Cell.isLinked cell (maybeGridCellToCell (east grid cell))), (segment (x2, y1) (x2, y2))),
                       ((not <| Cell.isLinked cell (maybeGridCellToCell (south grid cell))), (segment (x1, y2) (x2, y2)))
+                      ]
+
+        cellWallsWithInset : LineStyle -> GridCell -> Int -> Int -> Int -> List Form
+        cellWallsWithInset style gridcell x y inset =
+            let cell = GridCell.base gridcell
+                {x1,x2,x3,x4,y1,y2,y3,y4} = cellCoordinatesWithInset x y cellSize inset
+            in
+               if cell.masked
+                  then []
+                  else
+                  List.concatMap (traced style) <|
+                      List.concat
+                  [
+                      (if Cell.isLinked cell (maybeGridCellToCell (north grid cell))
+                      then [segment (x2, y1) (x2, y2), segment (x3, y1) (x3, y2)]
+                      else [segment (x2, y2) (x3, y2)])
+                      , (if Cell.isLinked cell (maybeGridCellToCell (south grid cell))
+                      then [segment (x2, y3) (x2, y4), segment (x3, y3) (x3, y4)]
+                      else [segment (x2, y3) (x3, y3)])
+                      , (if Cell.isLinked cell (maybeGridCellToCell (west grid cell))
+                      then [segment (x1, y2) (x2, y2), segment (x1, y3) (x2, y3)]
+                      else [segment (x2, y2) (x2, y3)])
+                      , (if Cell.isLinked cell (maybeGridCellToCell (east grid cell))
+                      then [segment (x3, y2) (x4, y2), segment (x3, y3) (x4, y3)]
+                      else [segment (x3, y2) (x3, y3)])
                       ]
 
         cellBackground : LineStyle -> GridCell -> Form
@@ -162,10 +214,16 @@ painter grid cellPainter cellSize =
             square <| toFloat cellSize
 
         paintCell : GridCell -> Form
-        paintCell cell =
+        paintCell gcell =
             let style = { defaultLine | width = 2 }
+                cell = GridCell.base gcell
+                x = cell.col * cellSize
+                y = cell.row * cellSize
+                wallFn = if inset > 0
+                then cellWallsWithInset style gcell x y inset
+                else cellWalls style gcell x y
             in
-               group <| ((cellBackground style cell) :: (cellWalls style cell))
+               group <| ((cellBackground style gcell) :: wallFn)
 
         -- cast grid.cells to rectCells
         drawables = List.map paintCell (cellsList grid.cells)

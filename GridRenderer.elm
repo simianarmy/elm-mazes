@@ -35,32 +35,32 @@ toColoredElement :
     -- maze grid
     Grid ->
     -- grid painter
-    (Grid -> (GridCell -> Color) -> Int -> GE.Element) ->
+    (Grid -> (GridCell -> Color) -> Int -> Float -> GE.Element) ->
     -- start cell
     GridCell ->
-    -- cell size
-    Int ->
+    -- dimensions
+    Int -> Float ->
     -- returns
     GE.Element
-toColoredElement grid gridPainter startCell cellSize =
+toColoredElement grid gridPainter startCell cellSize cellInset =
     let coloredGrid = ColoredGrid.createGrid grid startCell
         -- curry the colored grid to the cell painter so that we can pass cellPainter function to 
         -- modules that don't know about Colored grids
         cellPainter = ColoredGrid.cellBackgroundColor coloredGrid
     in
-        gridPainter grid cellPainter cellSize
+        gridPainter grid cellPainter cellSize cellInset
 
 toWeightedElement :
     -- maze grid
     Weighted ->
     -- grid painter
-    (Grid -> (GridCell -> Color) -> Int -> GE.Element) ->
-    -- cell size
-    Int ->
+    (Grid -> (GridCell -> Color) -> Int -> Float -> GE.Element) ->
+    -- cell size & inset
+    Int -> Float ->
     -- returns
     GE.Element
-toWeightedElement wgrid gridPainter cellSize =
+toWeightedElement wgrid gridPainter cellSize cellInset =
     let cellPainter = WeightedGrid.cellBackgroundColor wgrid
     in
-        gridPainter wgrid.dgrid.grid cellPainter cellSize
+        gridPainter wgrid.dgrid.grid cellPainter cellSize cellInset
 

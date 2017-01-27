@@ -188,8 +188,8 @@ neighbors grid cell =
                List.append (List.concat [cw, ccw, inward]) outward
         _ -> []
 
-painter : Grid -> (GridCell -> Color) -> Int -> GE.Element
-painter grid cellPainter cellSize =
+painter : Grid -> (GridCell -> Color) -> Int -> Float -> GE.Element
+painter grid cellPainter cellSize cellInset =
     let imgSize = 2 * grid.rows * cellSize
         wall = Color.black
         center = (toFloat imgSize) / 2

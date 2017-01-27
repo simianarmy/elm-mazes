@@ -79,6 +79,9 @@ shapes = [(Rect, "Rectangular")
 cellSize : Int
 cellSize = 30
 
+cellInset : Float
+cellInset = 0.1
+
 
 init : Algorithm -> Int -> Int -> Seed -> Shape -> Display -> Maze
 init algType width height seed shape display =
@@ -255,10 +258,10 @@ viewWeightedDistances maze =
        div [] [
           text <| "Cell distances from " ++ (GridCell.toString start)
           , br [] []
-          , Element.toHtml <| GridRenderer.toWeightedElement wgrid Grid.painter cellSize
+          , Element.toHtml <| GridRenderer.toWeightedElement wgrid Grid.painter cellSize cellInset
           , text <| "Shortest path from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString finish)
           ++ " Distance: " ++ (toString <| Dict.size pathDistances.cells)
-          , Element.toHtml <| GridRenderer.toWeightedElement shortestPathGrid Grid.painter cellSize
+          , Element.toHtml <| GridRenderer.toWeightedElement shortestPathGrid Grid.painter cellSize cellInset
           -- long way of checking if the maze isn't complete yet
           , if not <| isGenerated maze
                then text "N/A"
@@ -289,35 +292,34 @@ viewWeightedDistancesWithLava grid start goal lava =
        div [] [
           text <| "Shortest path with lava from " ++ (GridCell.toString start) ++ " to :" ++ (GridCell.toString goal)
           ++ " Distance: " ++ (toString <| Dict.size lavaPathDistances.cells)
-          , Element.toHtml <| GridRenderer.toWeightedElement lavaPathGrid Grid.painter cellSize
+          , Element.toHtml <| GridRenderer.toWeightedElement lavaPathGrid Grid.painter cellSize cellInset
           ]
 
 -- Renders maze as an HTML element
 mazeToElement : Maze -> Element
 mazeToElement maze =
     let renderer = GridRenderer.toColoredElement maze.grid
-        renderer_ = case maze.shape of
+    in
+        case maze.shape of
             Rect ->
                 let root = Grid.center maze.grid
                 in
-                   renderer Grid.painter root
+                   renderer Grid.painter root cellSize cellInset
 
             Polar ->
                 let root = PolarGrid.center maze.grid
                 in
-                   renderer PolarGrid.painter root
+                   renderer PolarGrid.painter root cellSize 0
 
             Hex ->
                 let root = Grid.center maze.grid
                 in
-                   renderer HexGrid.painter root
+                   renderer HexGrid.painter root cellSize 0
 
             Triangle ->
                 let root = Grid.center maze.grid
                 in
-                   renderer TriangleGrid.painter root
-    in
-       renderer_ cellSize
+                   renderer TriangleGrid.painter root cellSize 0
 
 -- returns available maze algorithms for the maze shape
 algorithms : Shape -> List AlgAttr

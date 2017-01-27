@@ -77,8 +77,8 @@ type alias Points = {
     baseY : Float
 }
 
-painter : Grid -> (GridCell -> Color) -> Int -> GE.Element
-painter grid cellPainter cellSize =
+painter : Grid -> (GridCell -> Color) -> Int -> Float -> GE.Element
+painter grid cellPainter cellSize cellInset =
     let halfWidth = (toFloat cellSize) / 2
         height = (toFloat cellSize) * (sqrt 3) / 2
         halfHeight = height / 2
