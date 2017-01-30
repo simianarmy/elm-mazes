@@ -80,7 +80,7 @@ cellSize : Int
 cellSize = 30
 
 cellInset : Float
-cellInset = 0.1
+cellInset = 0.05
 
 
 init : Algorithm -> Int -> Int -> Seed -> Shape -> Display -> Maze
