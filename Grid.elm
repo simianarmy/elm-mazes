@@ -145,10 +145,10 @@ painter grid cellPainter cellSize cellInset =
                 x4 = toFloat (x + cellSize)
                 x2 = x1 + (toFloat inset)
                 x3 = x4 - (toFloat inset)
-                y1 = toFloat ((negate y) - cellSize)
-                y4 = toFloat (negate y)
-                y2 = y1 + (toFloat inset)
-                y3 = y4 - (toFloat inset)
+                y1 = toFloat (negate y)
+                y4 = y1 - (toFloat cellSize)
+                y2 = y1 - (toFloat inset)
+                y3 = y4 + (toFloat inset)
             in
                 {x1 = x1, x2 = x2, x3 = x3, x4 = x4,
                  y1 = y1, y2 = y2, y3 = y3, y4 = y4
