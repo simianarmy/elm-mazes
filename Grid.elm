@@ -124,6 +124,8 @@ toAscii grid cellViewer =
        "+" ++ (String.repeat grid.cols "---+") ++ "\n" ++
        String.concat (List.map rowToStrings (List.range 0 (grid.rows - 1)))
 
+type alias InsetCoords = {x1: Float, x2: Float, x3: Float, x4: Float, y1: Float, y2: Float, y3: Float, y4: Float}
+
 -- generates rectangular grid element
 painter : Grid -> (GridCell -> Color) -> Int -> Float -> Element
 painter grid cellPainter cellSize cellInset =
@@ -173,10 +175,9 @@ painter grid cellPainter cellSize cellInset =
                       ((not <| Cell.isLinked cell (maybeGridCellToCell (south grid cell))), (segment (x1, y2) (x2, y2)))
                       ]
 
-        cellWallsWithInset : LineStyle -> GridCell -> Int -> Int -> Int -> List Form
-        cellWallsWithInset style gridcell x y inset =
+        cellWallsWithInset : LineStyle -> GridCell -> InsetCoords -> List Form
+        cellWallsWithInset style gridcell {x1,x2,x3,x4,y1,y2,y3,y4} =
             let cell = GridCell.base gridcell
-                {x1,x2,x3,x4,y1,y2,y3,y4} = cellCoordinatesWithInset x y cellSize inset
             in
                if cell.masked
                   then []
@@ -197,16 +198,45 @@ painter grid cellPainter cellSize cellInset =
                       else [segment (x3, y2) (x3, y3)])
                       ]
 
+        -- Draws colored cell background
         cellBackground : LineStyle -> GridCell -> Form
-        cellBackground style cell =
-            let rectcell = GridCell.base cell
-                bgRect = filled (cellPainter cell) (cellToRect rectcell)
+        cellBackground style gc =
+            let cell = GridCell.base gc
+                bgRect = filled (cellPainter gc) (cellToRect cell)
                 --dbg = outlinedText style (Text.fromString " C ")
                 halfSize = (toFloat cellSize) / 2.0
-                cx = toFloat (rectcell.col * cellSize) + halfSize
-                cy = toFloat (negate rectcell.row * cellSize) - halfSize
+                cx = toFloat (cell.col * cellSize) + halfSize
+                cy = toFloat (negate cell.row * cellSize) - halfSize
             in
                move (cx, cy) bgRect
+
+        -- Draws rectangles for each of the inset regions (up to 5)
+        cellBackgroundWithInset : LineStyle -> GridCell -> InsetCoords -> Form
+        cellBackgroundWithInset style gc {x1,x2,x3,x4,y1,y2,y3,y4} =
+            let cell = GridCell.base gc
+                halfSize = (toFloat cellSize) / 2.0
+                halfInsetWidth = (x3 - x2) / 2.0
+                halfInsetHeight = (y3 - y2) / 2.0
+                cx = toFloat (cell.col * cellSize) + halfSize
+                cy = toFloat (negate cell.row * cellSize) - halfSize
+                fillfn = filled (cellPainter gc)
+                middleRect = fillfn <| rect (x3 - x2) (y3 - y2)
+                rects = middleRect :: List.concat [
+                  (if Cell.isLinked cell (maybeGridCellToCell (north grid cell))
+                  then [moveY -halfInsetHeight <| fillfn <| rect (x3 - x2) (y2 - y1)]
+                  else [])
+                  , (if Cell.isLinked cell (maybeGridCellToCell (south grid cell))
+                  then [moveY halfInsetHeight <| fillfn <| rect (x3 - x2) (y4 - y3)]
+                  else [])
+                  , (if Cell.isLinked cell (maybeGridCellToCell (west grid cell))
+                  then [moveX -halfInsetWidth <| fillfn <| rect (x2 - x1) (y3 - y2)]
+                  else [])
+                  , (if Cell.isLinked cell (maybeGridCellToCell (east grid cell))
+                  then [moveX halfInsetWidth <| fillfn <| rect (x4 - x3) (y3 - y2)]
+                  else [])
+                  ]
+            in
+               move (cx, cy) <| group rects
 
         cellToRect : Cell -> Shape
         cellToRect cell =
@@ -218,11 +248,16 @@ painter grid cellPainter cellSize cellInset =
                 cell = GridCell.base gcell
                 x = cell.col * cellSize
                 y = cell.row * cellSize
-                wallFn = if inset > 0
-                then cellWallsWithInset style gcell x y inset
-                else cellWalls style gcell x y
-            in
-               group <| ((cellBackground style gcell) :: wallFn)
+                forms = if inset > 0
+                           then
+                           let insetCoords = cellCoordinatesWithInset x y cellSize inset
+                               walls = cellWallsWithInset style gcell insetCoords
+                               bg = cellBackgroundWithInset style gcell insetCoords
+                           in
+                              bg :: walls
+                        else (cellBackground style gcell) :: (cellWalls style gcell x y)
+               in
+               group forms
 
         -- cast grid.cells to rectCells
         drawables = List.map paintCell (cellsList grid.cells)

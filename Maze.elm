@@ -45,6 +45,7 @@ type Display = Ascii
              | Weighted
 
 type Shape = Rect
+            | RectWeave
             | Polar
             | Hex
             | Triangle
@@ -71,6 +72,7 @@ displays = [(Ascii, "ASCII")
         , (Weighted, "Weighted")
         ]
 shapes = [(Rect, "Rectangular")
+        , (RectWeave, "Rectangular Weaved")
         , (Polar, "Polar")
         , (Hex, "Hexagonal")
         , (Triangle, "Triangle")
@@ -88,6 +90,7 @@ init algType width height seed shape display =
     let mask = Mask.createMask width height
         cellGenFn = case shape of
             Rect -> Grid.makeCells
+            RectWeave -> Grid.makeCells
             Polar -> PolarGrid.makeCells
             Hex -> HexGrid.makeCells
             Triangle -> TriangleGrid.makeCells
@@ -137,6 +140,7 @@ neighborsFn : Maze -> (Grid -> GridCell -> List GridCell)
 neighborsFn maze =
     case maze.shape of
         Rect -> Grid.neighbors
+        RectWeave -> Grid.neighbors
         Polar -> PolarGrid.neighbors
         Hex -> HexGrid.neighbors
         Triangle -> TriangleGrid.neighbors
@@ -304,6 +308,11 @@ mazeToElement maze =
             Rect ->
                 let root = Grid.center maze.grid
                 in
+                   renderer Grid.painter root cellSize 0
+
+            RectWeave ->
+                let root = Grid.center maze.grid
+                in
                    renderer Grid.painter root cellSize cellInset
 
             Polar ->
@@ -340,6 +349,9 @@ algorithms shape =
         ]
     in
        case shape of
+           RectWeave -> [
+               {alg = RecursiveBacktracker, name = algToString RecursiveBacktracker}
+               ]
            Polar -> List.concat [algs, allAlgs]
            Triangle -> List.concat [algs, triangleAlgs, allAlgs]
            _ -> List.concat [algs, rectAlgs, allAlgs]
