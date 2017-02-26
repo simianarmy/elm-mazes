@@ -124,8 +124,6 @@ toAscii grid cellViewer =
        "+" ++ (String.repeat grid.cols "---+") ++ "\n" ++
        String.concat (List.map rowToStrings (List.range 0 (grid.rows - 1)))
 
-type alias InsetCoords = {x1: Float, x2: Float, x3: Float, x4: Float, y1: Float, y2: Float, y3: Float, y4: Float}
-
 -- generates rectangular grid element
 painter : Grid -> (GridCell -> Color) -> Int -> Float -> Element
 painter grid cellPainter cellSize cellInset =
@@ -175,7 +173,7 @@ painter grid cellPainter cellSize cellInset =
                       ((not <| Cell.isLinked cell (maybeGridCellToCell (south grid cell))), (segment (x1, y2) (x2, y2)))
                       ]
 
-        cellWallsWithInset : LineStyle -> GridCell -> InsetCoords -> List Form
+        cellWallsWithInset : LineStyle -> GridCell -> CellCoords -> List Form
         cellWallsWithInset style gridcell {x1,x2,x3,x4,y1,y2,y3,y4} =
             let cell = GridCell.base gridcell
             in
@@ -211,7 +209,7 @@ painter grid cellPainter cellSize cellInset =
                move (cx, cy) bgRect
 
         -- Draws rectangles for each of the inset regions (up to 5)
-        cellBackgroundWithInset : LineStyle -> GridCell -> InsetCoords -> Form
+        cellBackgroundWithInset : LineStyle -> GridCell -> CellCoords -> Form
         cellBackgroundWithInset style gc {x1,x2,x3,x4,y1,y2,y3,y4} =
             let cell = GridCell.base gc
                 halfSize = (toFloat cellSize) / 2.0
