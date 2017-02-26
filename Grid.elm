@@ -213,24 +213,27 @@ painter grid cellPainter cellSize cellInset =
         cellBackgroundWithInset style gc {x1,x2,x3,x4,y1,y2,y3,y4} =
             let cell = GridCell.base gc
                 halfSize = (toFloat cellSize) / 2.0
-                halfInsetWidth = (x3 - x2) / 2.0
-                halfInsetHeight = (y3 - y2) / 2.0
+                halfInset = abs (x2 - x1) / 2.0
+                insetW = abs (x3 - x2)
+                insetH = abs (y3 - y2)
+                halfInsetWidth = insetW / 2.0
+                halfInsetHeight = insetH / 2.0
                 cx = toFloat (cell.col * cellSize) + halfSize
                 cy = toFloat (negate cell.row * cellSize) - halfSize
                 fillfn = filled (cellPainter gc)
                 middleRect = fillfn <| rect (x3 - x2) (y3 - y2)
                 rects = middleRect :: List.concat [
                   (if Cell.isLinked cell (maybeGridCellToCell (north grid cell))
-                  then [moveY -halfInsetHeight <| fillfn <| rect (x3 - x2) (y2 - y1)]
+                  then [moveY (halfInsetHeight + halfInset) <| fillfn <| rect (x3 - x2) (abs (y2 - y1))]
                   else [])
                   , (if Cell.isLinked cell (maybeGridCellToCell (south grid cell))
-                  then [moveY halfInsetHeight <| fillfn <| rect (x3 - x2) (y4 - y3)]
+                  then [moveY (negate (halfInsetHeight + halfInset)) <| fillfn <| rect (x3 - x2) (abs (y4 - y3))]
                   else [])
                   , (if Cell.isLinked cell (maybeGridCellToCell (west grid cell))
-                  then [moveX -halfInsetWidth <| fillfn <| rect (x2 - x1) (y3 - y2)]
+                  then [moveX (negate (halfInsetWidth + halfInset)) <| fillfn <| rect (x2 - x1) (abs (y3 - y2))]
                   else [])
                   , (if Cell.isLinked cell (maybeGridCellToCell (east grid cell))
-                  then [moveX halfInsetWidth <| fillfn <| rect (x4 - x3) (y3 - y2)]
+                  then [moveX (halfInsetWidth + halfInset) <| fillfn <| rect (x4 - x3) (abs (y3 - y2))]
                   else [])
                   ]
             in
@@ -242,7 +245,7 @@ painter grid cellPainter cellSize cellInset =
 
         paintCell : GridCell -> Form
         paintCell gcell =
-            let style = { defaultLine | width = 2 }
+            let style = { defaultLine | width = 1 }
                 cell = GridCell.base gcell
                 x = cell.col * cellSize
                 y = cell.row * cellSize
