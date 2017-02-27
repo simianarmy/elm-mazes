@@ -99,8 +99,8 @@ toAscii grid cellViewer =
         cellToString cell ascii =
             let bcell = GridCell.base cell
                 body = " " ++ (cellViewer cell) ++ " "
-                east_boundary = (if Cell.isLinked bcell (maybeGridCellToCell (east grid bcell)) then " " else "|")
-                south_boundary = (if Cell.isLinked bcell (maybeGridCellToCell (south grid bcell)) then "   " else "---")
+                east_boundary = (if isLinkedTo cell (east grid bcell) then " " else "|")
+                south_boundary = (if isLinkedTo cell (south grid bcell) then "   " else "---")
                 curtop = ascii.top
                 curbottom = ascii.bottom
             in
@@ -169,8 +169,8 @@ painter grid cellPainter cellSize cellInset =
                   [
                       ((not <| GridCell.isValidCell (north grid cell)), (segment (x1, y1) (x2, y1))),
                       ((not <| GridCell.isValidCell (west grid cell)), (segment (x1, y1) (x1, y2))),
-                      ((not <| Cell.isLinked cell (maybeGridCellToCell (east grid cell))), (segment (x2, y1) (x2, y2))),
-                      ((not <| Cell.isLinked cell (maybeGridCellToCell (south grid cell))), (segment (x1, y2) (x2, y2)))
+                      ((not <| isLinkedTo gridcell (east grid cell)), (segment (x2, y1) (x2, y2))),
+                      ((not <| isLinkedTo gridcell (south grid cell)), (segment (x1, y2) (x2, y2)))
                       ]
 
         cellWallsWithInset : LineStyle -> GridCell -> CellCoords -> List Form
@@ -182,16 +182,16 @@ painter grid cellPainter cellSize cellInset =
                   else
                   List.map (traced style) <|
                   List.concat [
-                      (if Cell.isLinked cell (maybeGridCellToCell (north grid cell))
+                      (if isLinkedTo gridcell (north grid cell)
                       then [segment (x2, y1) (x2, y2), segment (x3, y1) (x3, y2)]
                       else [segment (x2, y2) (x3, y2)])
-                      , (if Cell.isLinked cell (maybeGridCellToCell (south grid cell))
+                      , (if isLinkedTo gridcell (south grid cell)
                       then [segment (x2, y3) (x2, y4), segment (x3, y3) (x3, y4)]
                       else [segment (x2, y3) (x3, y3)])
-                      , (if Cell.isLinked cell (maybeGridCellToCell (west grid cell))
+                      , (if isLinkedTo gridcell (west grid cell)
                       then [segment (x1, y2) (x2, y2), segment (x1, y3) (x2, y3)]
                       else [segment (x2, y2) (x2, y3)])
-                      , (if Cell.isLinked cell (maybeGridCellToCell (east grid cell))
+                      , (if isLinkedTo gridcell (east grid cell)
                       then [segment (x3, y2) (x4, y2), segment (x3, y3) (x4, y3)]
                       else [segment (x3, y2) (x3, y3)])
                       ]
@@ -223,16 +223,16 @@ painter grid cellPainter cellSize cellInset =
                 fillfn = filled (cellPainter gc)
                 middleRect = fillfn <| rect (x3 - x2) (y3 - y2)
                 rects = middleRect :: List.concat [
-                  (if Cell.isLinked cell (maybeGridCellToCell (north grid cell))
+                  (if isLinkedTo gc (north grid cell)
                   then [moveY (halfInsetHeight + halfInset) <| fillfn <| rect (x3 - x2) (abs (y2 - y1))]
                   else [])
-                  , (if Cell.isLinked cell (maybeGridCellToCell (south grid cell))
+                  , (if isLinkedTo gc (south grid cell)
                   then [moveY (negate (halfInsetHeight + halfInset)) <| fillfn <| rect (x3 - x2) (abs (y4 - y3))]
                   else [])
-                  , (if Cell.isLinked cell (maybeGridCellToCell (west grid cell))
+                  , (if isLinkedTo gc (west grid cell)
                   then [moveX (negate (halfInsetWidth + halfInset)) <| fillfn <| rect (x2 - x1) (abs (y3 - y2))]
                   else [])
-                  , (if Cell.isLinked cell (maybeGridCellToCell (east grid cell))
+                  , (if isLinkedTo gc (east grid cell)
                   then [moveX (halfInsetWidth + halfInset) <| fillfn <| rect (x4 - x3) (abs (y3 - y2))]
                   else [])
                   ]
@@ -375,6 +375,11 @@ center : Grid -> GridCell
 center grid =
     maybeGridCellToGridCell <| getCell grid (grid.rows // 2) (grid.cols // 2)
 
+-- helper for checking if passage to neighbor exists
+isLinkedTo : GridCell -> Maybe GridCell -> Bool
+isLinkedTo gc other =
+    Cell.isLinked (GridCell.base gc) <| maybeGridCellToCell other
+
 randomCell : Grid -> Maybe GridCell
 randomCell grid =
     let (row, col) = Mask.randomLocation grid.mask grid.rnd
@@ -478,6 +483,7 @@ linkCellsHelper grid cell cellToLink =
                 PolarCellTag (pc, data) -> PolarCellTag ((linker pc), data)
                 HexCellTag rc -> HexCellTag (linker rc)
                 TriangleCellTag rc -> TriangleCellTag (linker rc)
+                OuterCellTag rc -> OuterCellTag (linker rc)
 
     in
        {grid | cells = cellsListToCellGrid <| List.map linkMatched (cellsList grid.cells)}

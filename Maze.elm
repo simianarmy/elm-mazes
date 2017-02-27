@@ -6,6 +6,7 @@ import ColoredGrid
 import WeightedGrid
 import PolarGrid
 import HexGrid
+import WeaveGrid
 import TriangleGrid
 import GridRenderer
 import Rnd
@@ -113,11 +114,7 @@ genAlg algName shape =
     let randCellFn = case shape of
             Polar -> PolarGrid.randomCell
             _ -> Grid.randomCell
-        neighborFn = case shape of
-            Polar -> PolarGrid.neighbors
-            Hex -> HexGrid.neighbors
-            Triangle -> TriangleGrid.neighbors
-            _ -> Grid.neighbors
+        neighborFn = neighborsFn shape
     in
        --BinaryTree.step randCellFn neighborFn
        case algName of
@@ -136,11 +133,11 @@ genAlg algName shape =
            RecursiveBacktracker -> RecursiveBacktracker.step randCellFn neighborFn
 
 -- returns neighbors function for the grid type
-neighborsFn : Maze -> (Grid -> GridCell -> List GridCell)
-neighborsFn maze =
-    case maze.shape of
+neighborsFn : Shape -> (Grid -> GridCell -> List GridCell)
+neighborsFn shape =
+    case shape of
         Rect -> Grid.neighbors
-        RectWeave -> Grid.neighbors
+        RectWeave -> WeaveGrid.neighbors
         Polar -> PolarGrid.neighbors
         Hex -> HexGrid.neighbors
         Triangle -> TriangleGrid.neighbors
@@ -155,7 +152,7 @@ reset maze =
 
 braid : Maze -> Maze
 braid maze =
-    let bgrid = Grid.braid maze.grid (neighborsFn maze) maze.braidFactor
+    let bgrid = Grid.braid maze.grid (neighborsFn maze.shape) maze.braidFactor
     in
        { maze |
        grid = bgrid

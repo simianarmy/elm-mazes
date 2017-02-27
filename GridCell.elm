@@ -10,15 +10,14 @@ type GridCell
     | PolarCellTag (BaseCell, (CellID, CellLinks))
     | HexCellTag BaseCell
     | TriangleCellTag BaseCell
+    | OuterCellTag BaseCell
 
 -- attribute functions
 id : GridCell -> CellID
 id gc =
     case gc of
-        RectCellTag bc -> bc.id
         PolarCellTag (bc, _) -> bc.id
-        HexCellTag bc -> bc.id
-        TriangleCellTag bc -> bc.id
+        _ -> .id <| base gc
 
 row : GridCell -> Int
 row gc =
@@ -38,10 +37,8 @@ isValidCell cell =
 base : GridCell -> BaseCell
 base gc =
     case gc of
-        RectCellTag bc -> bc
         PolarCellTag (bc, _) -> bc
-        HexCellTag bc -> bc
-        TriangleCellTag bc -> bc
+        _ -> base gc
 
 links : GridCell -> CellLinks
 links gc =
@@ -59,9 +56,7 @@ toPolarCell : GridCell -> (BaseCell, (CellID, CellLinks))
 toPolarCell cell =
     case cell of
         PolarCellTag c -> c
-        RectCellTag c -> (c, ((-1, -1), Set.empty))
-        HexCellTag c -> (c, ((-1, -1), Set.empty))
-        TriangleCellTag c -> (c, ((-1, -1), Set.empty))
+        _ -> (base cell, ((-1, -1), Set.empty))
 
 setInwardCell : GridCell -> GridCell -> GridCell
 setInwardCell cell inward =
@@ -91,18 +86,15 @@ maybeGridCellToMaybeCell cell =
 -- defaults to nil RectCellTag
 maybeGridCellToGridCell : Maybe GridCell -> GridCell
 maybeGridCellToGridCell cell =
-    case cell of
-        Nothing -> RectCellTag Cell.createNilCell
-        Just (RectCellTag c) -> RectCellTag c
-        Just (PolarCellTag p) -> PolarCellTag p
-        Just (HexCellTag c) -> HexCellTag c
-        Just (TriangleCellTag c) -> TriangleCellTag c
+    Maybe.withDefault (RectCellTag Cell.createNilCell) cell
 
 -- Helper to apply filter to list of gridcells
 filterGridCells : (BaseCell -> Bool) -> List GridCell -> List GridCell
 filterGridCells fn cells =
     List.filter (fn << base) cells
 
+-- this doesn't make sense to me anymore.  I guess it uses the type of the 1st
+-- param to create a new object using the 2nd
 cellToGridCell : GridCell -> BaseCell -> GridCell
 cellToGridCell gc bc =
        case gc of
@@ -110,6 +102,7 @@ cellToGridCell gc bc =
            PolarCellTag (p, rest) -> PolarCellTag (bc, rest)
            HexCellTag c -> HexCellTag bc
            TriangleCellTag c -> TriangleCellTag bc
+           OuterCellTag c -> OuterCellTag bc
 
 setVisited: GridCell -> GridCell
 setVisited gc =
