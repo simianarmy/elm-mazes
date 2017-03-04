@@ -33,12 +33,15 @@ isValidCell cell =
         Nothing -> False
         Just cell -> True
 
--- returns cell's base object
+-- returns cell's base object (destructures union type)
 base : GridCell -> BaseCell
 base gc =
     case gc of
-        PolarCellTag (bc, _) -> bc
-        _ -> base gc
+        RectCellTag b -> b
+        PolarCellTag (b, _) -> b
+        HexCellTag b -> b
+        TriangleCellTag b -> b
+        OuterCellTag b -> b
 
 links : GridCell -> CellLinks
 links gc =
