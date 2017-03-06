@@ -7,6 +7,7 @@ import HexGrid
 import GridCell exposing (..)
 import Cell exposing (Cell)
 import GridUtils
+import Algorithms exposing (GridOperators)
 
 import Random
 import Array
@@ -27,11 +28,8 @@ on startCellFn neighborsFn grid =
 
 -- Processes a single cell (using single 1-based index for lookup)
 -- step value shouldn't care about shape of the grid
-step : (Grid -> Maybe GridCell) ->
-     (Grid -> GridCell -> List GridCell) ->
-     Grid -> Int ->
-     Grid
-step startCellFn neighborsFn grid i =
+step : GridOperators -> Grid -> Int -> Grid
+step gridOps grid i =
     -- Find most recent cell using the tag property
     if List.isEmpty <| grid.stack
        then
@@ -39,7 +37,7 @@ step startCellFn neighborsFn grid i =
           then Debug.log "DONE!" grid -- we're done
           -- else start at a random cell
           else 
-          let current = GridCell.maybeGridCellToGridCell <| startCellFn grid
+          let current = GridCell.maybeGridCellToGridCell <| gridOps.startCell grid
           in
              {grid | 
              stack = (GridCell.id current) :: grid.stack
@@ -51,14 +49,11 @@ step startCellFn neighborsFn grid i =
                 Nothing -> grid
                 Just cid ->
                     let currentCell = GridCell.maybeGridCellToGridCell <| Grid.getCellById grid cid
-                    in work grid neighborsFn currentCell
+                    in work grid gridOps currentCell
 
-work : Grid -> 
-    (Grid -> GridCell -> List GridCell) ->
-    GridCell ->
-    Grid
-work grid neighborsFn currentCell =
-    let neighbors = Grid.filterNeighbors2 neighborsFn (\c -> not <| Cell.hasLinks (GridCell.base c)) grid currentCell
+work : Grid -> GridOperators -> GridCell -> Grid
+work grid gridOps currentCell =
+    let neighbors = Grid.filterNeighbors2 gridOps.neighbors (\c -> not <| Cell.hasLinks (GridCell.base c)) grid currentCell
     in
        -- is current cell at a dead end?
        if isEmpty neighbors
@@ -70,7 +65,7 @@ work grid neighborsFn currentCell =
           -- carve a path to a random neighbor
           let neighbor = GridUtils.sampleCell neighbors grid.rnd
               |> GridCell.maybeGridCellToGridCell
-              grid_ = Grid.linkCells grid currentCell neighbor True
+              grid_ = gridOps.linkCells grid currentCell neighbor True
               grid__ = Grid.updateRnd grid_
           in
               -- and make it the head of the stack

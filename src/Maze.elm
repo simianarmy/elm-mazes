@@ -12,12 +12,14 @@ import GridRenderer
 import Rnd
 import Mask exposing (Mask)
 import GridCell exposing (GridCell)
+import Algorithms exposing (GridOperators)
 import BinaryTree
 import Sidewinder
 import AldousBroder
 import Wilsons
 import HuntAndKill
 import RecursiveBacktracker 
+
 import GridUtils
 import Distances
 
@@ -115,6 +117,12 @@ genAlg algName shape =
             Polar -> PolarGrid.randomCell
             _ -> Grid.randomCell
         neighborFn = neighborsFn shape
+        linkFn = linkCellsFn shape
+        algOps = {
+            startCell = randCellFn,
+            neighbors = neighborFn,
+            linkCells = linkFn
+        }
     in
        --BinaryTree.step randCellFn neighborFn
        case algName of
@@ -130,7 +138,7 @@ genAlg algName shape =
            --HuntAndKill -> HuntAndKill.on randCellFn neighborFn
            HuntAndKill -> HuntAndKill.step randCellFn neighborFn
            -- RecursiveBacktracker -> RecursiveBacktracker.on randCellFn neighborFn
-           RecursiveBacktracker -> RecursiveBacktracker.step randCellFn neighborFn
+           RecursiveBacktracker -> RecursiveBacktracker.step algOps
 
 -- returns neighbors function for the grid type
 neighborsFn : Shape -> (Grid -> GridCell -> List GridCell)
@@ -141,6 +149,13 @@ neighborsFn shape =
         Polar -> PolarGrid.neighbors
         Hex -> HexGrid.neighbors
         Triangle -> TriangleGrid.neighbors
+
+-- returns cell-linking function for the grid type
+linkCellsFn : Shape -> (Grid -> GridCell -> GridCell -> Bool -> Grid)
+linkCellsFn shape =
+    case shape of
+        RectWeave -> WeaveGrid.linkCells
+        _ -> Grid.linkCells
 
 reset : Maze -> Maze
 reset maze =

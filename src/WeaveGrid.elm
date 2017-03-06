@@ -1,9 +1,14 @@
 -- Weave Grid module
-module WeaveGrid exposing (neighbors)
+module WeaveGrid exposing (neighbors, linkCells)
 
 import Grid exposing (..)
 import GridCell exposing (..)
 import Cell exposing (..)
+
+-- TODO:
+-- WeaveGrids require maintaining a list of 'under' cells.
+-- Figure out how to keep track of these without adding an extra property to Grid
+
 
 neighbors : Grid -> GridCell -> List GridCell
 neighbors grid gc =
@@ -86,3 +91,47 @@ isVerticalPassage grid gc =
        (Grid.isLinkedTo gc (south grid c)) &&
        (not <| Grid.isLinkedTo gc (east grid c)) &&
        (not <| Grid.isLinkedTo gc (west grid c))
+
+-- link 2 cells in a grid and return the modified grid
+linkCells : Grid -> GridCell -> GridCell -> Bool -> Grid
+linkCells grid cell cell2 bidi =
+    let bc1 = GridCell.base cell
+        bc2 = GridCell.base cell2
+        -- Compares two cells.  if equal, returns first
+        checkEqualCells : GridCell -> GridCell -> Maybe GridCell
+        checkEqualCells c1 c2 =
+            if (GridCell.toString c1) == (GridCell.toString c2)
+               then Just c1
+               else Nothing
+
+        checkCommonNeighbor : (Grid -> Cell -> Maybe GridCell) -> (Grid -> Cell -> Maybe GridCell) -> Maybe GridCell
+        checkCommonNeighbor dirFn1 dirFn2 =
+            case dirFn1 grid bc1 of
+                Just c1 -> (dirFn2 grid bc2)
+                    |> Maybe.andThen (checkEqualCells c1)
+                Nothing -> Nothing
+
+        -- TODO: Look for Elm idiom for prettying this up?
+        -- There must be a way...
+        findTunnelCell : Maybe GridCell
+        findTunnelCell =
+            case checkCommonNeighbor north south of
+                Just c -> Just c
+                Nothing ->
+                    case checkCommonNeighbor south north of
+                        Just c -> Just c
+                        Nothing ->
+                            case checkCommonNeighbor east west of
+                                Just c -> Just c
+                                Nothing ->
+                                    checkCommonNeighbor west east
+
+    in
+       case findTunnelCell of
+           Just n -> tunnelUnder grid cell n
+           -- Call regular ol' linkCells from the Grid module
+           Nothing -> Grid.linkCells grid cell cell2 bidi
+
+tunnelUnder : Grid -> GridCell -> GridCell -> Grid
+tunnelUnder grid overCell underCell =
+    grid
