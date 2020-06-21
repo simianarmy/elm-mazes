@@ -1,7 +1,11 @@
 module Arithmetic exposing (isEven, isOdd)
 
+
 isEven : Int -> Bool
-isEven x = x % 2 == 0
+isEven x =
+    modBy 2 x == 0
+
 
 isOdd : Int -> Bool
-isOdd x = not <| isEven x
+isOdd x =
+    not <| isEven x

@@ -1,41 +1,62 @@
 -- kind of useful functions for grids
 -- there should be more in here
+
+
 module GridUtils exposing (..)
 
-import Rnd
-import GridCell exposing (GridCell)
+import Array
 import Cell exposing (Cell)
-
-import Random
-import Random.List as RL
+import GridCell exposing (GridCell)
 import List
 import ListUtils
-import Array
+import Random
+import Random.List as RL
+import Rnd
 import String
 
+
+
 -- Returns random cell from list
+
+
 sampleCell : List GridCell -> Rnd.GridRnd -> Maybe GridCell
 sampleCell sample rnd =
-    let generator = RL.choose sample
-        res = Tuple.first <| Random.step generator rnd.seed
+    let
+        generator =
+            RL.choose sample
+
+        res =
+            Tuple.first <| Random.step generator rnd.seed
     in
-        Tuple.first res
+    Tuple.first res
+
+
 
 -- returns 0-based index of a cell in a list or -1 if not found
+
+
 indexOfCell : GridCell -> List GridCell -> Int
 indexOfCell cell cells =
-    let id = GridCell.id cell
+    let
+        id =
+            GridCell.id cell
     in
-        ListUtils.firstIndexOf id <| List.map GridCell.id cells
+    ListUtils.firstIndexOf id <| List.map GridCell.id cells
+
 
 smooshMaybes : List (Maybe GridCell) -> List GridCell
 smooshMaybes maybes =
-    let cellToList cell =
-        case cell of
-            Just cell -> [cell]
-            Nothing -> []
+    let
+        cellToList cell =
+            case cell of
+                Just cell ->
+                    [ cell ]
+
+                Nothing ->
+                    []
     in
-        List.concat <| List.map cellToList maybes
+    List.concat <| List.map cellToList maybes
+
 
 cellsToString : List GridCell -> String
 cellsToString cells =
