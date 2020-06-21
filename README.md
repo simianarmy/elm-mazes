@@ -10,13 +10,11 @@ Using deadfoxygrandpa/Elm-Test for TDD
 
 ## Requirements
 
-Elm 0.18
-
-> npm install -g elm@0.18
+> npm install
 
 ## Build
 
-> yarn build
+> npm run build
 
 ## Run
 
