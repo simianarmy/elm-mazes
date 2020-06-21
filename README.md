@@ -4,10 +4,18 @@ Implementing Mazes in Elm from @Jamis Buck's awesome book Mazes for Programmers.
 
 Using deadfoxygrandpa/Elm-Test for TDD
 
-## Preview
+## Install
 
-cd to project directory
+Elm 0.18
 
-    > open index.html
+> npm install -g elm@0.18
+
+## Build
+
+> ./build.sh
+
+## Run
+
+> open index.html
 
 to see it in action!
