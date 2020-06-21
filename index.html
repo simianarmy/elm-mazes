@@ -23,18 +23,18 @@ input.slider-text {
     font-size: 12px;
 }
 </style>
-<script type="text/javascript" src="libs/zlib.js"></script>
-<script type="text/javascript" src="libs/png.js"></script>
+<script type="text/javascript" src="src/libs/zlib.js"></script>
+<script type="text/javascript" src="src/libs/png.js"></script>
 </head>
 <body>
-<script type="text/javascript" src="elm.js"></script>
-<!-- <script type="text/javascript" src="ports.js"></script> -->
-<script type="text/javascript" src="/_reactor/debug.js"></script>
-<script>
+  <script type="text/javascript" src="dist/elm.js"></script>
+  <!-- <script type="text/javascript" src="ports.js"></script> -->
+  <!--<script type="text/javascript" src="/_reactor/debug.js"></script>-->
+  <script>
     var app = Elm.Main.fullscreen();
 
     // send current time to initialize rng
     app.ports.startTime.send(Date.now());
-</script>
+  </script>
 </body>
 </html>

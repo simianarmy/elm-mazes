@@ -1,0 +1,18 @@
+{
+  "name": "elm-mazes",
+  "version": "1.0.0",
+  "description": "Maze generation app written in the Elm language",
+  "main": "index.js",
+  "repository": "git@github.com:simianarmy/elm-mazes.git",
+  "author": "Marc Mauger <simianarmy@gmail.com>",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "elm": "0.18.0",
+    "node-elm-compiler": "4.5.0",
+    "parcel-bundler": "^1.12.4"
+  },
+  "scripts": {
+    "build": "elm-make --output dist/elm.js src/Main.elm"
+  }
+}
