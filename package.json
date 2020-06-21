@@ -13,6 +13,6 @@
     "parcel-bundler": "^1.12.4"
   },
   "scripts": {
-    "build": "elm-make --output dist/elm.js src/Main.elm"
+    "build": "elm-make --yes --output dist/elm.js src/Main.elm"
   }
 }
