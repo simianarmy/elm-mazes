@@ -14,24 +14,35 @@ input.slider-text {
     width: 35px;
 }
 #main {
-    width: 60%;
-    margin-left: auto;
-    margin-right: auto;
+    margin-left: 20px;
 }
 #elm-reactor-side-bar {
     width: 40% !important;
     font-size: 12px;
+}
+footer {
+  margin-top: 40px;
+  margin-left: 20px;
 }
 </style>
 <script type="text/javascript" src="src/libs/zlib.js"></script>
 <script type="text/javascript" src="src/libs/png.js"></script>
 </head>
 <body>
+  <div id="main"></div>
+  <footer>
+    <div>
+    <pre>
+    Marc Mauger<br/>
+    @simianarmy<br/>
+    <a href="https://github.com/simianarmy/elm-mazes">source code</a></pre>
+    </div>
+  </footer>
   <script type="text/javascript" src="dist/elm.js"></script>
   <!-- <script type="text/javascript" src="ports.js"></script> -->
   <!--<script type="text/javascript" src="/_reactor/debug.js"></script>-->
   <script>
-    var app = Elm.Main.fullscreen();
+    var app = Elm.Main.embed(document.querySelector('#main'));
 
     // send current time to initialize rng
     app.ports.startTime.send(Date.now());
