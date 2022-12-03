@@ -6,9 +6,11 @@
   "repository": "git@github.com:simianarmy/elm-mazes.git",
   "author": "Marc Mauger <simianarmy@gmail.com>",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "elm-format": "^0.8.5"
+  },
   "devDependencies": {
-    "elm": "0.18.0",
+    "elm": "^0.19.1-5",
     "node-elm-compiler": "4.5.0",
     "parcel-bundler": "^1.12.4"
   },
